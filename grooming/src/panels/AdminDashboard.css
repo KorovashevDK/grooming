@@ -1,0 +1,328 @@
+@import './EmployeeDashboard.css';
+
+.admin-dashboard .ed-hero-title {
+  max-width: 620px;
+}
+
+.adm-grid {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.adm-chip-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  padding: 8px 16px 18px;
+}
+
+.adm-panel-gap {
+  margin-top: 18px;
+}
+
+.adm-panel-gap .vkuiGroup {
+  margin-top: 18px;
+}
+
+.adm-grid-two {
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+}
+
+.adm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.adm-section-title {
+  margin: 18px 0 10px;
+  color: #fff1de;
+  font-weight: 700;
+}
+
+.adm-order-card {
+  padding-top: 14px;
+  margin-bottom: 14px;
+  background: #fff1de;
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(58, 36, 28, 0.16);
+}
+
+.adm-schedule-panel {
+  width: 100%;
+  max-width: 100%;
+  justify-self: stretch;
+  margin-right: 16px;
+  box-sizing: border-box;
+}
+
+.adm-schedule-panel + .adm-schedule-panel {
+  margin-top: 18px;
+}
+
+.adm-order-card-compact .adm-order-meta {
+  gap: 4px;
+}
+
+.adm-order-card-compact .adm-service-list {
+  padding-bottom: 8px;
+}
+
+.admin-dashboard .adm-overview-group + .adm-overview-group {
+  margin-top: 22px;
+}
+
+.admin-dashboard .adm-overview-group .ed-form-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 10px 16px 8px;
+}
+
+.admin-dashboard .adm-overview-group .ed-form-actions .vkuiButton {
+  width: 100%;
+}
+
+.admin-dashboard .adm-overview-group .ed-form-actions > * {
+  width: 100%;
+}
+
+.admin-dashboard .adm-overview-group .adm-chip-row .vkuiButton {
+  width: 100%;
+}
+
+.adm-order-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px 8px;
+}
+
+.adm-order-meta,
+.adm-shift-meta {
+  display: grid;
+  gap: 6px;
+  padding: 0 16px 16px;
+  color: #60392d;
+}
+
+.adm-service-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 12px;
+}
+
+.adm-service-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(96, 57, 45, 0.1);
+  color: #60392d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.adm-bookings-list {
+  display: grid;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.adm-booking-item {
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(96, 57, 45, 0.08);
+  border: 1px solid rgba(96, 57, 45, 0.12);
+}
+
+.adm-booking-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.adm-booking-title {
+  font-weight: 700;
+  color: #60392d;
+}
+
+.adm-booking-text {
+  color: #60392d;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.admin-dashboard .ed-schedule-card .adm-booking-title,
+.admin-dashboard .ed-schedule-card .adm-booking-text,
+.admin-dashboard .ed-schedule-card .adm-shift-meta strong,
+.admin-dashboard .ed-schedule-card .adm-shift-meta {
+  color: #fff1de;
+}
+
+.adm-order-card .ed-schedule-date,
+.adm-order-card .ed-schedule-time,
+.adm-order-card .vkuiBadge__in,
+.adm-shift-meta strong {
+  color: #60392d;
+}
+
+.adm-order-head .ed-schedule-time {
+  padding: 0;
+  margin-top: 4px;
+}
+
+.admin-dashboard .ed-schedule-card {
+  margin: 14px 0;
+  background: #60392d;
+  border-radius: 20px;
+  box-shadow: 0 14px 28px rgba(58, 36, 28, 0.16);
+}
+
+.admin-dashboard .ed-schedule-card .ed-schedule-date,
+.admin-dashboard .ed-schedule-card .ed-schedule-time,
+.admin-dashboard .ed-schedule-card .ed-detail-row,
+.admin-dashboard .ed-schedule-card .ed-empty,
+.admin-dashboard .ed-schedule-card .vkuiBadge__in,
+.admin-dashboard .ed-schedule-card .ed-action-row {
+  color: #fff1de;
+}
+
+.admin-dashboard .ed-schedule-card .ed-schedule-meta,
+.admin-dashboard .ed-schedule-card .adm-shift-meta {
+  color: #fff1de;
+}
+
+.admin-dashboard .ed-schedule-card .adm-booking-item {
+  background: rgba(255, 241, 222, 0.08);
+  border: 1px solid rgba(255, 241, 222, 0.14);
+}
+
+.admin-dashboard .adm-schedule-panel .ed-form-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 10px 16px 8px;
+}
+
+.admin-dashboard .adm-schedule-panel .ed-form-actions .vkuiButton {
+  width: 100%;
+}
+
+.admin-dashboard .adm-schedule-panel .vkuiButton,
+.admin-dashboard .ed-schedule-card .vkuiButton {
+  color: #fff1de;
+}
+
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-secondary,
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-tertiary,
+.admin-dashboard .ed-schedule-card .vkuiButton--mode-secondary,
+.admin-dashboard .ed-schedule-card .vkuiButton--mode-tertiary {
+  background: rgba(255, 241, 222, 0.1);
+  border-color: rgba(255, 241, 222, 0.22);
+}
+
+.admin-dashboard .adm-schedule-panel .vkuiButton__content,
+.admin-dashboard .ed-schedule-card .vkuiButton__content,
+.admin-dashboard .adm-schedule-panel .vkuiHeader__content,
+.admin-dashboard .adm-schedule-panel .vkuiFormItem__top,
+.admin-dashboard .adm-schedule-panel .ed-form-title,
+.admin-dashboard .adm-schedule-panel .vkuiInput__el,
+.admin-dashboard .adm-schedule-panel .vkuiNativeSelect__el {
+  color: #fff1de !important;
+}
+
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-primary .vkuiButton__content {
+  color: #60392d !important;
+}
+
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-primary,
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-primary .vkuiButton__in,
+.admin-dashboard .adm-schedule-panel .vkuiButton--mode-primary .vkuiButton__content {
+  color: #60392d !important;
+}
+
+.admin-dashboard .adm-primary-brown-text,
+.admin-dashboard .adm-primary-brown-text .vkuiButton__in,
+.admin-dashboard .adm-primary-brown-text .vkuiButton__content,
+.admin-dashboard .adm-primary-brown-text .vkuiButton__host {
+  color: #60392d !important;
+}
+
+.admin-dashboard .adm-schedule-panel input[type='date'],
+.admin-dashboard .adm-schedule-panel input[type='time'],
+.admin-dashboard .adm-schedule-panel .vkuiInput__el[type='date'],
+.admin-dashboard .adm-schedule-panel .vkuiInput__el[type='time'] {
+  color: #60392d !important;
+  -webkit-text-fill-color: #60392d !important;
+}
+
+.adm-show-more {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 6px;
+}
+
+.admin-dashboard .adm-schedule-panel input[type='date']::-webkit-calendar-picker-indicator,
+.admin-dashboard .ed-schedule-card input[type='date']::-webkit-calendar-picker-indicator {
+  filter: sepia(1) saturate(4) hue-rotate(340deg) brightness(0.78);
+}
+
+.admin-dashboard .adm-grid .vkuiInput__el,
+.admin-dashboard .adm-grid .vkuiNativeSelect__el,
+.admin-dashboard .adm-panel-gap .vkuiInput__el,
+.admin-dashboard .adm-panel-gap .vkuiNativeSelect__el {
+  color: #60392d;
+}
+
+.admin-dashboard .adm-grid input[type='date']::-webkit-calendar-picker-indicator,
+.admin-dashboard .adm-panel-gap input[type='date']::-webkit-calendar-picker-indicator {
+  filter: sepia(1) saturate(4) hue-rotate(340deg) brightness(0.8);
+}
+
+.admin-dashboard .vkuiNativeSelect__el,
+.admin-dashboard .vkuiInput__el {
+  color: #60392d;
+}
+
+.admin-dashboard .vkuiFormItem__top {
+  color: #fff1de;
+}
+
+.adm-month-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.adm-month-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff1de;
+  color: #60392d;
+  box-shadow: 0 18px 36px rgba(58, 36, 28, 0.26);
+}
+
+.adm-month-title {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.adm-month-stats {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .adm-grid-two {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,63 @@
+.auth-panel {
+  --auth-ink: #fff1de;
+  --auth-surface: #60392d;
+  --auth-muted: rgba(255, 241, 222, 0.76);
+  color: var(--auth-ink);
+}
+
+.auth-panel .vkuiPanel__in {
+  background:
+    radial-gradient(1200px 420px at 0% -10%, rgba(255, 241, 222, 0.08), transparent 60%),
+    radial-gradient(900px 300px at 110% 10%, rgba(199, 160, 127, 0.18), transparent 55%),
+    linear-gradient(180deg, #5a3b30 0%, #4b3127 100%);
+}
+
+.auth-panel .vkuiPanelHeader__in {
+  background: #60392d;
+  border-bottom: 1px solid rgba(255, 241, 222, 0.18);
+}
+
+.auth-panel .vkuiPanelHeader__content,
+.auth-panel .vkuiHeader__content,
+.auth-panel .vkuiSimpleCell__children {
+  color: #fff1de;
+}
+
+.auth-panel .vkuiGroup {
+  background: transparent;
+}
+
+.auth-panel .vkuiGroup__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(80, 52, 41, 0.45);
+  border: 1px solid rgba(255, 241, 222, 0.12);
+  margin: 16px;
+}
+
+.auth-panel .vkuiFormItem__top,
+.auth-panel .vkuiFormItem__bottom,
+.auth-panel .vkuiSimpleCell__description {
+  color: rgba(255, 241, 222, 0.76);
+}
+
+.auth-panel input {
+  border-radius: 12px;
+  border: 1px solid rgba(96, 57, 45, 0.2);
+  background: #fff1de;
+  color: #60392d;
+}
+
+.auth-panel .vkuiButton--size-l .vkuiButton__in {
+  padding: 14px 18px;
+}
+
+.auth-panel .vkuiButton--mode-primary .vkuiButton__in,
+.auth-panel .vkuiButton--mode-secondary .vkuiButton__in {
+  background: #fff1de;
+  color: #60392d;
+  border: 1px solid rgba(255, 241, 222, 0.4);
+}
