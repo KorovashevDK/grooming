@@ -8,6 +8,7 @@ dist/
 coverage/
 **/build/
 **/dist/
+*.zip
 
 # Logs
 logs/
