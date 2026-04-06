@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import bridge from '@vkontakte/vk-bridge';
-import { View, SplitLayout, SplitCol, ScreenSpinner, Button, Group, SimpleCell, Header, Panel, PanelHeader, FormItem, Input } from '@vkontakte/vkui';
+import { View, SplitLayout, SplitCol, Button, Group, SimpleCell, Header, Panel, PanelHeader, FormItem, Input } from '@vkontakte/vkui';
 import { useActiveVkuiLocation, useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import { useAuth } from './contexts/AuthContext';
 import { authApi } from './api/endpoints';
@@ -29,22 +29,22 @@ const PANEL_ROLE_ACCESS = {
 };
 
 const ROLE_LABELS = {
-  client: 'Клиент',
-  groomer: 'Грумер',
-  admin: 'Администратор',
+  client: 'РљР»РёРµРЅС‚',
+  groomer: 'Р“СЂСѓРјРµСЂ',
+  admin: 'РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ',
 };
 
 export const App = () => {
   const { panel: activePanel } = useActiveVkuiLocation();
   const [fetchedUser, setUser] = useState();
-  const [popout, setPopout] = useState(<ScreenSpinner />);
+  const [popout, setPopout] = useState(null);
   const { login, user: authUser, switchRole } = useAuth();
   const routeNavigator = useRouteNavigator();
   const [availableRoles, setAvailableRoles] = useState([]);
   const [rolesResolved, setRolesResolved] = useState(false);
   const [devAuthForm, setDevAuthForm] = useState({
     vkId: '195197738',
-    fullName: 'Тестовый пользователь',
+    fullName: 'РўРµСЃС‚РѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ',
     phone: '+79990000000',
   });
   const [needsRegistration, setNeedsRegistration] = useState(false);
@@ -170,12 +170,12 @@ export const App = () => {
             fullName: discovery?.fullName || fullName,
           });
           if (!loginResult.success) {
-            setAuthError(loginResult.error || 'Не удалось выполнить вход');
+            setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
           }
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
-        setAuthError('Не удалось получить профиль VK');
+        setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РїСЂРѕС„РёР»СЊ VK');
       } finally {
         setAuthChecking(false);
         setPopout(null);
@@ -217,13 +217,13 @@ export const App = () => {
 
       if (!loginResult.success) {
         console.error('Login failed:', loginResult.error);
-        setAuthError(loginResult.error || 'Не удалось выполнить вход');
+        setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
         return;
       }
       setNeedsRegistration(false);
     } catch (error) {
       console.error('Login error:', error);
-      setAuthError('Не удалось выполнить вход');
+      setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
     }
   };
 
@@ -243,14 +243,14 @@ export const App = () => {
       }
 
       if (!loginResult.success) {
-        setAuthError(loginResult.error || 'Не удалось выполнить вход');
+        setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
         return;
       }
 
       setNeedsRegistration(false);
     } catch (error) {
       console.error('Login error:', error);
-      setAuthError('Не удалось выполнить вход');
+      setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
     }
   };
 
@@ -263,22 +263,22 @@ export const App = () => {
         if (!authUser) {
           return (
             <Panel id="login" className="auth-panel">
-              <PanelHeader>Вход</PanelHeader>
+              <PanelHeader>Р’С…РѕРґ</PanelHeader>
               {bridge.isWebView() ? (
-                <Group className="auth-group" header={<Header mode="secondary">Авторизация</Header>}>
-                  {authChecking ? <SimpleCell>Проверяем ваш профиль и доступы...</SimpleCell> : null}
+                <Group className="auth-group" header={<Header mode="secondary">РђРІС‚РѕСЂРёР·Р°С†РёСЏ</Header>}>
+                  {authChecking ? <SimpleCell>РџСЂРѕРІРµСЂСЏРµРј РІР°С€ РїСЂРѕС„РёР»СЊ Рё РґРѕСЃС‚СѓРїС‹...</SimpleCell> : null}
 
                   {!authChecking && authDiscovery?.status === 'employee_found' ? (
                     <>
                       <SimpleCell>
-                        Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
+                        РќР°Р№РґРµРЅ СЃРѕС‚СЂСѓРґРЅРёРє: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
                       </SimpleCell>
                       <SimpleCell>
-                        Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
+                        Р”РѕСЃС‚СѓРїРЅС‹Рµ СЂРѕР»Рё: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
                       </SimpleCell>
                       <FormItem>
                         <Button stretched size="l" onClick={handleContinueLogin}>
-                          Открыть доступные разделы
+                          РћС‚РєСЂС‹С‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ СЂР°Р·РґРµР»С‹
                         </Button>
                       </FormItem>
                     </>
@@ -287,14 +287,14 @@ export const App = () => {
                   {!authChecking && authDiscovery?.status === 'client_found' ? (
                     <>
                       <SimpleCell>
-                        Найден клиент: {devAuthForm.fullName || 'Пользователь'}
+                        РќР°Р№РґРµРЅ РєР»РёРµРЅС‚: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
                       </SimpleCell>
                       {authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient ? (
-                        <FormItem top="Телефон">
+                        <FormItem top="РўРµР»РµС„РѕРЅ">
                           <Input
                             value={devAuthForm.phone}
                             onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Заполните номер телефона"
+                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
                           />
                         </FormItem>
                       ) : null}
@@ -305,7 +305,7 @@ export const App = () => {
                           onClick={handleContinueLogin}
                           disabled={(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) && !devAuthForm.phone}
                         >
-                          {(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) ? 'Сохранить телефон и продолжить' : 'Открыть клиентский раздел'}
+                          {(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) ? 'РЎРѕС…СЂР°РЅРёС‚СЊ С‚РµР»РµС„РѕРЅ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РћС‚РєСЂС‹С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ СЂР°Р·РґРµР»'}
                         </Button>
                       </FormItem>
                     </>
@@ -314,21 +314,21 @@ export const App = () => {
                   {!authChecking && authDiscovery?.status === 'needs_registration' ? (
                     <>
                       <SimpleCell>
-                        Профиль VK найден, нужно завершить регистрацию клиента.
+                        РџСЂРѕС„РёР»СЊ VK РЅР°Р№РґРµРЅ, РЅСѓР¶РЅРѕ Р·Р°РІРµСЂС€РёС‚СЊ СЂРµРіРёСЃС‚СЂР°С†РёСЋ РєР»РёРµРЅС‚Р°.
                       </SimpleCell>
-                      <FormItem top="Имя и фамилия">
+                      <FormItem top="РРјСЏ Рё С„Р°РјРёР»РёСЏ">
                         <Input value={devAuthForm.fullName} readOnly />
                       </FormItem>
-                      <FormItem top="Телефон">
+                      <FormItem top="РўРµР»РµС„РѕРЅ">
                         <Input
                           value={devAuthForm.phone}
                           onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Заполните номер телефона"
+                          placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
                         />
                       </FormItem>
                       <FormItem>
                         <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
-                          Привязать и продолжить
+                          РџСЂРёРІСЏР·Р°С‚СЊ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ
                         </Button>
                       </FormItem>
                     </>
@@ -337,17 +337,17 @@ export const App = () => {
                   {authError ? <SimpleCell>{authError}</SimpleCell> : null}
                 </Group>
               ) : (
-                <Group className="auth-group" header={<Header mode="secondary">Режим разработки</Header>}>
-                  <SimpleCell>Для VK Mini App `VK ID` и ФИО будут получены автоматически из профиля VK.</SimpleCell>
+                <Group className="auth-group" header={<Header mode="secondary">Р РµР¶РёРј СЂР°Р·СЂР°Р±РѕС‚РєРё</Header>}>
+                  <SimpleCell>Р”Р»СЏ VK Mini App `VK ID` Рё Р¤РРћ Р±СѓРґСѓС‚ РїРѕР»СѓС‡РµРЅС‹ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёР· РїСЂРѕС„РёР»СЏ VK.</SimpleCell>
                   {!authDiscovery ? (
                     <>
-                      <FormItem top="Тестовый VK ID">
+                      <FormItem top="РўРµСЃС‚РѕРІС‹Р№ VK ID">
                         <Input
                           value={devAuthForm.vkId}
                           onChange={(e) => setDevAuthForm((prev) => ({ ...prev, vkId: e.target.value.replace(/\D/g, '') }))}
                         />
                       </FormItem>
-                      <FormItem top="Имя и фамилия">
+                      <FormItem top="РРјСЏ Рё С„Р°РјРёР»РёСЏ">
                         <Input
                           value={devAuthForm.fullName}
                           readOnly={authDiscovery?.status === 'employee_found'}
@@ -357,7 +357,7 @@ export const App = () => {
                       {authError ? <SimpleCell>{authError}</SimpleCell> : null}
                       <FormItem>
                         <Button stretched size="l" onClick={handleDevLogin} disabled={!devAuthForm.vkId || !devAuthForm.fullName}>
-                          Продолжить
+                          РџСЂРѕРґРѕР»Р¶РёС‚СЊ
                         </Button>
                       </FormItem>
                     </>
@@ -366,17 +366,17 @@ export const App = () => {
                   {authDiscovery?.status === 'employee_found' ? (
                     <>
                       <SimpleCell>
-                        Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
+                        РќР°Р№РґРµРЅ СЃРѕС‚СЂСѓРґРЅРёРє: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
                       </SimpleCell>
                       <SimpleCell>
-                        Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
+                        Р”РѕСЃС‚СѓРїРЅС‹Рµ СЂРѕР»Рё: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
                       </SimpleCell>
                       {authDiscovery?.phoneMissingForClient ? (
-                        <FormItem top="Телефон для клиентского профиля">
+                        <FormItem top="РўРµР»РµС„РѕРЅ РґР»СЏ РєР»РёРµРЅС‚СЃРєРѕРіРѕ РїСЂРѕС„РёР»СЏ">
                           <Input
                             value={devAuthForm.phone}
                             onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Заполните номер телефона"
+                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
                           />
                         </FormItem>
                       ) : null}
@@ -388,7 +388,7 @@ export const App = () => {
                           onClick={handleContinueLogin}
                           disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
                         >
-                          Открыть доступные разделы
+                          РћС‚РєСЂС‹С‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ СЂР°Р·РґРµР»С‹
                         </Button>
                       </FormItem>
                     </>
@@ -397,21 +397,21 @@ export const App = () => {
                   {authDiscovery?.status === 'client_found' ? (
                     <>
                       <SimpleCell>
-                        Найден клиент: {devAuthForm.fullName || 'Пользователь'}
+                        РќР°Р№РґРµРЅ РєР»РёРµРЅС‚: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
                       </SimpleCell>
                       {authDiscovery?.phoneMissing ? (
-                        <FormItem top="Телефон">
+                        <FormItem top="РўРµР»РµС„РѕРЅ">
                           <Input
                             value={devAuthForm.phone}
                             onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Заполните номер телефона"
+                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
                           />
                         </FormItem>
                       ) : null}
                       {authError ? <SimpleCell>{authError}</SimpleCell> : null}
                       <FormItem>
                         <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !devAuthForm.phone}>
-                          {authDiscovery?.phoneMissing ? 'Сохранить телефон и продолжить' : 'Открыть клиентский раздел'}
+                          {authDiscovery?.phoneMissing ? 'РЎРѕС…СЂР°РЅРёС‚СЊ С‚РµР»РµС„РѕРЅ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РћС‚РєСЂС‹С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ СЂР°Р·РґРµР»'}
                         </Button>
                       </FormItem>
                     </>
@@ -420,19 +420,19 @@ export const App = () => {
                   {authDiscovery?.status === 'needs_registration' ? (
                     <>
                       <SimpleCell>
-                        Новый пользователь. Завершите регистрацию клиента.
+                        РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ. Р—Р°РІРµСЂС€РёС‚Рµ СЂРµРіРёСЃС‚СЂР°С†РёСЋ РєР»РёРµРЅС‚Р°.
                       </SimpleCell>
-                      <FormItem top="Телефон">
+                      <FormItem top="РўРµР»РµС„РѕРЅ">
                         <Input
                           value={devAuthForm.phone}
                           onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Заполните номер телефона"
+                          placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
                         />
                       </FormItem>
                       {authError ? <SimpleCell>{authError}</SimpleCell> : null}
                       <FormItem>
                         <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
-                          Привязать и продолжить
+                          РџСЂРёРІСЏР·Р°С‚СЊ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ
                         </Button>
                       </FormItem>
                     </>
@@ -448,43 +448,55 @@ export const App = () => {
       case DEFAULT_VIEW_PANELS.ROLE_MENU:
         return (
           <Panel id={DEFAULT_VIEW_PANELS.ROLE_MENU} className="auth-panel">
-            <PanelHeader>Главное меню</PanelHeader>
-            <Group className="auth-group" header={<Header mode="secondary">Выберите раздел</Header>}>
+            <PanelHeader>Р“Р»Р°РІРЅРѕРµ РјРµРЅСЋ</PanelHeader>
+            <Group className="auth-group" header={<Header mode="secondary">Р’С‹Р±РµСЂРёС‚Рµ СЂР°Р·РґРµР»</Header>}>
               {availableRoles.includes('client') ? (
-                <SimpleCell
-                  onClick={async () => {
-                    const result = await switchRole('client');
-                    if (result.success) {
-                      routeNavigator.push(`/${CLIENT_PANELS.DASHBOARD}`);
-                    }
-                  }}
-                >
-                  Клиент
-                </SimpleCell>
+                <FormItem>
+                  <Button
+                    stretched
+                    size="l"
+                    onClick={async () => {
+                      const result = await switchRole('client');
+                      if (result.success) {
+                        routeNavigator.push(`/${CLIENT_PANELS.DASHBOARD}`);
+                      }
+                    }}
+                  >
+                    РљР»РёРµРЅС‚
+                  </Button>
+                </FormItem>
               ) : null}
               {availableRoles.includes('groomer') ? (
-                <SimpleCell
-                  onClick={async () => {
-                    const result = await switchRole('groomer');
-                    if (result.success) {
-                      routeNavigator.push(`/${EMPLOYEE_PANELS.DASHBOARD}`);
-                    }
-                  }}
-                >
-                  Грумер
-                </SimpleCell>
+                <FormItem>
+                  <Button
+                    stretched
+                    size="l"
+                    onClick={async () => {
+                      const result = await switchRole('groomer');
+                      if (result.success) {
+                        routeNavigator.push(`/${EMPLOYEE_PANELS.DASHBOARD}`);
+                      }
+                    }}
+                  >
+                    Р“СЂСѓРјРµСЂ
+                  </Button>
+                </FormItem>
               ) : null}
               {availableRoles.includes('admin') ? (
-                <SimpleCell
-                  onClick={async () => {
-                    const result = await switchRole('admin');
-                    if (result.success) {
-                      routeNavigator.push(`/${ADMIN_PANELS.DASHBOARD}`);
-                    }
-                  }}
-                >
-                  Администратор
-                </SimpleCell>
+                <FormItem>
+                  <Button
+                    stretched
+                    size="l"
+                    onClick={async () => {
+                      const result = await switchRole('admin');
+                      if (result.success) {
+                        routeNavigator.push(`/${ADMIN_PANELS.DASHBOARD}`);
+                      }
+                    }}
+                  >
+                    РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ
+                  </Button>
+                </FormItem>
               ) : null}
             </Group>
           </Panel>
@@ -511,3 +523,4 @@ export const App = () => {
     </SplitLayout>
   );
 };
+

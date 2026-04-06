@@ -26,6 +26,7 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_default_secret_k
 }
 
 const app = express();
+app.set('trust proxy', 1);
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
   .split(',')
@@ -37,6 +38,7 @@ const allowedOriginPatterns = [
   /^http:\/\/127\.0\.0\.1(?::\d+)?$/i,
   /^https:\/\/[a-z0-9-]+\.trycloudflare\.com$/i,
   /^https:\/\/[a-z0-9-]+\.pages\.vk-apps\.com$/i,
+  /^https:\/\/[a-z0-9-]+\.pages-ac\.vk-apps\.com$/i,
   /^https:\/\/[a-z0-9-]+\.vk-apps\.com$/i,
 ];
 
