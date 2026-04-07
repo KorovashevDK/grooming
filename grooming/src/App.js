@@ -29,9 +29,9 @@ const PANEL_ROLE_ACCESS = {
 };
 
 const ROLE_LABELS = {
-  client: 'РљР»РёРµРЅС‚',
-  groomer: 'Р“СЂСѓРјРµСЂ',
-  admin: 'РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ',
+  client: 'Клиент',
+  groomer: 'Грумер',
+  admin: 'Администратор',
 };
 
 export const App = () => {
@@ -44,7 +44,7 @@ export const App = () => {
   const [rolesResolved, setRolesResolved] = useState(false);
   const [devAuthForm, setDevAuthForm] = useState({
     vkId: '195197738',
-    fullName: 'РўРµСЃС‚РѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ',
+    fullName: 'Тестовый пользователь',
     phone: '+79990000000',
   });
   const [needsRegistration, setNeedsRegistration] = useState(false);
@@ -52,18 +52,8 @@ export const App = () => {
   const [authDiscovery, setAuthDiscovery] = useState(null);
   const [authChecking, setAuthChecking] = useState(false);
 
-  // Debug: Log activePanel changes
   useEffect(() => {
-    console.log('Active panel changed:', activePanel, 'Auth user:', authUser);
-  }, [activePanel, authUser]);
-
-  // Redirect unauthenticated users to login panel
-  useEffect(() => {
-    console.log('Auth check: authUser=', authUser, 'activePanel=', activePanel);
-    
-    // If user is not authenticated and not on login panel, redirect to login
-    if (!authUser && activePanel !== 'login') {
-      console.log('Redirecting unauthenticated user to login panel');
+    if (!authUser && activePanel !== DEFAULT_VIEW_PANELS.LOGIN) {
       routeNavigator.push('/login');
     }
   }, [authUser, activePanel, routeNavigator]);
@@ -75,14 +65,11 @@ export const App = () => {
         setRolesResolved(false);
         return;
       }
+
       try {
         const data = await authApi.getRoles();
-        if (Array.isArray(data?.roles)) {
-          setAvailableRoles(data.roles);
-        } else {
-          setAvailableRoles([authUser.role]);
-        }
-      } catch (error) {
+        setAvailableRoles(Array.isArray(data?.roles) ? data.roles : [authUser.role]);
+      } catch (_error) {
         setAvailableRoles([authUser.role]);
       } finally {
         setRolesResolved(true);
@@ -92,32 +79,29 @@ export const App = () => {
     loadRoles();
   }, [authUser]);
 
-  // Redirect authenticated users away from login/home to their role dashboard
-  // This handles both login -> dashboard and restored user -> dashboard
   useEffect(() => {
     if (!authUser || !rolesResolved) {
       return;
     }
 
-    if (activePanel === 'login' || activePanel === 'home') {
-      console.log('Authenticated user on login/home panel, redirecting to dashboard');
+    if (activePanel === DEFAULT_VIEW_PANELS.LOGIN || activePanel === DEFAULT_VIEW_PANELS.HOME) {
       const target = availableRoles.length > 1
         ? DEFAULT_VIEW_PANELS.ROLE_MENU
         : getDashboardPanelByRole(authUser.role);
-      // Small delay to ensure state is fully updated
+
       setTimeout(() => {
         routeNavigator.push(`/${target}`);
       }, 100);
     }
   }, [authUser, activePanel, routeNavigator, availableRoles, rolesResolved]);
 
-  // Prevent users from opening panels of another role (manual URL / stale route in history)
   useEffect(() => {
     if (!authUser) {
       return;
     }
 
     const requiredRole = PANEL_ROLE_ACCESS[activePanel];
+
     if (requiredRole && Array.isArray(requiredRole) && !requiredRole.includes(authUser.role)) {
       routeNavigator.push(`/${getDashboardPanelByRole(authUser.role)}`);
       return;
@@ -128,23 +112,19 @@ export const App = () => {
     }
   }, [authUser, activePanel, routeNavigator]);
 
-  // Fetch VK user info and auto-login on initial load
   useEffect(() => {
-    // In local browser development (outside VK WebView), do not block UI with global spinner.
     if (!bridge.isWebView()) {
       setPopout(null);
       return;
     }
 
-    async function fetchData() {
-      // Only fetch if not authenticated
+    const fetchData = async () => {
       if (authUser) {
         setPopout(null);
         return;
       }
-      
+
       try {
-        console.log('Fetching VK user info...');
         const vkUser = await bridge.send('VKWebAppGetUserInfo');
         setUser(vkUser);
 
@@ -169,24 +149,24 @@ export const App = () => {
             vkId: vkUser.id,
             fullName: discovery?.fullName || fullName,
           });
+
           if (!loginResult.success) {
-            setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
+            setAuthError(loginResult.error || 'Не удалось выполнить вход');
           }
         }
       } catch (error) {
         console.error('Error fetching user info:', error);
-        setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ РїСЂРѕС„РёР»СЊ VK');
+        setAuthError('Не удалось получить профиль VK');
       } finally {
         setAuthChecking(false);
         setPopout(null);
       }
-    }
-    
-    // Add a small delay to ensure authUser is properly initialized
+    };
+
     const timer = setTimeout(() => {
       fetchData();
     }, 100);
-    
+
     return () => clearTimeout(timer);
   }, [authUser, login]);
 
@@ -216,14 +196,14 @@ export const App = () => {
       });
 
       if (!loginResult.success) {
-        console.error('Login failed:', loginResult.error);
-        setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
+        setAuthError(loginResult.error || 'Не удалось выполнить вход');
         return;
       }
+
       setNeedsRegistration(false);
     } catch (error) {
       console.error('Login error:', error);
-      setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
+      setAuthError('Не удалось выполнить вход');
     }
   };
 
@@ -243,213 +223,220 @@ export const App = () => {
       }
 
       if (!loginResult.success) {
-        setAuthError(loginResult.error || 'РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
+        setAuthError(loginResult.error || 'Не удалось выполнить вход');
         return;
       }
 
       setNeedsRegistration(false);
     } catch (error) {
       console.error('Login error:', error);
-      setAuthError('РќРµ СѓРґР°Р»РѕСЃСЊ РІС‹РїРѕР»РЅРёС‚СЊ РІС…РѕРґ');
+      setAuthError('Не удалось выполнить вход');
     }
   };
 
-  // Render the appropriate panel based on the active panel ID
+  const renderLoginPanel = () => {
+    if (bridge.isWebView()) {
+      return (
+        <Group className="auth-group" header={<Header mode="secondary">Авторизация</Header>}>
+          {authChecking ? <SimpleCell>Проверяем ваш профиль и доступные роли...</SimpleCell> : null}
+
+          {!authChecking && authDiscovery?.status === 'employee_found' ? (
+            <>
+              <SimpleCell>
+                Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
+              </SimpleCell>
+              <SimpleCell>
+                Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
+              </SimpleCell>
+              <FormItem>
+                <Button stretched size="l" onClick={handleContinueLogin}>
+                  Открыть доступные разделы
+                </Button>
+              </FormItem>
+            </>
+          ) : null}
+
+          {!authChecking && authDiscovery?.status === 'client_found' ? (
+            <>
+              <SimpleCell>
+                Найден клиент: {devAuthForm.fullName || 'Пользователь'}
+              </SimpleCell>
+              {authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient ? (
+                <FormItem top="Телефон">
+                  <Input
+                    value={devAuthForm.phone}
+                    onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    placeholder="Заполните номер телефона"
+                  />
+                </FormItem>
+              ) : null}
+              <FormItem>
+                <Button
+                  stretched
+                  size="l"
+                  onClick={handleContinueLogin}
+                  disabled={(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) && !devAuthForm.phone}
+                >
+                  {(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient)
+                    ? 'Сохранить телефон и продолжить'
+                    : 'Открыть клиентский раздел'}
+                </Button>
+              </FormItem>
+            </>
+          ) : null}
+
+          {!authChecking && authDiscovery?.status === 'needs_registration' ? (
+            <>
+              <SimpleCell>
+                Профиль VK найден. Нужно завершить регистрацию клиента.
+              </SimpleCell>
+              <FormItem top="Имя и фамилия">
+                <Input value={devAuthForm.fullName} readOnly />
+              </FormItem>
+              <FormItem top="Телефон">
+                <Input
+                  value={devAuthForm.phone}
+                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Заполните номер телефона"
+                />
+              </FormItem>
+              <FormItem>
+                <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
+                  Привязать и продолжить
+                </Button>
+              </FormItem>
+            </>
+          ) : null}
+
+          {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+        </Group>
+      );
+    }
+
+    return (
+      <Group className="auth-group" header={<Header mode="secondary">Режим разработки</Header>}>
+        <SimpleCell>Для VK Mini App `VK ID` и ФИО будут получены автоматически из профиля VK.</SimpleCell>
+
+        {!authDiscovery ? (
+          <>
+            <FormItem top="Тестовый VK ID">
+              <Input
+                value={devAuthForm.vkId}
+                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, vkId: e.target.value.replace(/\D/g, '') }))}
+              />
+            </FormItem>
+            <FormItem top="Имя и фамилия">
+              <Input
+                value={devAuthForm.fullName}
+                readOnly={authDiscovery?.status === 'employee_found'}
+                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, fullName: e.target.value }))}
+              />
+            </FormItem>
+            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            <FormItem>
+              <Button stretched size="l" onClick={handleDevLogin} disabled={!devAuthForm.vkId || !devAuthForm.fullName}>
+                Продолжить
+              </Button>
+            </FormItem>
+          </>
+        ) : null}
+
+        {authDiscovery?.status === 'employee_found' ? (
+          <>
+            <SimpleCell>
+              Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
+            </SimpleCell>
+            <SimpleCell>
+              Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
+            </SimpleCell>
+            {authDiscovery?.phoneMissingForClient ? (
+              <FormItem top="Телефон для клиентского профиля">
+                <Input
+                  value={devAuthForm.phone}
+                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Заполните номер телефона"
+                />
+              </FormItem>
+            ) : null}
+            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            <FormItem>
+              <Button
+                stretched
+                size="l"
+                onClick={handleContinueLogin}
+                disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
+              >
+                Открыть доступные разделы
+              </Button>
+            </FormItem>
+          </>
+        ) : null}
+
+        {authDiscovery?.status === 'client_found' ? (
+          <>
+            <SimpleCell>
+              Найден клиент: {devAuthForm.fullName || 'Пользователь'}
+            </SimpleCell>
+            {authDiscovery?.phoneMissing ? (
+              <FormItem top="Телефон">
+                <Input
+                  value={devAuthForm.phone}
+                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Заполните номер телефона"
+                />
+              </FormItem>
+            ) : null}
+            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            <FormItem>
+              <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !devAuthForm.phone}>
+                {authDiscovery?.phoneMissing ? 'Сохранить телефон и продолжить' : 'Открыть клиентский раздел'}
+              </Button>
+            </FormItem>
+          </>
+        ) : null}
+
+        {authDiscovery?.status === 'needs_registration' ? (
+          <>
+            <SimpleCell>
+              Новый пользователь. Завершите регистрацию клиента.
+            </SimpleCell>
+            <FormItem top="Телефон">
+              <Input
+                value={devAuthForm.phone}
+                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                placeholder="Заполните номер телефона"
+              />
+            </FormItem>
+            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            <FormItem>
+              <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
+                Привязать и продолжить
+              </Button>
+            </FormItem>
+          </>
+        ) : null}
+      </Group>
+    );
+  };
+
   const renderActivePanel = () => {
-    // User is authenticated, show the active panel
-    switch(activePanel) {
+    switch (activePanel) {
       case DEFAULT_VIEW_PANELS.LOGIN:
-        // If user is not authenticated, show login panel
         if (!authUser) {
           return (
             <Panel id="login" className="auth-panel">
-              <PanelHeader>Р’С…РѕРґ</PanelHeader>
-              {bridge.isWebView() ? (
-                <Group className="auth-group" header={<Header mode="secondary">РђРІС‚РѕСЂРёР·Р°С†РёСЏ</Header>}>
-                  {authChecking ? <SimpleCell>РџСЂРѕРІРµСЂСЏРµРј РІР°С€ РїСЂРѕС„РёР»СЊ Рё РґРѕСЃС‚СѓРїС‹...</SimpleCell> : null}
-
-                  {!authChecking && authDiscovery?.status === 'employee_found' ? (
-                    <>
-                      <SimpleCell>
-                        РќР°Р№РґРµРЅ СЃРѕС‚СЂСѓРґРЅРёРє: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
-                      </SimpleCell>
-                      <SimpleCell>
-                        Р”РѕСЃС‚СѓРїРЅС‹Рµ СЂРѕР»Рё: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
-                      </SimpleCell>
-                      <FormItem>
-                        <Button stretched size="l" onClick={handleContinueLogin}>
-                          РћС‚РєСЂС‹С‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ СЂР°Р·РґРµР»С‹
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {!authChecking && authDiscovery?.status === 'client_found' ? (
-                    <>
-                      <SimpleCell>
-                        РќР°Р№РґРµРЅ РєР»РёРµРЅС‚: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
-                      </SimpleCell>
-                      {authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient ? (
-                        <FormItem top="РўРµР»РµС„РѕРЅ">
-                          <Input
-                            value={devAuthForm.phone}
-                            onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
-                          />
-                        </FormItem>
-                      ) : null}
-                      <FormItem>
-                        <Button
-                          stretched
-                          size="l"
-                          onClick={handleContinueLogin}
-                          disabled={(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) && !devAuthForm.phone}
-                        >
-                          {(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) ? 'РЎРѕС…СЂР°РЅРёС‚СЊ С‚РµР»РµС„РѕРЅ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РћС‚РєСЂС‹С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ СЂР°Р·РґРµР»'}
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {!authChecking && authDiscovery?.status === 'needs_registration' ? (
-                    <>
-                      <SimpleCell>
-                        РџСЂРѕС„РёР»СЊ VK РЅР°Р№РґРµРЅ, РЅСѓР¶РЅРѕ Р·Р°РІРµСЂС€РёС‚СЊ СЂРµРіРёСЃС‚СЂР°С†РёСЋ РєР»РёРµРЅС‚Р°.
-                      </SimpleCell>
-                      <FormItem top="РРјСЏ Рё С„Р°РјРёР»РёСЏ">
-                        <Input value={devAuthForm.fullName} readOnly />
-                      </FormItem>
-                      <FormItem top="РўРµР»РµС„РѕРЅ">
-                        <Input
-                          value={devAuthForm.phone}
-                          onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
-                        />
-                      </FormItem>
-                      <FormItem>
-                        <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
-                          РџСЂРёРІСЏР·Р°С‚СЊ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-                </Group>
-              ) : (
-                <Group className="auth-group" header={<Header mode="secondary">Р РµР¶РёРј СЂР°Р·СЂР°Р±РѕС‚РєРё</Header>}>
-                  <SimpleCell>Р”Р»СЏ VK Mini App `VK ID` Рё Р¤РРћ Р±СѓРґСѓС‚ РїРѕР»СѓС‡РµРЅС‹ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РёР· РїСЂРѕС„РёР»СЏ VK.</SimpleCell>
-                  {!authDiscovery ? (
-                    <>
-                      <FormItem top="РўРµСЃС‚РѕРІС‹Р№ VK ID">
-                        <Input
-                          value={devAuthForm.vkId}
-                          onChange={(e) => setDevAuthForm((prev) => ({ ...prev, vkId: e.target.value.replace(/\D/g, '') }))}
-                        />
-                      </FormItem>
-                      <FormItem top="РРјСЏ Рё С„Р°РјРёР»РёСЏ">
-                        <Input
-                          value={devAuthForm.fullName}
-                          readOnly={authDiscovery?.status === 'employee_found'}
-                          onChange={(e) => setDevAuthForm((prev) => ({ ...prev, fullName: e.target.value }))}
-                        />
-                      </FormItem>
-                      {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-                      <FormItem>
-                        <Button stretched size="l" onClick={handleDevLogin} disabled={!devAuthForm.vkId || !devAuthForm.fullName}>
-                          РџСЂРѕРґРѕР»Р¶РёС‚СЊ
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {authDiscovery?.status === 'employee_found' ? (
-                    <>
-                      <SimpleCell>
-                        РќР°Р№РґРµРЅ СЃРѕС‚СЂСѓРґРЅРёРє: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
-                      </SimpleCell>
-                      <SimpleCell>
-                        Р”РѕСЃС‚СѓРїРЅС‹Рµ СЂРѕР»Рё: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
-                      </SimpleCell>
-                      {authDiscovery?.phoneMissingForClient ? (
-                        <FormItem top="РўРµР»РµС„РѕРЅ РґР»СЏ РєР»РёРµРЅС‚СЃРєРѕРіРѕ РїСЂРѕС„РёР»СЏ">
-                          <Input
-                            value={devAuthForm.phone}
-                            onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
-                          />
-                        </FormItem>
-                      ) : null}
-                      {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-                      <FormItem>
-                        <Button
-                          stretched
-                          size="l"
-                          onClick={handleContinueLogin}
-                          disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
-                        >
-                          РћС‚РєСЂС‹С‚СЊ РґРѕСЃС‚СѓРїРЅС‹Рµ СЂР°Р·РґРµР»С‹
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {authDiscovery?.status === 'client_found' ? (
-                    <>
-                      <SimpleCell>
-                        РќР°Р№РґРµРЅ РєР»РёРµРЅС‚: {devAuthForm.fullName || 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ'}
-                      </SimpleCell>
-                      {authDiscovery?.phoneMissing ? (
-                        <FormItem top="РўРµР»РµС„РѕРЅ">
-                          <Input
-                            value={devAuthForm.phone}
-                            onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                            placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
-                          />
-                        </FormItem>
-                      ) : null}
-                      {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-                      <FormItem>
-                        <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !devAuthForm.phone}>
-                          {authDiscovery?.phoneMissing ? 'РЎРѕС…СЂР°РЅРёС‚СЊ С‚РµР»РµС„РѕРЅ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ' : 'РћС‚РєСЂС‹С‚СЊ РєР»РёРµРЅС‚СЃРєРёР№ СЂР°Р·РґРµР»'}
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-
-                  {authDiscovery?.status === 'needs_registration' ? (
-                    <>
-                      <SimpleCell>
-                        РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ. Р—Р°РІРµСЂС€РёС‚Рµ СЂРµРіРёСЃС‚СЂР°С†РёСЋ РєР»РёРµРЅС‚Р°.
-                      </SimpleCell>
-                      <FormItem top="РўРµР»РµС„РѕРЅ">
-                        <Input
-                          value={devAuthForm.phone}
-                          onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                          placeholder="Р—Р°РїРѕР»РЅРёС‚Рµ РЅРѕРјРµСЂ С‚РµР»РµС„РѕРЅР°"
-                        />
-                      </FormItem>
-                      {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-                      <FormItem>
-                        <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
-                          РџСЂРёРІСЏР·Р°С‚СЊ Рё РїСЂРѕРґРѕР»Р¶РёС‚СЊ
-                        </Button>
-                      </FormItem>
-                    </>
-                  ) : null}
-                </Group>
-              )}
+              <PanelHeader>Вход</PanelHeader>
+              {renderLoginPanel()}
             </Panel>
           );
         }
-        // Authenticated user on login panel - should be redirected by useEffect
-        // Return null to prevent rendering while redirecting
         return null;
+
       case DEFAULT_VIEW_PANELS.ROLE_MENU:
         return (
           <Panel id={DEFAULT_VIEW_PANELS.ROLE_MENU} className="auth-panel">
-            <PanelHeader>Р“Р»Р°РІРЅРѕРµ РјРµРЅСЋ</PanelHeader>
-            <Group className="auth-group" header={<Header mode="secondary">Р’С‹Р±РµСЂРёС‚Рµ СЂР°Р·РґРµР»</Header>}>
+            <PanelHeader>Главное меню</PanelHeader>
+            <Group className="auth-group" header={<Header mode="secondary">Выберите раздел</Header>}>
               {availableRoles.includes('client') ? (
                 <FormItem>
                   <Button
@@ -462,7 +449,7 @@ export const App = () => {
                       }
                     }}
                   >
-                    РљР»РёРµРЅС‚
+                    Клиент
                   </Button>
                 </FormItem>
               ) : null}
@@ -478,7 +465,7 @@ export const App = () => {
                       }
                     }}
                   >
-                    Р“СЂСѓРјРµСЂ
+                    Грумер
                   </Button>
                 </FormItem>
               ) : null}
@@ -494,13 +481,14 @@ export const App = () => {
                       }
                     }}
                   >
-                    РђРґРјРёРЅРёСЃС‚СЂР°С‚РѕСЂ
+                    Администратор
                   </Button>
                 </FormItem>
               ) : null}
             </Group>
           </Panel>
         );
+
       case ADMIN_PANELS.DASHBOARD:
         return authUser ? <AdminDashboard id={ADMIN_PANELS.DASHBOARD} /> : null;
       case EMPLOYEE_PANELS.DASHBOARD:
@@ -523,4 +511,3 @@ export const App = () => {
     </SplitLayout>
   );
 };
-
