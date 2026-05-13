@@ -484,3 +484,781 @@
     justify-content: space-between;
   }
 }
+
+/* Unified light salon theme, aligned with ClientDashboard. */
+.employee-dashboard {
+  --ed-brown: #5b3529;
+  --ed-brown-2: #7a4b37;
+  --ed-cocoa: #3f261f;
+  --ed-paper: #fffaf3;
+  --ed-paper-2: #fffdf8;
+  --ed-accent: #d9823d;
+  --ed-soft: rgba(63, 38, 31, 0.68);
+  --ed-line: rgba(91, 53, 41, 0.12);
+  --ed-shadow: rgba(91, 53, 41, 0.12);
+  color: var(--ed-cocoa);
+  color-scheme: light;
+}
+
+.employee-dashboard .vkuiPanel__in,
+.employee-dashboard [class*="Panel__in"] {
+  background:
+    radial-gradient(900px 360px at 0% -8%, rgba(221, 158, 92, 0.24), transparent 58%),
+    radial-gradient(680px 300px at 112% 6%, rgba(134, 153, 113, 0.18), transparent 58%),
+    linear-gradient(180deg, #fff9f1 0%, #ffe7c8 54%, #f5cfa7 100%) !important;
+}
+
+.employee-dashboard .vkuiPanelHeader,
+.employee-dashboard [class*="PanelHeader"] {
+  background: transparent !important;
+}
+
+.employee-dashboard .vkuiPanelHeader__separator,
+.employee-dashboard .vkuiPanelHeader__in::after,
+.employee-dashboard [class*="PanelHeader__separator"] {
+  display: none !important;
+}
+
+.employee-dashboard .vkuiPanelHeader__in,
+.employee-dashboard [class*="PanelHeader__in"] {
+  min-height: 62px !important;
+  background:
+    linear-gradient(90deg, rgba(255, 248, 239, 0.98) 0%, rgba(255, 223, 184, 0.98) 100%) !important;
+  border-bottom: 1px solid rgba(63, 38, 31, 0.14) !important;
+  box-shadow: 0 10px 28px rgba(91, 53, 41, 0.12) !important;
+}
+
+.employee-dashboard .vkuiPanelHeader__content,
+.employee-dashboard .vkuiPanelHeader__content *,
+.employee-dashboard [class*="PanelHeader__content"],
+.employee-dashboard [class*="PanelHeader__content"] * {
+  color: var(--ed-cocoa) !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: clamp(18px, 2.1vw, 24px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.employee-dashboard .vkuiPanelHeader__after .vkuiButton__in,
+.employee-dashboard .vkuiPanelHeader__right .vkuiButton__in,
+.ed-header-actions .vkuiButton__in {
+  background: rgba(255, 250, 243, 0.92) !important;
+  color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.1) !important;
+}
+
+.ed-page {
+  padding: 22px 16px 56px !important;
+  background:
+    radial-gradient(760px 280px at -10% -5%, rgba(221, 158, 92, 0.24), transparent 62%),
+    radial-gradient(640px 320px at 112% 14%, rgba(135, 153, 114, 0.18), transparent 58%),
+    linear-gradient(180deg, #fff9f1 0%, #ffe7c8 54%, #f5cfa7 100%) !important;
+}
+
+.ed-toolbar,
+.ed-hero,
+.ed-summary-grid,
+.employee-dashboard .ed-group,
+.employee-dashboard .ed-group .vkuiGroup__inner,
+.employee-dashboard .ed-group .vkuiGroup__header {
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  box-sizing: border-box !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.ed-toolbar {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px !important;
+  margin-bottom: 18px !important;
+}
+
+.ed-toolbar .vkuiButton,
+.ed-toolbar .vkuiButton__in {
+  width: 100% !important;
+}
+
+.ed-toolbar .vkuiButton__in {
+  background: rgba(255, 250, 243, 0.92) !important;
+  color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.1) !important;
+  font-weight: 800 !important;
+}
+
+.ed-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 230px;
+  padding: clamp(24px, 4vw, 42px) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(520px 240px at 100% -10%, rgba(222, 144, 69, 0.26), transparent 58%),
+    radial-gradient(460px 220px at -8% 105%, rgba(132, 153, 112, 0.18), transparent 56%),
+    linear-gradient(135deg, #fffdf8 0%, #ffe6c7 42%, #f2bd81 100%) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 24px 50px rgba(91, 53, 41, 0.14) !important;
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-hero-kicker {
+  color: #9a5d35 !important;
+  font-weight: 800 !important;
+}
+
+.ed-hero-title {
+  max-width: 760px;
+  color: #2f1d18 !important;
+  font-size: clamp(23px, 2.6vw, 34px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em;
+}
+
+.ed-hero-subtitle {
+  color: rgba(47, 29, 24, 0.78) !important;
+  font-size: 15px !important;
+}
+
+.ed-hero-stats {
+  min-width: min(100%, 180px);
+}
+
+.ed-stat,
+.ed-summary-card {
+  border-radius: 18px !important;
+  background: rgba(255, 250, 243, 0.78) !important;
+  border: 1px solid rgba(91, 53, 41, 0.1) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-stat-label,
+.ed-summary-label {
+  color: var(--ed-soft) !important;
+}
+
+.ed-stat-value,
+.ed-summary-value {
+  color: var(--ed-cocoa) !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+}
+
+.ed-summary-grid {
+  gap: 14px !important;
+  margin-top: 16px !important;
+  margin-bottom: 18px !important;
+}
+
+.employee-dashboard .vkuiGroup,
+.employee-dashboard [class*="Group"] {
+  background: transparent !important;
+}
+
+.employee-dashboard .ed-group {
+  margin-top: 16px !important;
+}
+
+.employee-dashboard .ed-group .vkuiGroup__header,
+.employee-dashboard .ed-group [class*="Group__header"] {
+  margin: 0 auto 8px !important;
+  padding: 0 2px !important;
+}
+
+.employee-dashboard .vkuiHeader__content,
+.employee-dashboard .vkuiHeader__content *,
+.employee-dashboard [class*="Header__content"],
+.employee-dashboard [class*="Header__content"] * {
+  color: var(--ed-cocoa) !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 17px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.employee-dashboard .vkuiGroup__inner,
+.employee-dashboard [class*="Group__inner"] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+  padding: 18px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(420px 200px at 100% 0%, rgba(221, 158, 92, 0.1), transparent 64%),
+    rgba(255, 250, 243, 0.88) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 22px 44px rgba(91, 53, 41, 0.12) !important;
+}
+
+.employee-dashboard .vkuiCard,
+.ed-card,
+.ed-summary-card,
+.ed-month-card,
+.ed-schedule-card,
+.ed-schedule-form-card {
+  border-radius: 24px !important;
+  background:
+    radial-gradient(280px 140px at 100% 0%, rgba(221, 158, 92, 0.09), transparent 64%),
+    #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.11) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-tabs {
+  width: min(1120px, calc(100vw - 32px));
+  max-width: 1120px;
+  margin: 0 auto !important;
+  padding: 6px !important;
+  border-radius: 18px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+}
+
+.employee-dashboard .vkuiTabsItem,
+.employee-dashboard .vkuiTabsItem * {
+  color: var(--ed-brown) !important;
+  font-weight: 800 !important;
+}
+
+.employee-dashboard .vkuiTabsItem--selected {
+  background: var(--ed-brown) !important;
+}
+
+.employee-dashboard .vkuiTabsItem--selected *,
+.employee-dashboard .vkuiTabsItem--selected .vkuiTabsItem__label {
+  color: var(--ed-paper) !important;
+}
+
+.employee-dashboard input,
+.employee-dashboard select,
+.employee-dashboard textarea,
+.employee-dashboard .vkuiInput__el,
+.employee-dashboard .vkuiNativeSelect__el,
+.employee-dashboard .vkuiTextarea__el {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  min-height: 46px;
+  border-radius: 16px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  box-shadow: none !important;
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+  font-weight: 500 !important;
+}
+
+.employee-dashboard .vkuiFormItem {
+  margin: 0 0 14px !important;
+  padding: 16px !important;
+  border-radius: 22px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.08) !important;
+}
+
+.employee-dashboard .vkuiFormItem__top,
+.ed-complete-box .vkuiFormItem__top,
+.ed-complete-note-item .vkuiFormItem__top {
+  color: var(--ed-brown) !important;
+  font-weight: 600 !important;
+}
+
+.ed-form-title,
+.ed-section-title,
+.ed-schedule-date,
+.ed-schedule-time,
+.ed-schedule-role,
+.ed-booking-title,
+.ed-month-title {
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-schedule-head,
+.ed-schedule-time,
+.ed-card-actions,
+.ed-shift-bookings,
+.ed-order-details,
+.ed-schedule-meta {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+.ed-orders-card .vkuiSimpleCell,
+.ed-order-details,
+.ed-schedule-meta,
+.ed-booking-item,
+.ed-month-metric,
+.ed-empty {
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-orders-card .vkuiSimpleCell__children,
+.ed-orders-card .vkuiSimpleCell__main,
+.ed-orders-card .vkuiSimpleCell__content,
+.ed-orders-card .vkuiSimpleCell__description,
+.ed-detail-row,
+.ed-detail-row strong,
+.ed-booking-item .ed-detail-row,
+.ed-booking-item .ed-detail-row strong,
+.ed-schedule-meta .ed-detail-row,
+.ed-schedule-meta .ed-detail-row strong,
+.ed-month-label,
+.ed-month-value {
+  color: var(--ed-cocoa) !important;
+}
+
+.ed-detail-row,
+.ed-month-metric,
+.ed-booking-item {
+  border-radius: 16px !important;
+  padding: 12px !important;
+}
+
+.ed-detail-row strong {
+  color: rgba(63, 38, 31, 0.68) !important;
+}
+
+.ed-booking-item {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(255, 239, 219, 0.98)) !important;
+}
+
+.employee-dashboard .vkuiButton__in {
+  border-radius: 16px !important;
+  font-weight: 800 !important;
+}
+
+.employee-dashboard .vkuiButton--mode-primary .vkuiButton__in,
+.employee-dashboard .vkuiButton--mode-commerce .vkuiButton__in {
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(255, 255, 255, 0.55), transparent 62%),
+    linear-gradient(135deg, #fffdf8 0%, #ffe8c4 58%, #ffd08a 100%) !important;
+  color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  box-shadow: 0 12px 24px rgba(191, 111, 47, 0.18) !important;
+}
+
+.employee-dashboard .vkuiButton--mode-secondary .vkuiButton__in {
+  background: #fffaf3 !important;
+  color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+}
+
+.employee-dashboard .vkuiButton--mode-tertiary .vkuiButton__in {
+  color: var(--ed-brown) !important;
+}
+
+@media (max-width: 720px) {
+  .ed-toolbar {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final groomer cabinet contrast fixes. */
+.employee-dashboard:not(.admin-dashboard) .ed-tabs {
+  gap: 8px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem {
+  border-radius: 14px !important;
+  overflow: hidden;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem,
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem *,
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem__label {
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem--selected,
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem--selected .vkuiTabsItem__in {
+  background: var(--ed-brown) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem--selected *,
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem--selected .vkuiTabsItem__label {
+  color: var(--ed-paper) !important;
+  -webkit-text-fill-color: var(--ed-paper) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem__after,
+.employee-dashboard:not(.admin-dashboard) .vkuiTabsItem--selected::after {
+  background: var(--ed-brown) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-section-title {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  margin: 18px 0 14px 2px !important;
+  padding: 9px 14px !important;
+  border-radius: 999px !important;
+  background: rgba(91, 53, 41, 0.1) !important;
+  border: 1px solid rgba(91, 53, 41, 0.15) !important;
+  color: var(--ed-brown) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.08) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-orders-card {
+  margin-top: 10px !important;
+  margin-bottom: 18px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-orders-card .vkuiSimpleCell {
+  margin-bottom: 14px !important;
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-orders-card .vkuiSimpleCell__in {
+  padding-top: 8px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-orders-card > .vkuiSimpleCell:first-child,
+.employee-dashboard:not(.admin-dashboard) .ed-orders-card > [class*="SimpleCell"]:first-child {
+  margin-top: 12px !important;
+  padding-top: 10px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-order-details {
+  margin-top: 14px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions {
+  margin-top: 16px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-action-row {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton--mode-primary .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary) .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-form-actions .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary) .vkuiButton__in {
+  background: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.2) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton--mode-primary .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary) .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-form-actions .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary) .vkuiButton__content {
+  color: var(--ed-paper) !important;
+  -webkit-text-fill-color: var(--ed-paper) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton--mode-secondary .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .vkuiButton--mode-secondary .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .ed-action-row .vkuiButton:nth-child(2),
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .ed-action-row .vkuiButton:nth-child(2) .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .ed-action-row .vkuiButton:nth-child(2) .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-cancel-button,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-cancel-button .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-cancel-button .vkuiButton__in {
+  background: var(--ed-brown) !important;
+  background-color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.18) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-card-actions .vkuiButton--mode-secondary .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .vkuiButton--mode-secondary .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .ed-action-row .vkuiButton:nth-child(2) *,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box .ed-action-row .vkuiButton:nth-child(2) .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-cancel-button *,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-cancel-button .vkuiButton__content {
+  color: var(--ed-paper) !important;
+  -webkit-text-fill-color: var(--ed-paper) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-complete-box {
+  border-radius: 20px !important;
+  padding: 14px !important;
+  background: rgba(255, 241, 222, 0.72) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiFormItem {
+  margin: 0 0 14px !important;
+  padding: 8px 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiFormItem__top {
+  padding: 0 4px 8px !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiInput,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiInput__host,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect__host {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .ed-form-actions .vkuiButton:first-child,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .ed-form-actions .vkuiButton:first-child .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .ed-form-actions .vkuiButton:first-child .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-more-row .vkuiButton,
+.employee-dashboard:not(.admin-dashboard) .ed-more-row .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-more-row .vkuiButton__in {
+  background: var(--ed-brown) !important;
+  background-color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.18) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .ed-form-actions .vkuiButton:first-child *,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .ed-form-actions .vkuiButton:first-child .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button *,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button *,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button .vkuiButton__content,
+.employee-dashboard:not(.admin-dashboard) .ed-more-row .vkuiButton *,
+.employee-dashboard:not(.admin-dashboard) .ed-more-row .vkuiButton__content {
+  color: var(--ed-paper) !important;
+  -webkit-text-fill-color: var(--ed-paper) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect__el,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card select,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card option {
+  background: #fffdf8 !important;
+  background-color: #fffdf8 !important;
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+  font-weight: 500 !important;
+}
+
+/* Final override: softer action buttons and clean input wrappers. */
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-save-schedule-button .vkuiButton__in,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button .vkuiButton__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-start-button .vkuiButton__in {
+  background: #8b5744 !important;
+  background-color: #8b5744 !important;
+  border-color: rgba(91, 53, 41, 0.22) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.12) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item .vkuiFormItem__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item .vkuiFormItem__content,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item .vkuiInput,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item .vkuiInput__host,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item [class*="Input__host"],
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item [class*="FormItem__content"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item .vkuiInput__el,
+.employee-dashboard:not(.admin-dashboard) .ed-complete-note-item input {
+  background: #fffdf8 !important;
+  background-color: #fffdf8 !important;
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect__host,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect__container,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card [class*="NativeSelect__host"],
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card [class*="NativeSelect__container"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card .vkuiNativeSelect__el,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card select,
+.employee-dashboard:not(.admin-dashboard) .ed-schedule-form-card option {
+  background: #fffdf8 !important;
+  background-color: #fffdf8 !important;
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiNativeSelect,
+.employee-dashboard:not(.admin-dashboard) .vkuiNativeSelect__host,
+.employee-dashboard:not(.admin-dashboard) .vkuiNativeSelect__container,
+.employee-dashboard:not(.admin-dashboard) [class*="NativeSelect__host"],
+.employee-dashboard:not(.admin-dashboard) [class*="NativeSelect__container"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.employee-dashboard:not(.admin-dashboard) .vkuiNativeSelect__el,
+.employee-dashboard:not(.admin-dashboard) select,
+.employee-dashboard:not(.admin-dashboard) option {
+  background: #fffdf8 !important;
+  background-color: #fffdf8 !important;
+  color: var(--ed-brown) !important;
+  -webkit-text-fill-color: var(--ed-brown) !important;
+  font-weight: 500 !important;
+}
+
+/* Unified tabs style shared by groomer/admin/client dashboards. */
+.employee-dashboard .ed-tabs {
+  padding: 6px !important;
+  border-radius: 18px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem,
+.employee-dashboard .ed-tabs .vkuiTabsItem__in,
+.employee-dashboard .ed-tabs [class*="TabsItem"] {
+  border-radius: 14px !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem *,
+.employee-dashboard .ed-tabs .vkuiTabsItem__label,
+.employee-dashboard .ed-tabs [class*="TabsItem"] * {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected *,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"] * {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 600 !important;
+}
+
+/* Mobile layout fix shared by groomer and admin dashboards. */
+@media (max-width: 520px) {
+  .employee-dashboard,
+  .employee-dashboard * {
+    box-sizing: border-box !important;
+  }
+
+  .employee-dashboard .vkuiPanelHeader__in,
+  .employee-dashboard [class*="PanelHeader__in"] {
+    min-height: 56px !important;
+  }
+
+  .employee-dashboard .vkuiPanelHeader__content,
+  .employee-dashboard .vkuiPanelHeader__content *,
+  .employee-dashboard [class*="PanelHeader__content"],
+  .employee-dashboard [class*="PanelHeader__content"] * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .employee-dashboard .vkuiPanelHeader__after,
+  .employee-dashboard .vkuiPanelHeader__right,
+  .employee-dashboard [class*="PanelHeader__after"],
+  .employee-dashboard [class*="PanelHeader__right"] {
+    min-width: 0 !important;
+  }
+
+  .employee-dashboard .ed-header-actions {
+    gap: 4px !important;
+  }
+
+  .employee-dashboard .ed-header-actions .vkuiButton__in {
+    min-height: 30px !important;
+    padding: 0 8px !important;
+  }
+
+  .employee-dashboard .ed-header-actions .vkuiButton__content {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .employee-dashboard .ed-page {
+    width: 100% !important;
+    padding: 14px 10px 44px !important;
+    overflow-x: hidden !important;
+  }
+
+  .ed-toolbar,
+  .ed-hero,
+  .ed-summary-grid,
+  .employee-dashboard .ed-group,
+  .employee-dashboard .ed-group .vkuiGroup__inner,
+  .employee-dashboard .ed-group .vkuiGroup__header,
+  .employee-dashboard .ed-tabs {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .employee-dashboard .ed-tabs {
+    overflow: hidden !important;
+  }
+
+  .employee-dashboard .ed-tabs [class*="Tabs__in"],
+  .employee-dashboard .ed-tabs .vkuiTabs__in {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 4px !important;
+  }
+
+  .employee-dashboard .ed-tabs .vkuiTabsItem,
+  .employee-dashboard .ed-tabs [class*="TabsItem"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .employee-dashboard .ed-tabs .vkuiTabsItem__in,
+  .employee-dashboard .ed-tabs [class*="TabsItem__in"] {
+    min-width: 0 !important;
+    padding: 8px 4px !important;
+  }
+
+  .employee-dashboard .ed-tabs .vkuiTabsItem *,
+  .employee-dashboard .ed-tabs [class*="TabsItem"] * {
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+    text-align: center !important;
+  }
+}

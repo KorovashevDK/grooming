@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import bridge from '@vkontakte/vk-bridge';
-import { View, SplitLayout, SplitCol, Button, Group, SimpleCell, Header, Panel, PanelHeader, FormItem, Input } from '@vkontakte/vkui';
+import { View, SplitLayout, SplitCol, Button, Group, Header, Panel, PanelHeader, FormItem, Input } from '@vkontakte/vkui';
 import { useActiveVkuiLocation, useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import { useAuth } from './contexts/AuthContext';
 import { authApi } from './api/endpoints';
@@ -34,6 +34,44 @@ const ROLE_LABELS = {
   admin: 'Администратор',
 };
 
+const EMPTY_AUTH_FORM = {
+  vkId: '',
+  fullName: '',
+  phone: '',
+};
+
+const AuthScreen = ({ eyebrow, title, subtitle, children }) => (
+  <div className="auth-page">
+    <section className="auth-hero">
+      <div>
+        <div className="auth-hero-kicker">{eyebrow}</div>
+        <h1 className="auth-hero-title">{title}</h1>
+        <p className="auth-hero-subtitle">{subtitle}</p>
+      </div>
+    </section>
+    <div className="auth-content">
+      {children}
+    </div>
+  </div>
+);
+
+const AuthNotice = ({ title, children, tone = 'default' }) => (
+  <div className={`auth-notice auth-notice-${tone}`}>
+    <div className="auth-notice-title">{title}</div>
+    {children ? <div className="auth-notice-text">{children}</div> : null}
+  </div>
+);
+
+const RoleCard = ({ role, title, description, onClick }) => (
+  <button type="button" className={`auth-role-card auth-role-${role}`} onClick={onClick}>
+    <span className="auth-role-mark">{title.slice(0, 1)}</span>
+    <span className="auth-role-copy">
+      <span className="auth-role-title">{title}</span>
+      <span className="auth-role-description">{description}</span>
+    </span>
+  </button>
+);
+
 export const App = () => {
   const { panel: activePanel } = useActiveVkuiLocation();
   const [fetchedUser, setUser] = useState();
@@ -42,21 +80,41 @@ export const App = () => {
   const routeNavigator = useRouteNavigator();
   const [availableRoles, setAvailableRoles] = useState([]);
   const [rolesResolved, setRolesResolved] = useState(false);
-  const [devAuthForm, setDevAuthForm] = useState({
-    vkId: '195197738',
-    fullName: 'Тестовый пользователь',
-    phone: '+79990000000',
-  });
+  const [devAuthForm, setDevAuthForm] = useState(EMPTY_AUTH_FORM);
   const [needsRegistration, setNeedsRegistration] = useState(false);
   const [authError, setAuthError] = useState('');
   const [authDiscovery, setAuthDiscovery] = useState(null);
   const [authChecking, setAuthChecking] = useState(false);
+  const [manualLogout, setManualLogout] = useState(() => sessionStorage.getItem('grooming:manualLogout') === '1');
+
+  const resetAuthScreen = React.useCallback(() => {
+    setAvailableRoles([]);
+    setRolesResolved(false);
+    setDevAuthForm(EMPTY_AUTH_FORM);
+    setNeedsRegistration(false);
+    setAuthError('');
+    setAuthDiscovery(null);
+    setAuthChecking(false);
+  }, []);
 
   useEffect(() => {
     if (!authUser && activePanel !== DEFAULT_VIEW_PANELS.LOGIN) {
       routeNavigator.push('/login');
     }
   }, [authUser, activePanel, routeNavigator]);
+
+  useEffect(() => {
+    const handleLogout = () => {
+      resetAuthScreen();
+      setManualLogout(true);
+    };
+
+    window.addEventListener('grooming:logout', handleLogout);
+
+    return () => {
+      window.removeEventListener('grooming:logout', handleLogout);
+    };
+  }, [resetAuthScreen]);
 
   useEffect(() => {
     const loadRoles = async () => {
@@ -124,6 +182,11 @@ export const App = () => {
         return;
       }
 
+      if (manualLogout) {
+        setPopout(null);
+        return;
+      }
+
       try {
         const vkUser = await bridge.send('VKWebAppGetUserInfo');
         setUser(vkUser);
@@ -137,6 +200,12 @@ export const App = () => {
 
         setAuthDiscovery(discovery);
         setNeedsRegistration(discovery?.status === 'needs_registration');
+        if (discovery?.status === 'name_mismatch') {
+          setAuthError(discovery.error || 'VK ID найден, но имя и фамилия не совпадают');
+          setAuthDiscovery(null);
+          return;
+        }
+
         setDevAuthForm((prev) => ({
           ...prev,
           vkId: String(vkUser.id || prev.vkId),
@@ -168,7 +237,12 @@ export const App = () => {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [authUser, login]);
+  }, [authUser, login, manualLogout]);
+
+  const handleStartVkLogin = () => {
+    sessionStorage.removeItem('grooming:manualLogout');
+    setManualLogout(false);
+  };
 
   const handleDevLogin = async () => {
     try {
@@ -180,6 +254,12 @@ export const App = () => {
 
       setAuthDiscovery(discovery);
       setNeedsRegistration(discovery?.status === 'needs_registration');
+      if (discovery?.status === 'name_mismatch') {
+        setAuthError(discovery.error || 'VK ID найден, но имя и фамилия не совпадают');
+        setAuthDiscovery(null);
+        return;
+      }
+
       setDevAuthForm((prev) => ({
         ...prev,
         fullName: discovery?.fullName || prev.fullName,
@@ -237,17 +317,34 @@ export const App = () => {
   const renderLoginPanel = () => {
     if (bridge.isWebView()) {
       return (
-        <Group className="auth-group" header={<Header mode="secondary">Авторизация</Header>}>
-          {authChecking ? <SimpleCell>Проверяем ваш профиль и доступные роли...</SimpleCell> : null}
+        <AuthScreen
+          eyebrow="Grooming salon"
+          title="Вход и регистрация"
+          subtitle="Проверим профиль VK, найдём ваши роли и при необходимости попросим только недостающие данные."
+        >
+          <Group className="auth-group" header={<Header mode="secondary">Авторизация</Header>}>
+            {authChecking ? (
+              <AuthNotice title="Проверяем профиль">Ищем клиента, сотрудника и доступные роли.</AuthNotice>
+            ) : null}
 
-          {!authChecking && authDiscovery?.status === 'employee_found' ? (
-            <>
-              <SimpleCell>
-                Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
-              </SimpleCell>
-              <SimpleCell>
-                Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
-              </SimpleCell>
+            {!authChecking && manualLogout ? (
+              <>
+                <AuthNotice title="Вы вышли из профиля">
+                  Для нового входа снова проверьте профиль VK.
+                </AuthNotice>
+                <FormItem>
+                  <Button stretched size="l" onClick={handleStartVkLogin}>
+                    Войти
+                  </Button>
+                </FormItem>
+              </>
+            ) : null}
+
+            {!authChecking && !manualLogout && authDiscovery?.status === 'employee_found' ? (
+              <>
+                <AuthNotice title={`Найден сотрудник: ${devAuthForm.fullName || 'Пользователь'}`}>
+                  Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
+                </AuthNotice>
               <FormItem>
                 <Button stretched size="l" onClick={handleContinueLogin}>
                   Открыть доступные разделы
@@ -256,11 +353,11 @@ export const App = () => {
             </>
           ) : null}
 
-          {!authChecking && authDiscovery?.status === 'client_found' ? (
-            <>
-              <SimpleCell>
-                Найден клиент: {devAuthForm.fullName || 'Пользователь'}
-              </SimpleCell>
+            {!authChecking && !manualLogout && authDiscovery?.status === 'client_found' ? (
+              <>
+                <AuthNotice title={`Найден клиент: ${devAuthForm.fullName || 'Пользователь'}`}>
+                  Продолжим в клиентский раздел.
+                </AuthNotice>
               {authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient ? (
                 <FormItem top="Телефон">
                   <Input
@@ -285,11 +382,11 @@ export const App = () => {
             </>
           ) : null}
 
-          {!authChecking && authDiscovery?.status === 'needs_registration' ? (
-            <>
-              <SimpleCell>
-                Профиль VK найден. Нужно завершить регистрацию клиента.
-              </SimpleCell>
+            {!authChecking && !manualLogout && authDiscovery?.status === 'needs_registration' ? (
+              <>
+                <AuthNotice title="Нужно завершить регистрацию" tone="accent">
+                  Профиль VK найден. Добавьте телефон, чтобы создать клиентский профиль.
+                </AuthNotice>
               <FormItem top="Имя и фамилия">
                 <Input value={devAuthForm.fullName} readOnly />
               </FormItem>
@@ -308,14 +405,20 @@ export const App = () => {
             </>
           ) : null}
 
-          {authError ? <SimpleCell>{authError}</SimpleCell> : null}
-        </Group>
+            {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
+          </Group>
+        </AuthScreen>
       );
     }
 
     return (
-      <Group className="auth-group" header={<Header mode="secondary">Режим разработки</Header>}>
-        <SimpleCell>Для VK Mini App `VK ID` и ФИО будут получены автоматически из профиля VK.</SimpleCell>
+      <AuthScreen
+        eyebrow="Dev mode"
+        title="Вход и регистрация"
+        subtitle="В мини-приложении VK ID и имя придут автоматически. Здесь можно проверить сценарии входа, выбора роли и дорегистрации."
+      >
+        <Group className="auth-group" header={<Header mode="secondary">Режим разработки</Header>}>
+          <AuthNotice title="Тестовый вход">VK ID и ФИО в боевом режиме будут получены из профиля VK.</AuthNotice>
 
         {!authDiscovery ? (
           <>
@@ -332,7 +435,7 @@ export const App = () => {
                 onChange={(e) => setDevAuthForm((prev) => ({ ...prev, fullName: e.target.value }))}
               />
             </FormItem>
-            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
               <Button stretched size="l" onClick={handleDevLogin} disabled={!devAuthForm.vkId || !devAuthForm.fullName}>
                 Продолжить
@@ -343,12 +446,9 @@ export const App = () => {
 
         {authDiscovery?.status === 'employee_found' ? (
           <>
-            <SimpleCell>
-              Найден сотрудник: {devAuthForm.fullName || 'Пользователь'}
-            </SimpleCell>
-            <SimpleCell>
+            <AuthNotice title={`Найден сотрудник: ${devAuthForm.fullName || 'Пользователь'}`}>
               Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
-            </SimpleCell>
+            </AuthNotice>
             {authDiscovery?.phoneMissingForClient ? (
               <FormItem top="Телефон для клиентского профиля">
                 <Input
@@ -358,7 +458,7 @@ export const App = () => {
                 />
               </FormItem>
             ) : null}
-            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
               <Button
                 stretched
@@ -374,9 +474,9 @@ export const App = () => {
 
         {authDiscovery?.status === 'client_found' ? (
           <>
-            <SimpleCell>
-              Найден клиент: {devAuthForm.fullName || 'Пользователь'}
-            </SimpleCell>
+            <AuthNotice title={`Найден клиент: ${devAuthForm.fullName || 'Пользователь'}`}>
+              Можно открыть клиентский кабинет.
+            </AuthNotice>
             {authDiscovery?.phoneMissing ? (
               <FormItem top="Телефон">
                 <Input
@@ -386,7 +486,7 @@ export const App = () => {
                 />
               </FormItem>
             ) : null}
-            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
               <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !devAuthForm.phone}>
                 {authDiscovery?.phoneMissing ? 'Сохранить телефон и продолжить' : 'Открыть клиентский раздел'}
@@ -397,9 +497,9 @@ export const App = () => {
 
         {authDiscovery?.status === 'needs_registration' ? (
           <>
-            <SimpleCell>
-              Новый пользователь. Завершите регистрацию клиента.
-            </SimpleCell>
+            <AuthNotice title="Новый пользователь" tone="accent">
+              Завершите регистрацию клиента: нужен только номер телефона.
+            </AuthNotice>
             <FormItem top="Телефон">
               <Input
                 value={devAuthForm.phone}
@@ -407,7 +507,7 @@ export const App = () => {
                 placeholder="Заполните номер телефона"
               />
             </FormItem>
-            {authError ? <SimpleCell>{authError}</SimpleCell> : null}
+            {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
               <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
                 Привязать и продолжить
@@ -415,7 +515,8 @@ export const App = () => {
             </FormItem>
           </>
         ) : null}
-      </Group>
+        </Group>
+      </AuthScreen>
     );
   };
 
@@ -436,56 +537,53 @@ export const App = () => {
         return (
           <Panel id={DEFAULT_VIEW_PANELS.ROLE_MENU} className="auth-panel">
             <PanelHeader>Главное меню</PanelHeader>
-            <Group className="auth-group" header={<Header mode="secondary">Выберите раздел</Header>}>
-              {availableRoles.includes('client') ? (
-                <FormItem>
-                  <Button
-                    stretched
-                    size="l"
+            <AuthScreen
+              eyebrow="Выбор роли"
+              title="Куда переходим?"
+              subtitle="Откройте клиентский, рабочий или административный интерфейс в том же визуальном стиле салона."
+            >
+              <Group className="auth-group auth-role-group" header={<Header mode="secondary">Выберите раздел</Header>}>
+                {availableRoles.includes('client') ? (
+                  <RoleCard
+                    role="client"
+                    title="Клиент"
+                    description="Записи, питомцы и профиль"
                     onClick={async () => {
                       const result = await switchRole('client');
                       if (result.success) {
                         routeNavigator.push(`/${CLIENT_PANELS.DASHBOARD}`);
                       }
                     }}
-                  >
-                    Клиент
-                  </Button>
-                </FormItem>
-              ) : null}
-              {availableRoles.includes('groomer') ? (
-                <FormItem>
-                  <Button
-                    stretched
-                    size="l"
+                  />
+                ) : null}
+                {availableRoles.includes('groomer') ? (
+                  <RoleCard
+                    role="groomer"
+                    title="Грумер"
+                    description="Заказы, смены и выполнение услуг"
                     onClick={async () => {
                       const result = await switchRole('groomer');
                       if (result.success) {
                         routeNavigator.push(`/${EMPLOYEE_PANELS.DASHBOARD}`);
                       }
                     }}
-                  >
-                    Грумер
-                  </Button>
-                </FormItem>
-              ) : null}
-              {availableRoles.includes('admin') ? (
-                <FormItem>
-                  <Button
-                    stretched
-                    size="l"
+                  />
+                ) : null}
+                {availableRoles.includes('admin') ? (
+                  <RoleCard
+                    role="admin"
+                    title="Администратор"
+                    description="Расписание, сотрудники и управление"
                     onClick={async () => {
                       const result = await switchRole('admin');
                       if (result.success) {
                         routeNavigator.push(`/${ADMIN_PANELS.DASHBOARD}`);
                       }
                     }}
-                  >
-                    Администратор
-                  </Button>
-                </FormItem>
-              ) : null}
-            </Group>
+                  />
+                ) : null}
+              </Group>
+            </AuthScreen>
           </Panel>
         );
 
@@ -502,8 +600,8 @@ export const App = () => {
 
   return (
     <SplitLayout>
-      <SplitCol>
-        <View activePanel={activePanel}>
+      <SplitCol animate={false}>
+        <View key={activePanel} activePanel={activePanel}>
           {renderActivePanel()}
         </View>
       </SplitCol>

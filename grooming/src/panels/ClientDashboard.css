@@ -347,21 +347,216 @@
   opacity: 0.9;
 }
 
-.cd-service-list {
+.cd-service-picker {
+  padding: 14px;
+  border-radius: 20px;
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(96, 57, 45, 0.12), transparent 60%),
+    #fff1de;
+  border: 1px solid rgba(96, 57, 45, 0.16);
+  box-shadow: 0 16px 34px rgba(58, 36, 28, 0.2);
+  color: #60392d;
+}
+
+.cd-service-picker-head {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cd-service-picker-title {
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  font-size: 15px;
+  line-height: 1.2;
+  color: #60392d;
+}
+
+.cd-service-picker-subtitle {
+  margin-top: 5px;
+  font-size: 12px;
+  color: rgba(96, 57, 45, 0.72);
+}
+
+.cd-service-search {
+  margin-bottom: 12px;
+}
+
+.cd-category-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 12px;
+  margin-bottom: 8px;
+  scrollbar-width: none;
+}
+
+.cd-category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.cd-category-chip {
+  appearance: none;
+  border: 1px solid rgba(96, 57, 45, 0.16);
+  background: rgba(96, 57, 45, 0.08);
+  color: #60392d;
+  border-radius: 999px;
+  padding: 9px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.cd-category-chip:active {
+  transform: scale(0.98);
+}
+
+.cd-category-chip-active {
+  background: #60392d;
+  color: #fff1de;
+  border-color: #60392d;
+  box-shadow: 0 10px 20px rgba(96, 57, 45, 0.24);
+}
+
+.cd-category-icon {
+  font-size: 13px;
+}
+
+.cd-category-count {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 241, 222, 0.6);
+  color: #60392d;
+  font-size: 12px;
+}
+
+.cd-category-chip-active .cd-category-count {
+  background: #fff1de;
+}
+
+.cd-service-list {
+  display: grid;
   gap: 10px;
 }
 
 .cd-service-row {
-  padding: 10px 0;
-  border-bottom: 1px dashed rgba(96, 57, 45, 0.24);
+  appearance: none;
+  width: 100%;
+  border: 1px solid rgba(96, 57, 45, 0.14);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 250, 244, 0.78);
+  color: #60392d;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(58, 36, 28, 0.08);
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cd-service-row:active {
+  transform: scale(0.99);
+}
+
+.cd-service-row-selected {
+  background: linear-gradient(135deg, #60392d 0%, #4f2e24 100%);
+  color: #fff1de;
+  border-color: rgba(255, 241, 222, 0.5);
+  box-shadow: 0 14px 26px rgba(58, 36, 28, 0.26);
+}
+
+.cd-service-check {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: #60392d;
+  color: #fff1de;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cd-service-row-selected .cd-service-check {
+  background: #fff1de;
+  color: #60392d;
+}
+
+.cd-service-main {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.cd-service-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cd-service-name {
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.cd-service-category {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(96, 57, 45, 0.1);
+  color: rgba(96, 57, 45, 0.82);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cd-service-row-selected .cd-service-category {
+  background: rgba(255, 241, 222, 0.16);
+  color: #fff1de;
 }
 
 .cd-service-desc {
-  margin-left: 32px;
-  color: var(--cd-muted);
+  color: rgba(96, 57, 45, 0.72);
   font-size: 12px;
+  line-height: 1.35;
+}
+
+.cd-service-row-selected .cd-service-desc {
+  color: rgba(255, 241, 222, 0.78);
+}
+
+.cd-service-meta {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cd-service-meta span {
+  border-radius: 999px;
+  padding: 6px 9px;
+  background: rgba(96, 57, 45, 0.1);
+  color: #60392d;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.cd-service-row-selected .cd-service-meta span {
+  background: rgba(255, 241, 222, 0.16);
+  color: #fff1de;
 }
 
 .client-dashboard .vkuiButton {
@@ -641,6 +836,366 @@
   color: rgba(255, 241, 222, 0.82);
 }
 
+.client-dashboard {
+  --cd-brown: #60392d;
+  --cd-brown-2: #4d2d24;
+  --cd-paper: #fff1de;
+  --cd-paper-2: #f7dec3;
+  --cd-paper-3: #fff8ef;
+  --cd-soft-brown: rgba(96, 57, 45, 0.72);
+  --cd-line: rgba(96, 57, 45, 0.16);
+}
+
+.cd-page {
+  padding: 18px 14px 44px;
+  background:
+    radial-gradient(420px 220px at 8% 3%, rgba(255, 241, 222, 0.18), transparent 62%),
+    radial-gradient(520px 260px at 108% 16%, rgba(199, 160, 127, 0.28), transparent 58%),
+    linear-gradient(180deg, #6b4234 0%, #4d2f27 52%, #3e271f 100%);
+}
+
+.cd-page::before {
+  width: 360px;
+  height: 360px;
+  top: 70px;
+  right: -190px;
+  background: radial-gradient(circle, rgba(255, 241, 222, 0.42) 0%, transparent 68%);
+  opacity: 0.16;
+}
+
+.cd-page::after {
+  width: 320px;
+  height: 320px;
+  bottom: 16%;
+  left: -190px;
+  background: radial-gradient(circle, rgba(247, 222, 195, 0.34) 0%, transparent 70%);
+  opacity: 0.18;
+}
+
+.cd-toolbar {
+  justify-content: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.cd-toolbar .vkuiButton {
+  width: 100%;
+}
+
+.cd-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 26px;
+  background:
+    radial-gradient(300px 170px at 100% 0%, rgba(96, 57, 45, 0.14), transparent 60%),
+    linear-gradient(145deg, var(--cd-paper) 0%, #f5dabb 100%);
+  border: 1px solid rgba(255, 241, 222, 0.75);
+  color: var(--cd-brown);
+  box-shadow: 0 22px 44px rgba(48, 28, 21, 0.28);
+}
+
+.cd-hero::after {
+  content: '';
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -54px;
+  bottom: -58px;
+  border-radius: 50%;
+  border: 28px solid rgba(96, 57, 45, 0.08);
+}
+
+.cd-hero-kicker {
+  color: rgba(96, 57, 45, 0.72);
+}
+
+.cd-hero-title {
+  color: var(--cd-brown);
+  font-size: 22px;
+}
+
+.cd-hero-subtitle {
+  color: rgba(96, 57, 45, 0.74);
+}
+
+.cd-stat {
+  background: rgba(96, 57, 45, 0.09);
+  border: 1px solid rgba(96, 57, 45, 0.12);
+  color: var(--cd-brown);
+}
+
+.cd-stat-label {
+  color: rgba(96, 57, 45, 0.68);
+}
+
+.cd-stat-value {
+  color: var(--cd-brown);
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+}
+
+.cd-alert {
+  background:
+    radial-gradient(240px 120px at 100% 0%, rgba(96, 57, 45, 0.1), transparent 65%),
+    var(--cd-paper);
+  color: var(--cd-brown);
+  border: 1px solid rgba(255, 241, 222, 0.7);
+  box-shadow: 0 14px 28px rgba(48, 28, 21, 0.18);
+}
+
+.client-dashboard .vkuiGroup__header {
+  padding: 0 4px 8px;
+}
+
+.client-dashboard .vkuiHeader__content {
+  display: inline-flex;
+  align-items: center;
+  color: var(--cd-paper);
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+.client-dashboard .vkuiGroup__inner {
+  gap: 14px;
+  padding: 14px;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 241, 222, 0.16), rgba(255, 241, 222, 0.08)),
+    rgba(80, 52, 41, 0.5);
+  border: 1px solid rgba(255, 241, 222, 0.18);
+  box-shadow: 0 18px 36px rgba(35, 20, 15, 0.22);
+}
+
+.client-dashboard .vkuiGroup + .vkuiGroup,
+.client-dashboard .cd-group + .cd-group {
+  margin-top: 18px;
+}
+
+.cd-tabs {
+  background:
+    radial-gradient(240px 120px at 100% 0%, rgba(96, 57, 45, 0.1), transparent 60%),
+    var(--cd-paper);
+  border: 1px solid rgba(255, 241, 222, 0.72);
+  box-shadow: 0 16px 30px rgba(48, 28, 21, 0.2);
+}
+
+.client-dashboard .vkuiTabsItem {
+  color: var(--cd-brown);
+}
+
+.client-dashboard .vkuiTabsItem--selected {
+  background: var(--cd-brown);
+  box-shadow: 0 10px 20px rgba(96, 57, 45, 0.24);
+}
+
+.client-dashboard .vkuiTabsItem--selected .vkuiTabsItem__label {
+  color: var(--cd-paper);
+}
+
+.client-dashboard .vkuiFormItem {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 20px;
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(96, 57, 45, 0.08), transparent 65%),
+    var(--cd-paper);
+  border: 1px solid var(--cd-line);
+  box-shadow: 0 12px 24px rgba(48, 28, 21, 0.13);
+}
+
+.client-dashboard .vkuiFormItem__top {
+  padding: 0 0 8px;
+  color: var(--cd-brown);
+  font-weight: 800;
+}
+
+.client-dashboard .vkuiFormItem__content {
+  color: var(--cd-brown);
+}
+
+.client-dashboard input,
+.client-dashboard select,
+.client-dashboard textarea,
+.cd-date-input {
+  width: 100%;
+  max-width: none;
+  min-height: 44px;
+  border-radius: 15px;
+  background: rgba(255, 250, 244, 0.92);
+  border: 1px solid rgba(96, 57, 45, 0.18);
+  color: var(--cd-brown);
+}
+
+.client-dashboard textarea {
+  min-height: 86px;
+}
+
+.client-dashboard .vkuiSimpleCell {
+  margin: 0;
+  border-radius: 18px;
+  color: var(--cd-brown);
+}
+
+.client-dashboard .vkuiSimpleCell__main,
+.client-dashboard .vkuiSimpleCell__children {
+  color: var(--cd-brown);
+}
+
+.client-dashboard .vkuiSimpleCell__description {
+  color: rgba(96, 57, 45, 0.68);
+}
+
+.client-dashboard .vkuiCard {
+  border-radius: 24px;
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(96, 57, 45, 0.1), transparent 60%),
+    var(--cd-paper);
+  border: 1px solid rgba(255, 241, 222, 0.7);
+  color: var(--cd-brown);
+  box-shadow: 0 18px 36px rgba(48, 28, 21, 0.22);
+}
+
+.cd-simplecell {
+  background: transparent;
+}
+
+.cd-pet-card .cd-card-body,
+.cd-subsection-add {
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(255, 241, 222, 0.12), transparent 62%),
+    linear-gradient(145deg, #60392d 0%, #4d2d24 100%);
+  color: var(--cd-paper);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 241, 222, 0.18);
+}
+
+.cd-pet-card .cd-card-body .vkuiFormItem,
+.cd-subsection-add .vkuiFormItem {
+  background: rgba(255, 241, 222, 0.1);
+  border-color: rgba(255, 241, 222, 0.16);
+  box-shadow: none;
+}
+
+.cd-pet-card .cd-card-body .vkuiFormItem__top,
+.cd-subsection-add .vkuiFormItem__top {
+  color: var(--cd-paper);
+}
+
+.cd-size-help {
+  color: rgba(96, 57, 45, 0.68);
+}
+
+.cd-subsection .cd-size-help,
+.cd-card-body .cd-size-help {
+  color: rgba(255, 241, 222, 0.8);
+}
+
+.cd-action-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cd-action-row .vkuiButton {
+  width: 100%;
+}
+
+.cd-subsection {
+  border-radius: 24px;
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(96, 57, 45, 0.1), transparent 60%),
+    var(--cd-paper);
+  border: 1px solid rgba(255, 241, 222, 0.7);
+}
+
+.cd-subsection-title {
+  color: inherit;
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  font-size: 15px;
+}
+
+.cd-service-picker,
+.cd-total {
+  border-radius: 24px;
+}
+
+.cd-note-box {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(96, 57, 45, 0.09), transparent 60%),
+    var(--cd-paper);
+  color: var(--cd-brown);
+  border: 1px solid var(--cd-line);
+  border-left: 5px solid var(--cd-brown);
+  box-shadow: 0 12px 24px rgba(48, 28, 21, 0.13);
+}
+
+.cd-hint {
+  color: rgba(96, 57, 45, 0.7);
+}
+
+.cd-total {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(255, 241, 222, 0.18), transparent 60%),
+    linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+  box-shadow: 0 18px 34px rgba(48, 28, 21, 0.26);
+}
+
+.cd-total .cd-hint {
+  color: rgba(255, 241, 222, 0.78);
+}
+
+.cd-total-value {
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  color: var(--cd-paper);
+}
+
+.cd-order-card {
+  padding: 8px;
+}
+
+.cd-order-card .vkuiSimpleCell {
+  background: rgba(255, 250, 244, 0.66);
+  margin-bottom: 8px;
+  border: 1px solid rgba(96, 57, 45, 0.08);
+}
+
+.cd-order-card .vkuiSimpleCell:first-child {
+  background: var(--cd-brown);
+  color: var(--cd-paper);
+}
+
+.cd-order-card .vkuiSimpleCell:first-child .vkuiSimpleCell__main,
+.cd-order-card .vkuiSimpleCell:first-child .vkuiSimpleCell__children,
+.cd-order-card .vkuiSimpleCell:first-child .vkuiSimpleCell__description {
+  color: var(--cd-paper);
+}
+
+.cd-order-card .vkuiBadge {
+  background: var(--cd-paper);
+  color: var(--cd-brown);
+  border: 1px solid rgba(255, 241, 222, 0.5);
+}
+
+.cd-card-actions {
+  padding: 4px 0 0;
+}
+
+.cd-card-actions .vkuiButton {
+  width: 100%;
+}
+
+.cd-empty {
+  background: var(--cd-paper);
+  color: rgba(96, 57, 45, 0.7);
+  border-color: rgba(96, 57, 45, 0.2);
+  box-shadow: 0 10px 18px rgba(48, 28, 21, 0.12);
+}
+
 @keyframes cd-spin {
   to {
     transform: rotate(360deg);
@@ -663,5 +1218,3291 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+  }
+}
+
+/* Final client theme: warm, bright and readable. */
+.client-dashboard {
+  --cd-brown: #5b3529;
+  --cd-brown-2: #7a4b37;
+  --cd-cocoa: #3f261f;
+  --cd-paper: #fff4e5;
+  --cd-paper-2: #ffe7ca;
+  --cd-paper-3: #fffaf3;
+  --cd-caramel: #d69b63;
+  --cd-caramel-2: #b97945;
+  --cd-sage: #7f8f6a;
+  --cd-text: #3f261f;
+  --cd-soft-text: rgba(63, 38, 31, 0.72);
+  --cd-muted-text: rgba(63, 38, 31, 0.58);
+  --cd-line: rgba(91, 53, 41, 0.16);
+  --cd-shadow: rgba(91, 53, 41, 0.16);
+  color: var(--cd-text);
+}
+
+.client-dashboard .vkuiPanelHeader__in {
+  background:
+    radial-gradient(220px 90px at 100% 0%, rgba(214, 155, 99, 0.25), transparent 65%),
+    linear-gradient(135deg, #fff7ec 0%, #ffe4c2 100%);
+  border-bottom: 1px solid rgba(91, 53, 41, 0.12);
+  box-shadow: 0 10px 24px rgba(91, 53, 41, 0.12);
+}
+
+.client-dashboard .vkuiPanelHeader__content {
+  color: var(--cd-cocoa);
+  font-family: 'Unbounded', 'Manrope', sans-serif;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.client-dashboard .vkuiPanelHeader__right .vkuiButton--mode-secondary .vkuiButton__in,
+.client-dashboard .vkuiPanelHeader__after .vkuiButton--mode-secondary .vkuiButton__in {
+  background: var(--cd-brown);
+  color: var(--cd-paper);
+  border: 1px solid rgba(91, 53, 41, 0.18);
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.18);
+}
+
+.client-dashboard .vkuiPanelHeader__right .vkuiButton--mode-tertiary .vkuiButton__in,
+.client-dashboard .vkuiPanelHeader__after .vkuiButton--mode-tertiary .vkuiButton__in,
+.client-dashboard .vkuiPanelHeaderButton,
+.client-dashboard .vkuiPanelHeaderButton__in {
+  color: var(--cd-brown);
+}
+
+.cd-page {
+  background:
+    radial-gradient(760px 260px at -8% -4%, rgba(214, 155, 99, 0.24), transparent 62%),
+    radial-gradient(620px 260px at 112% 6%, rgba(127, 143, 106, 0.18), transparent 58%),
+    linear-gradient(180deg, #fff7ec 0%, #ffe9cf 48%, #f9d9b8 100%);
+  color: var(--cd-text);
+}
+
+.cd-page::before {
+  background: radial-gradient(circle, rgba(214, 155, 99, 0.28) 0%, transparent 70%);
+  opacity: 0.28;
+}
+
+.cd-page::after {
+  background: radial-gradient(circle, rgba(127, 143, 106, 0.22) 0%, transparent 70%);
+  opacity: 0.24;
+}
+
+.cd-toolbar .vkuiButton--mode-secondary .vkuiButton__in,
+.cd-toolbar .vkuiButton--mode-tertiary .vkuiButton__in {
+  background: rgba(255, 250, 243, 0.84);
+  color: var(--cd-brown);
+  border: 1px solid rgba(91, 53, 41, 0.14);
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.1);
+}
+
+.cd-hero {
+  background:
+    radial-gradient(320px 160px at 100% 0%, rgba(127, 143, 106, 0.16), transparent 62%),
+    linear-gradient(145deg, #fffaf3 0%, #ffe6c6 100%);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  color: var(--cd-text);
+  box-shadow: 0 20px 42px rgba(91, 53, 41, 0.16);
+}
+
+.cd-hero-kicker,
+.cd-hero-subtitle,
+.cd-stat-label,
+.cd-service-picker-subtitle,
+.cd-card .vkuiSimpleCell__description,
+.client-dashboard .vkuiSimpleCell__description {
+  color: var(--cd-soft-text);
+}
+
+.cd-hero-title,
+.cd-stat-value,
+.cd-service-picker-title,
+.cd-subsection-title {
+  color: var(--cd-cocoa);
+}
+
+.cd-stat {
+  background: rgba(255, 250, 243, 0.72);
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.08);
+}
+
+.client-dashboard .vkuiHeader__content {
+  color: var(--cd-cocoa);
+  text-shadow: none;
+}
+
+.client-dashboard .vkuiGroup__inner {
+  background: rgba(255, 250, 243, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 36px rgba(91, 53, 41, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.cd-tabs {
+  background: #fffaf3;
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1);
+}
+
+.client-dashboard .vkuiTabsItem,
+.client-dashboard .vkuiTabsItem__label {
+  color: var(--cd-brown);
+}
+
+.client-dashboard .vkuiTabsItem--selected {
+  background: linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+}
+
+.client-dashboard .vkuiTabsItem--selected .vkuiTabsItem__label {
+  color: var(--cd-paper);
+}
+
+.client-dashboard .vkuiFormItem,
+.client-dashboard .vkuiCard,
+.cd-service-picker,
+.cd-subsection,
+.cd-alert,
+.cd-empty {
+  background:
+    radial-gradient(260px 130px at 100% 0%, rgba(214, 155, 99, 0.13), transparent 62%),
+    #fffaf3;
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  color: var(--cd-text);
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.11);
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard .vkuiSimpleCell,
+.client-dashboard .vkuiSimpleCell__main,
+.client-dashboard .vkuiSimpleCell__children,
+.cd-service-picker,
+.cd-service-name,
+.cd-detail-row {
+  color: var(--cd-text);
+}
+
+.client-dashboard input,
+.client-dashboard select,
+.client-dashboard textarea,
+.cd-date-input {
+  background: #fffdf8;
+  border: 1px solid rgba(91, 53, 41, 0.18);
+  color: var(--cd-text);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.client-dashboard input::placeholder,
+.client-dashboard textarea::placeholder {
+  color: rgba(63, 38, 31, 0.48);
+}
+
+.cd-hint,
+.cd-slot-note,
+.client-dashboard .vkuiFormItem__bottom,
+.cd-service-desc,
+.cd-size-help {
+  color: var(--cd-soft-text);
+}
+
+.cd-note-box {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(127, 143, 106, 0.12), transparent 60%),
+    #fffaf3;
+  color: var(--cd-text);
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  border-left: 5px solid var(--cd-caramel-2);
+}
+
+.cd-category-chip {
+  background: #fffdf8;
+  color: var(--cd-brown);
+  border-color: rgba(91, 53, 41, 0.14);
+}
+
+.cd-category-chip-active {
+  background: linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+  color: var(--cd-paper);
+}
+
+.cd-category-count {
+  background: rgba(214, 155, 99, 0.18);
+  color: var(--cd-brown);
+}
+
+.cd-category-chip-active .cd-category-count {
+  background: var(--cd-paper);
+  color: var(--cd-brown);
+}
+
+.cd-service-row {
+  background: #fffdf8;
+  border-color: rgba(91, 53, 41, 0.12);
+  color: var(--cd-text);
+}
+
+.cd-service-row-selected {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(255, 244, 229, 0.16), transparent 65%),
+    linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+  color: var(--cd-paper);
+}
+
+.cd-service-check {
+  background: var(--cd-caramel);
+  color: var(--cd-cocoa);
+}
+
+.cd-service-row-selected .cd-service-check {
+  background: var(--cd-paper);
+  color: var(--cd-brown);
+}
+
+.cd-service-category,
+.cd-service-meta span {
+  background: rgba(214, 155, 99, 0.16);
+  color: var(--cd-brown);
+}
+
+.cd-service-row-selected .cd-service-category,
+.cd-service-row-selected .cd-service-meta span,
+.cd-service-row-selected .cd-service-desc {
+  background: rgba(255, 244, 229, 0.14);
+  color: rgba(255, 244, 229, 0.88);
+}
+
+.cd-total {
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(255, 244, 229, 0.22), transparent 60%),
+    linear-gradient(135deg, #7a4b37 0%, #5b3529 100%);
+  color: var(--cd-paper);
+}
+
+.cd-total .cd-hint {
+  color: rgba(255, 244, 229, 0.82);
+}
+
+.client-dashboard .vkuiButton--mode-primary .vkuiButton__in,
+.client-dashboard .vkuiButton--mode-commerce .vkuiButton__in {
+  background: linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+  color: var(--cd-paper);
+  box-shadow: 0 14px 26px rgba(91, 53, 41, 0.22);
+}
+
+.client-dashboard .vkuiButton--mode-secondary .vkuiButton__in {
+  background: #fffaf3;
+  color: var(--cd-brown);
+  border: 1px solid rgba(91, 53, 41, 0.16);
+}
+
+.client-dashboard .vkuiButton--mode-tertiary .vkuiButton__in {
+  color: var(--cd-brown);
+}
+
+.client-dashboard .vkuiButton--mode-destructive .vkuiButton__in {
+  background: linear-gradient(135deg, #f1b48e 0%, #d88458 100%);
+  color: var(--cd-cocoa);
+}
+
+.cd-pet-card .cd-card-body,
+.cd-subsection-add {
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(255, 244, 229, 0.2), transparent 62%),
+    linear-gradient(135deg, #7a4b37 0%, #5b3529 100%);
+  color: var(--cd-paper);
+}
+
+.cd-pet-card .cd-card-body .vkuiFormItem,
+.cd-subsection-add .vkuiFormItem {
+  background: rgba(255, 250, 243, 0.12);
+  border-color: rgba(255, 244, 229, 0.18);
+}
+
+.cd-pet-card .cd-card-body .vkuiFormItem__top,
+.cd-subsection-add .vkuiFormItem__top,
+.cd-subsection-add .cd-size-help,
+.cd-card-body .cd-size-help {
+  color: rgba(255, 244, 229, 0.88);
+}
+
+.cd-order-card .vkuiSimpleCell:first-child {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(255, 244, 229, 0.16), transparent 65%),
+    linear-gradient(135deg, var(--cd-brown) 0%, var(--cd-brown-2) 100%);
+}
+
+.cd-order-card .vkuiSimpleCell {
+  background: #fffdf8;
+}
+
+/* Hard contrast pass: these rules intentionally override older dark blocks. */
+.client-dashboard,
+.client-dashboard * {
+  color-scheme: light;
+}
+
+.client-dashboard .vkuiPanelHeader__in,
+.client-dashboard [class*="PanelHeader__in"] {
+  background:
+    radial-gradient(260px 96px at 100% 0%, rgba(216, 150, 86, 0.28), transparent 62%),
+    linear-gradient(135deg, #fff8ef 0%, #ffd9ad 100%) !important;
+  border-bottom: 1px solid rgba(63, 38, 31, 0.14) !important;
+  box-shadow: 0 12px 28px rgba(91, 53, 41, 0.14) !important;
+}
+
+.client-dashboard .vkuiPanelHeader__content,
+.client-dashboard .vkuiPanelHeader__content *,
+.client-dashboard [class*="PanelHeader__content"],
+.client-dashboard [class*="PanelHeader__content"] *,
+.client-dashboard [class*="PanelHeader__children"],
+.client-dashboard [class*="PanelHeader__children"] * {
+  color: #3f261f !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.client-dashboard .vkuiPanelHeader__right .vkuiButton__in,
+.client-dashboard .vkuiPanelHeader__after .vkuiButton__in,
+.client-dashboard [class*="PanelHeader"] .vkuiButton__in {
+  font-family: 'Manrope', sans-serif !important;
+  letter-spacing: 0 !important;
+}
+
+.client-dashboard .vkuiPanelHeader__right .vkuiButton--mode-secondary .vkuiButton__in,
+.client-dashboard .vkuiPanelHeader__after .vkuiButton--mode-secondary .vkuiButton__in {
+  background: #5b3529 !important;
+  color: #fff8ef !important;
+}
+
+.client-dashboard .vkuiPanelHeader__right .vkuiButton--mode-tertiary .vkuiButton__in,
+.client-dashboard .vkuiPanelHeader__after .vkuiButton--mode-tertiary .vkuiButton__in {
+  color: #5b3529 !important;
+}
+
+.cd-page {
+  background:
+    radial-gradient(760px 280px at -10% -5%, rgba(217, 154, 92, 0.26), transparent 62%),
+    radial-gradient(680px 300px at 110% 4%, rgba(134, 153, 113, 0.2), transparent 58%),
+    linear-gradient(180deg, #fff9f1 0%, #ffe8ca 56%, #f6d0a7 100%) !important;
+}
+
+.cd-hero {
+  background:
+    radial-gradient(320px 160px at 102% 0%, rgba(134, 153, 113, 0.2), transparent 62%),
+    linear-gradient(145deg, #fffdf8 0%, #ffe1ba 100%) !important;
+  border: 1px solid rgba(63, 38, 31, 0.12) !important;
+  color: #3f261f !important;
+}
+
+.cd-hero-kicker {
+  color: #8a542f !important;
+}
+
+.cd-hero-title {
+  color: #3f261f !important;
+  text-shadow: none !important;
+}
+
+.cd-hero-subtitle {
+  color: rgba(63, 38, 31, 0.78) !important;
+}
+
+.client-dashboard .vkuiGroup__inner,
+.client-dashboard [class*="Group__inner"],
+.client-dashboard .vkuiFormItem,
+.client-dashboard [class*="FormItem"],
+.client-dashboard .vkuiCard,
+.client-dashboard [class*="Card"],
+.client-dashboard .cd-service-picker,
+.client-dashboard .cd-subsection,
+.client-dashboard .cd-alert,
+.client-dashboard .cd-empty {
+  background:
+    radial-gradient(280px 150px at 100% 0%, rgba(216, 150, 86, 0.11), transparent 64%),
+    #fffaf3 !important;
+  border-color: rgba(63, 38, 31, 0.12) !important;
+  color: #3f261f !important;
+}
+
+.client-dashboard .vkuiGroup__inner,
+.client-dashboard [class*="Group__inner"] {
+  box-shadow: 0 18px 38px rgba(91, 53, 41, 0.12) !important;
+}
+
+.client-dashboard .vkuiHeader__content,
+.client-dashboard .vkuiHeader__content *,
+.client-dashboard [class*="Header__content"],
+.client-dashboard [class*="Header__content"] * {
+  color: #3f261f !important;
+  text-shadow: none !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  color: #4a2b22 !important;
+}
+
+.client-dashboard .vkuiFormItem__bottom,
+.client-dashboard [class*="FormItem__bottom"],
+.cd-hint,
+.cd-slot-note,
+.cd-service-picker-subtitle,
+.cd-service-desc,
+.cd-size-help,
+.client-dashboard .vkuiSimpleCell__description,
+.client-dashboard [class*="SimpleCell__description"] {
+  color: rgba(63, 38, 31, 0.72) !important;
+}
+
+.client-dashboard .vkuiSimpleCell,
+.client-dashboard .vkuiSimpleCell *,
+.client-dashboard [class*="SimpleCell"],
+.client-dashboard [class*="SimpleCell"] *,
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard [class*="FormItem__content"],
+.client-dashboard .cd-service-picker,
+.client-dashboard .cd-service-picker *,
+.client-dashboard .cd-subsection,
+.client-dashboard .cd-subsection * {
+  color: #3f261f;
+}
+
+.cd-tabs {
+  background: #fffaf3 !important;
+  border-color: rgba(63, 38, 31, 0.12) !important;
+}
+
+.client-dashboard .vkuiTabsItem,
+.client-dashboard .vkuiTabsItem *,
+.client-dashboard [class*="TabsItem"],
+.client-dashboard [class*="TabsItem"] * {
+  color: #5b3529 !important;
+}
+
+.client-dashboard .vkuiTabsItem--selected,
+.client-dashboard [class*="TabsItem--selected"] {
+  background: linear-gradient(135deg, #5b3529 0%, #7a4b37 100%) !important;
+}
+
+.client-dashboard .vkuiTabsItem--selected *,
+.client-dashboard [class*="TabsItem--selected"] * {
+  color: #fff8ef !important;
+}
+
+.cd-pet-card .cd-card-body,
+.cd-subsection-add {
+  background:
+    radial-gradient(260px 130px at 100% 0%, rgba(216, 150, 86, 0.12), transparent 64%),
+    #fffaf3 !important;
+  border: 1px solid rgba(63, 38, 31, 0.12) !important;
+  color: #3f261f !important;
+}
+
+.cd-pet-card .cd-card-body *,
+.cd-subsection-add * {
+  color: #3f261f;
+}
+
+.cd-pet-card .cd-card-body .vkuiFormItem,
+.cd-subsection-add .vkuiFormItem {
+  background: #fffdf8 !important;
+  border-color: rgba(63, 38, 31, 0.12) !important;
+}
+
+.cd-service-row,
+.cd-order-card .vkuiSimpleCell {
+  background: #fffdf8 !important;
+  color: #3f261f !important;
+  border-color: rgba(63, 38, 31, 0.12) !important;
+}
+
+.cd-service-row-selected,
+.cd-order-card .vkuiSimpleCell:first-child {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(255, 248, 239, 0.16), transparent 65%),
+    linear-gradient(135deg, #5b3529 0%, #7a4b37 100%) !important;
+  color: #fff8ef !important;
+}
+
+.cd-service-row-selected *,
+.cd-order-card .vkuiSimpleCell:first-child,
+.cd-order-card .vkuiSimpleCell:first-child * {
+  color: #fff8ef !important;
+}
+
+.cd-service-row-selected .cd-service-category,
+.cd-service-row-selected .cd-service-meta span {
+  background: rgba(255, 248, 239, 0.16) !important;
+  color: #fff8ef !important;
+}
+
+.cd-note-box {
+  background:
+    radial-gradient(220px 110px at 100% 0%, rgba(134, 153, 113, 0.12), transparent 60%),
+    #fffaf3 !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(63, 38, 31, 0.12) !important;
+  border-left: 5px solid #b97945 !important;
+}
+
+/* Screenshot polish: remove remaining VKUI dark shells and make the client page fully coherent. */
+.client-dashboard .vkuiPanel__in,
+.client-dashboard [class*="Panel__in"] {
+  background:
+    radial-gradient(900px 360px at 0% -8%, rgba(221, 158, 92, 0.24), transparent 58%),
+    linear-gradient(180deg, #fff9f1 0%, #ffe7c8 54%, #f5cfa7 100%) !important;
+}
+
+.client-dashboard .vkuiPanelHeader,
+.client-dashboard [class*="PanelHeader"] {
+  background: transparent !important;
+}
+
+.client-dashboard .vkuiPanelHeader__in::after,
+.client-dashboard .vkuiPanelHeader__separator,
+.client-dashboard [class*="PanelHeader__separator"] {
+  display: none !important;
+  background: transparent !important;
+}
+
+.client-dashboard .vkuiPanelHeader__in,
+.client-dashboard [class*="PanelHeader__in"] {
+  min-height: 62px !important;
+  background:
+    linear-gradient(90deg, rgba(255, 248, 239, 0.98) 0%, rgba(255, 223, 184, 0.98) 100%) !important;
+  box-shadow: 0 10px 28px rgba(91, 53, 41, 0.12) !important;
+}
+
+.client-dashboard .vkuiPanelHeader__content,
+.client-dashboard [class*="PanelHeader__content"] {
+  justify-content: flex-start !important;
+}
+
+.client-dashboard .vkuiPanelHeader__content,
+.client-dashboard .vkuiPanelHeader__content *,
+.client-dashboard [class*="PanelHeader__content"],
+.client-dashboard [class*="PanelHeader__content"] * {
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: clamp(18px, 2.1vw, 24px) !important;
+  line-height: 1.1 !important;
+  color: #3f261f !important;
+  text-shadow: none !important;
+}
+
+.cd-page {
+  padding-top: 18px !important;
+  background:
+    radial-gradient(760px 280px at 0% -8%, rgba(221, 158, 92, 0.24), transparent 60%),
+    radial-gradient(640px 320px at 112% 14%, rgba(135, 153, 114, 0.18), transparent 58%),
+    linear-gradient(180deg, #fff9f1 0%, #ffe7c8 54%, #f5cfa7 100%) !important;
+}
+
+.cd-toolbar {
+  max-width: 1120px;
+  margin: 0 auto 18px !important;
+  padding: 0 2px;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.cd-toolbar .vkuiButton__in {
+  min-height: 44px !important;
+  background: rgba(255, 250, 243, 0.92) !important;
+  color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.1) !important;
+  font-weight: 800 !important;
+}
+
+.cd-hero {
+  max-width: 1120px;
+  margin: 0 auto 18px !important;
+  min-height: 220px;
+  padding: 28px 20px !important;
+  background:
+    radial-gradient(340px 180px at 102% 100%, rgba(91, 53, 41, 0.08), transparent 60%),
+    radial-gradient(320px 160px at 88% 0%, rgba(221, 158, 92, 0.18), transparent 60%),
+    linear-gradient(135deg, #fffaf3 0%, #ffdfb7 100%) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 24px 50px rgba(91, 53, 41, 0.14) !important;
+}
+
+.cd-hero-kicker {
+  color: #9a5d35 !important;
+  font-weight: 800 !important;
+}
+
+.cd-hero-title {
+  max-width: 760px;
+  color: #2f1d18 !important;
+  font-size: clamp(23px, 2.6vw, 34px) !important;
+  letter-spacing: -0.035em;
+}
+
+.cd-hero-subtitle {
+  max-width: 700px;
+  color: rgba(47, 29, 24, 0.78) !important;
+  font-size: 15px !important;
+}
+
+.cd-hero-stats {
+  min-width: min(100%, 150px);
+}
+
+.cd-stat {
+  background: rgba(255, 250, 243, 0.78) !important;
+  border: 1px solid rgba(91, 53, 41, 0.1) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+}
+
+.cd-stat-label,
+.cd-stat-value {
+  color: #3f261f !important;
+}
+
+.client-dashboard .vkuiGroup,
+.client-dashboard [class*="Group"] {
+  background: transparent !important;
+}
+
+.client-dashboard .vkuiGroup__inner,
+.client-dashboard [class*="Group__inner"] {
+  max-width: 1120px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 18px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(420px 200px at 100% 0%, rgba(221, 158, 92, 0.1), transparent 64%),
+    rgba(255, 250, 243, 0.88) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 22px 44px rgba(91, 53, 41, 0.12) !important;
+  outline: none !important;
+}
+
+.client-dashboard .vkuiGroup__inner::before,
+.client-dashboard .vkuiGroup__inner::after,
+.client-dashboard [class*="Group__inner"]::before,
+.client-dashboard [class*="Group__inner"]::after {
+  display: none !important;
+}
+
+.client-dashboard .vkuiGroup__header,
+.client-dashboard [class*="Group__header"] {
+  max-width: 1120px;
+  margin: 18px auto 8px !important;
+  padding: 0 4px !important;
+}
+
+.client-dashboard .vkuiHeader__content,
+.client-dashboard .vkuiHeader__content *,
+.client-dashboard [class*="Header__content"],
+.client-dashboard [class*="Header__content"] * {
+  color: #3f261f !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 17px !important;
+  letter-spacing: -0.02em !important;
+}
+
+.client-dashboard .vkuiCard,
+.client-dashboard [class*="Card"],
+.client-dashboard .vkuiFormItem,
+.client-dashboard [class*="FormItem"],
+.cd-service-picker,
+.cd-subsection,
+.cd-order-card,
+.cd-pet-card {
+  background:
+    radial-gradient(280px 140px at 100% 0%, rgba(221, 158, 92, 0.09), transparent 64%),
+    #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.11) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+  color: #3f261f !important;
+}
+
+.client-dashboard .vkuiFormItem,
+.client-dashboard [class*="FormItem"] {
+  padding: 14px !important;
+  border-radius: 22px !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  color: #3f261f !important;
+  font-weight: 900 !important;
+}
+
+.client-dashboard .vkuiFormItem__bottom,
+.client-dashboard [class*="FormItem__bottom"],
+.cd-hint,
+.cd-service-picker-subtitle,
+.cd-service-desc,
+.cd-size-help {
+  color: rgba(47, 29, 24, 0.68) !important;
+}
+
+.client-dashboard input,
+.client-dashboard select,
+.client-dashboard textarea,
+.cd-date-input {
+  background: #fffaf3 !important;
+  color: #2f1d18 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  box-shadow: 0 2px 0 rgba(255, 255, 255, 0.75), inset 0 0 0 1px rgba(255, 255, 255, 0.35) !important;
+}
+
+.client-dashboard input:focus,
+.client-dashboard select:focus,
+.client-dashboard textarea:focus {
+  border-color: rgba(145, 85, 48, 0.58) !important;
+  box-shadow: 0 0 0 3px rgba(221, 158, 92, 0.2) !important;
+}
+
+.cd-tabs {
+  max-width: 1120px;
+  margin: 0 auto !important;
+  background: #fffdf8 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .vkuiTabsItem__label,
+.client-dashboard [class*="TabsItem"] * {
+  color: #5b3529 !important;
+  font-weight: 900 !important;
+}
+
+.client-dashboard .vkuiTabsItem--selected,
+.client-dashboard [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+}
+
+.client-dashboard .vkuiTabsItem--selected *,
+.client-dashboard [class*="TabsItem--selected"] * {
+  color: #fffaf3 !important;
+}
+
+.cd-pet-card .cd-card-body,
+.cd-subsection-add {
+  background: #fff8ef !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(91, 53, 41, 0.11) !important;
+  box-shadow: none !important;
+}
+
+.cd-pet-card .cd-card-body *,
+.cd-subsection-add *,
+.cd-pet-card .cd-card-body .vkuiFormItem__top,
+.cd-subsection-add .vkuiFormItem__top {
+  color: #3f261f !important;
+}
+
+.cd-note-box {
+  background: #fff8ef !important;
+  color: #3f261f !important;
+  border-left-color: #b97945 !important;
+}
+
+.cd-total {
+  background:
+    radial-gradient(260px 140px at 100% 0%, rgba(255, 250, 243, 0.18), transparent 62%),
+    linear-gradient(135deg, #7b4b36 0%, #5b3529 100%) !important;
+  border: none !important;
+  box-shadow: 0 18px 32px rgba(91, 53, 41, 0.2) !important;
+}
+
+.cd-total,
+.cd-total *,
+.cd-total .cd-hint {
+  color: #fffaf3 !important;
+}
+
+.client-dashboard .vkuiButton__in {
+  border-radius: 16px !important;
+  font-weight: 900 !important;
+}
+
+.client-dashboard .vkuiButton--mode-primary .vkuiButton__in,
+.client-dashboard .vkuiButton--mode-commerce .vkuiButton__in {
+  background: linear-gradient(135deg, #5b3529 0%, #7a4b37 100%) !important;
+  color: #fffaf3 !important;
+}
+
+.client-dashboard .vkuiButton--mode-secondary .vkuiButton__in {
+  background: #fffaf3 !important;
+  color: #5b3529 !important;
+}
+
+.client-dashboard .vkuiButton--mode-tertiary .vkuiButton__in {
+  color: #5b3529 !important;
+}
+
+/* Layout repair: cleaner spacing and less heavy VKUI overrides. */
+.cd-page {
+  padding: 22px 16px 56px !important;
+}
+
+.cd-toolbar,
+.cd-hero,
+.client-dashboard .cd-group,
+.client-dashboard .cd-group .vkuiGroup__inner,
+.client-dashboard .cd-group .vkuiGroup__header {
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  box-sizing: border-box !important;
+}
+
+.cd-toolbar,
+.cd-hero,
+.client-dashboard .cd-group {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.client-dashboard .cd-group {
+  margin-top: 30px !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 24px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__header {
+  margin: 0 auto 12px !important;
+  padding: 0 2px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner {
+  margin: 0 auto !important;
+}
+
+.client-dashboard .vkuiHeader__content,
+.client-dashboard .vkuiHeader__content *,
+.client-dashboard [class*="Header__content"],
+.client-dashboard [class*="Header__content"] * {
+  color: #44281f !important;
+  font-size: 18px !important;
+}
+
+.cd-hero {
+  min-height: 250px !important;
+  padding: clamp(24px, 4vw, 42px) !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(120deg, rgba(255, 252, 246, 0.98) 0%, rgba(255, 230, 196, 0.96) 45%, rgba(245, 183, 118, 0.55) 100%),
+    radial-gradient(420px 180px at 100% 0%, rgba(128, 144, 103, 0.2), transparent 62%) !important;
+}
+
+.cd-hero::after {
+  display: none !important;
+}
+
+.cd-hero::before {
+  content: '';
+  position: absolute;
+  inset: auto -60px -90px auto;
+  width: 360px;
+  height: 210px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 42% 45%, rgba(255, 250, 243, 0.32), transparent 34%),
+    linear-gradient(135deg, rgba(128, 144, 103, 0.16), rgba(181, 121, 69, 0.2));
+  transform: rotate(-14deg);
+  pointer-events: none;
+}
+
+.cd-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cd-hero-title {
+  max-width: 680px !important;
+  line-height: 1.05 !important;
+}
+
+.cd-hero-stats {
+  grid-template-columns: repeat(2, minmax(118px, 1fr)) !important;
+  align-self: center;
+}
+
+.cd-stat {
+  min-height: 76px;
+}
+
+.cd-stat:last-child {
+  grid-column: span 2;
+}
+
+/* Form repair: labels should be labels, not nested visual cards. */
+.client-dashboard .vkuiFormItem,
+.client-dashboard .cd-group .vkuiFormItem {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  display: block !important;
+  padding: 0 0 8px !important;
+  color: #44281f !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard [class*="FormItem__content"] {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  color: #3f261f !important;
+}
+
+.client-dashboard .vkuiNativeSelect,
+.client-dashboard [class*="NativeSelect"] {
+  color-scheme: light !important;
+}
+
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"],
+.client-dashboard select,
+.client-dashboard option {
+  background: #fffdf8 !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  box-shadow: 0 10px 24px rgba(91, 53, 41, 0.08) !important;
+}
+
+.client-dashboard .vkuiInput,
+.client-dashboard .vkuiTextarea,
+.client-dashboard .vkuiNativeSelect,
+.client-dashboard [class*="Input"],
+.client-dashboard [class*="Textarea"],
+.client-dashboard [class*="NativeSelect"] {
+  background: transparent !important;
+}
+
+.client-dashboard input,
+.client-dashboard textarea,
+.cd-date-input {
+  background: #fffdf8 !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  box-shadow: 0 10px 24px rgba(91, 53, 41, 0.08) !important;
+}
+
+.client-dashboard textarea {
+  min-height: 96px !important;
+}
+
+.client-dashboard .vkuiSimpleCell {
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.1) !important;
+}
+
+.client-dashboard .vkuiCardGrid {
+  padding: 0 !important;
+}
+
+.client-dashboard .vkuiCard,
+.cd-card,
+.cd-order-card,
+.cd-pet-card,
+.cd-service-picker,
+.cd-subsection,
+.cd-total,
+.cd-note-box {
+  margin-top: 0 !important;
+}
+
+.cd-service-picker {
+  padding: 20px !important;
+  border-radius: 26px !important;
+}
+
+.cd-service-picker-head {
+  margin-bottom: 16px !important;
+}
+
+.cd-category-scroll {
+  padding-top: 4px !important;
+  margin-bottom: 14px !important;
+}
+
+.cd-service-list {
+  gap: 14px !important;
+}
+
+/* Selected service: accent outline instead of unreadable brown slab. */
+.cd-service-row {
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  color: #3f261f !important;
+}
+
+.cd-service-row-selected {
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.98), rgba(255, 239, 219, 0.98)) !important;
+  border: 2px solid #8d5438 !important;
+  box-shadow: 0 18px 32px rgba(91, 53, 41, 0.16) !important;
+  color: #3f261f !important;
+}
+
+.cd-service-row-selected *,
+.cd-service-row-selected .cd-service-desc,
+.cd-service-row-selected .cd-service-category,
+.cd-service-row-selected .cd-service-meta span {
+  color: #3f261f !important;
+}
+
+.cd-service-row-selected .cd-service-check {
+  background: #8d5438 !important;
+  color: #fffdf8 !important;
+}
+
+.cd-service-row-selected .cd-service-category,
+.cd-service-row-selected .cd-service-meta span {
+  background: rgba(141, 84, 56, 0.12) !important;
+}
+
+.cd-service-row-selected .cd-service-desc {
+  background: transparent !important;
+  color: rgba(63, 38, 31, 0.68) !important;
+}
+
+.cd-total {
+  margin-top: 10px !important;
+}
+
+@media (max-width: 720px) {
+  .cd-toolbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cd-hero-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cd-stat:last-child {
+    grid-column: auto;
+  }
+}
+
+/* Final spacing and readable selected values. */
+.client-dashboard .cd-group {
+  margin-top: 38px !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 30px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner {
+  gap: 20px !important;
+  padding: 22px !important;
+}
+
+.client-dashboard .vkuiCardGrid,
+.client-dashboard [class*="CardGrid"] {
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.client-dashboard .vkuiFormItem + .vkuiFormItem,
+.client-dashboard [class*="FormItem"] + [class*="FormItem"] {
+  margin-top: 18px !important;
+}
+
+.client-dashboard .vkuiCardGrid + .vkuiCardGrid,
+.client-dashboard [class*="CardGrid"] + [class*="CardGrid"],
+.cd-subsection + .cd-subsection,
+.cd-service-picker + .cd-note-box {
+  margin-top: 18px !important;
+}
+
+.cd-tabs {
+  margin-top: 6px !important;
+  margin-bottom: 4px !important;
+}
+
+.cd-service-picker {
+  margin-top: 4px !important;
+  margin-bottom: 10px !important;
+}
+
+.cd-note-box,
+.cd-total {
+  margin-top: 8px !important;
+}
+
+.client-dashboard select,
+.client-dashboard option,
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"] {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard select:disabled,
+.client-dashboard .vkuiNativeSelect__select:disabled,
+.client-dashboard [class*="NativeSelect__select"]:disabled {
+  color: rgba(91, 53, 41, 0.65) !important;
+  -webkit-text-fill-color: rgba(91, 53, 41, 0.65) !important;
+}
+
+.client-dashboard .cd-simplecell .vkuiSimpleCell__children,
+.client-dashboard .cd-simplecell [class*="SimpleCell__children"] {
+  color: #3f261f !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+}
+
+.client-dashboard .cd-simplecell .vkuiSimpleCell__description,
+.client-dashboard .cd-simplecell [class*="SimpleCell__description"] {
+  margin-top: 4px !important;
+  color: rgba(63, 38, 31, 0.66) !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-card .vkuiAvatar,
+.client-dashboard .cd-card [class*="Avatar"] {
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-card .vkuiSimpleCell {
+  padding: 18px !important;
+  background:
+    linear-gradient(135deg, rgba(255, 253, 248, 0.96), rgba(255, 239, 219, 0.9)) !important;
+  border-radius: 20px !important;
+}
+
+/* Requested finishing pass. */
+.client-dashboard .cd-group {
+  margin-top: 24px !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 22px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__header,
+.client-dashboard .cd-group [class*="Group__header"] {
+  margin-bottom: 8px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner,
+.client-dashboard .cd-group [class*="Group__inner"] {
+  gap: 16px !important;
+}
+
+.cd-tabs {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiCardGrid,
+.client-dashboard [class*="CardGrid"] {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-card {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-card .vkuiSimpleCell,
+.client-dashboard .cd-card [class*="SimpleCell"] {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-card .vkuiSimpleCell__children,
+.client-dashboard .cd-card [class*="SimpleCell__children"] {
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  color: #3f261f !important;
+}
+
+.client-dashboard .cd-card .vkuiSimpleCell__description,
+.client-dashboard .cd-card [class*="SimpleCell__description"] {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.client-dashboard .vkuiAvatar,
+.client-dashboard [class*="Avatar"] {
+  box-shadow: none !important;
+}
+
+.client-dashboard .vkuiFormItem,
+.client-dashboard .cd-group .vkuiFormItem {
+  margin-top: 0 !important;
+  margin-bottom: 18px !important;
+}
+
+.client-dashboard .vkuiFormItem:last-child,
+.client-dashboard .cd-group .vkuiFormItem:last-child {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  margin-bottom: 10px !important;
+  padding-bottom: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.client-dashboard select,
+.client-dashboard option,
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"] {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 500 !important;
+}
+
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"],
+.client-dashboard select {
+  min-height: 46px !important;
+  padding-left: 14px !important;
+  padding-right: 42px !important;
+}
+
+.client-dashboard input,
+.client-dashboard textarea,
+.cd-date-input {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.cd-date-input {
+  display: block !important;
+  min-height: 46px !important;
+  padding: 0 14px !important;
+}
+
+.client-dashboard textarea {
+  padding: 14px !important;
+}
+
+.cd-category-chip {
+  box-shadow: none !important;
+}
+
+.cd-category-chip-active {
+  background: #5b3529 !important;
+  color: #fffaf3 !important;
+  border-color: #5b3529 !important;
+  box-shadow: none !important;
+}
+
+.cd-category-chip-active * {
+  color: #fffaf3 !important;
+}
+
+.cd-category-chip-active .cd-category-count {
+  background: #fffaf3 !important;
+  color: #5b3529 !important;
+}
+
+.cd-hero::before,
+.cd-hero::after {
+  display: none !important;
+  box-shadow: none !important;
+}
+
+.cd-hero {
+  background:
+    radial-gradient(520px 240px at 100% -10%, rgba(222, 144, 69, 0.26), transparent 58%),
+    radial-gradient(460px 220px at -8% 105%, rgba(132, 153, 112, 0.18), transparent 56%),
+    linear-gradient(135deg, #fffdf8 0%, #ffe6c7 42%, #f2bd81 100%) !important;
+}
+
+.client-dashboard .vkuiButton--mode-primary .vkuiButton__in,
+.client-dashboard .vkuiButton--mode-commerce .vkuiButton__in,
+.client-dashboard .vkuiButton--lvl-primary .vkuiButton__in {
+  background:
+    linear-gradient(135deg, #3f261f 0%, #7b4b36 100%) !important;
+  color: #fffaf3 !important;
+  border: 1px solid rgba(63, 38, 31, 0.24) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.24) !important;
+}
+
+.client-dashboard .vkuiButton--mode-primary:not(.vkuiButton--disabled) .vkuiButton__in:hover,
+.client-dashboard .vkuiButton--mode-commerce:not(.vkuiButton--disabled) .vkuiButton__in:hover {
+  filter: brightness(1.05);
+}
+
+.client-dashboard .vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .vkuiButton[disabled] .vkuiButton__in {
+  background: rgba(91, 53, 41, 0.18) !important;
+  color: rgba(63, 38, 31, 0.55) !important;
+  box-shadow: none !important;
+}
+
+/* Four final requested fixes. */
+.client-dashboard .vkuiCardGrid:has(.cd-card),
+.client-dashboard [class*="CardGrid"]:has(.cd-card) {
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.client-dashboard .cd-card {
+  width: 100% !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  background: #fffdf8 !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-card .cd-simplecell,
+.client-dashboard .cd-card .vkuiSimpleCell,
+.client-dashboard .cd-card [class*="SimpleCell"] {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.client-dashboard .cd-card .cd-simplecell::before,
+.client-dashboard .cd-card .cd-simplecell::after,
+.client-dashboard .cd-card .vkuiSimpleCell::before,
+.client-dashboard .cd-card .vkuiSimpleCell::after {
+  display: none !important;
+}
+
+.client-dashboard .cd-group {
+  margin-top: 18px !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 18px !important;
+}
+
+.client-dashboard .cd-group + .cd-group {
+  margin-top: 20px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__header,
+.client-dashboard .cd-group [class*="Group__header"] {
+  margin-top: 0 !important;
+  margin-bottom: 6px !important;
+}
+
+.cd-tabs {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-tabs) {
+  margin-bottom: 4px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-tabs) + .cd-group {
+  margin-top: 18px !important;
+}
+
+.client-dashboard select,
+.client-dashboard option,
+.client-dashboard .vkuiNativeSelect,
+.client-dashboard .vkuiNativeSelect *,
+.client-dashboard [class*="NativeSelect"],
+.client-dashboard [class*="NativeSelect"] *,
+.client-dashboard [class*="Select"] select,
+.client-dashboard [class*="Select"] * {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+
+.client-dashboard select::placeholder,
+.client-dashboard input::placeholder,
+.client-dashboard textarea::placeholder {
+  color: rgba(74, 43, 34, 0.62) !important;
+  -webkit-text-fill-color: rgba(74, 43, 34, 0.62) !important;
+  opacity: 1 !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 56px !important;
+  background:
+    radial-gradient(180px 80px at 100% 0%, rgba(255, 255, 255, 0.22), transparent 62%),
+    linear-gradient(135deg, #bf6f2f 0%, #8f4427 52%, #5b2f22 100%) !important;
+  color: #fffaf3 !important;
+  border: 1px solid rgba(91, 47, 34, 0.28) !important;
+  box-shadow: 0 18px 34px rgba(143, 68, 39, 0.34) !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 15px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.client-dashboard .cd-create-order-button:not(.vkuiButton--disabled) .vkuiButton__in {
+  transform: translateY(0);
+}
+
+.client-dashboard .cd-create-order-button:not(.vkuiButton--disabled) .vkuiButton__in:hover {
+  filter: brightness(1.07);
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background:
+    linear-gradient(135deg, rgba(191, 111, 47, 0.42), rgba(91, 47, 34, 0.38)) !important;
+  color: rgba(255, 250, 243, 0.9) !important;
+  box-shadow: 0 10px 20px rgba(143, 68, 39, 0.16) !important;
+}
+
+/* Exact cleanup: one profile block, compact section rhythm, no button wrapper. */
+.client-dashboard .cd-group {
+  margin-top: 14px !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 14px !important;
+}
+
+.client-dashboard .cd-group + .cd-group {
+  margin-top: 14px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__header,
+.client-dashboard .cd-group [class*="Group__header"] {
+  margin: 0 auto 6px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner,
+.client-dashboard .cd-group [class*="Group__inner"] {
+  padding: 16px !important;
+  gap: 14px !important;
+  border-radius: 24px !important;
+}
+
+.cd-profile-card {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  background: #fffdf8;
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1);
+  color: #3f261f;
+}
+
+.cd-profile-card .vkuiAvatar,
+.cd-profile-card [class*="Avatar"] {
+  flex: 0 0 auto;
+}
+
+.cd-profile-info {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.cd-profile-name {
+  font-size: 15px;
+  line-height: 1.25;
+  font-weight: 600;
+  color: #3f261f;
+}
+
+.cd-profile-phone {
+  font-size: 13px;
+  line-height: 1.25;
+  color: rgba(63, 38, 31, 0.62);
+}
+
+.client-dashboard .vkuiFormItem,
+.client-dashboard .cd-group .vkuiFormItem {
+  margin: 0 0 14px !important;
+}
+
+.client-dashboard .vkuiFormItem:last-child,
+.client-dashboard .cd-group .vkuiFormItem:last-child {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+}
+
+.cd-service-picker,
+.cd-subsection,
+.cd-note-box,
+.cd-total,
+.client-dashboard .vkuiCard,
+.client-dashboard .cd-card {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+.cd-create-order-action {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 4px 0 0;
+}
+
+.client-dashboard .cd-create-order-button {
+  width: 100%;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 58px !important;
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(255, 255, 255, 0.4), transparent 62%),
+    linear-gradient(135deg, #ffd39a 0%, #ef9f52 58%, #d9823d 100%) !important;
+  color: #4a2b22 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  box-shadow: 0 16px 30px rgba(191, 111, 47, 0.28) !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button .vkuiButton__in * {
+  color: #4a2b22 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background: linear-gradient(135deg, #f3d8b8 0%, #ddb58c 100%) !important;
+  color: rgba(74, 43, 34, 0.72) !important;
+  box-shadow: none !important;
+}
+
+/* Strict spacing reset requested after visual review. */
+.client-dashboard .cd-group {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .cd-group:first-of-type {
+  margin-top: 10px !important;
+}
+
+.client-dashboard .cd-group + .cd-group {
+  margin-top: 8px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-tabs) {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-tabs) + .cd-group {
+  margin-top: 8px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__header,
+.client-dashboard .cd-group [class*="Group__header"] {
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  min-height: 0 !important;
+}
+
+.client-dashboard .cd-group .vkuiHeader,
+.client-dashboard .cd-group [class*="Header"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner,
+.client-dashboard .cd-group [class*="Group__inner"] {
+  padding: 14px !important;
+  gap: 10px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner > *,
+.client-dashboard .cd-group [class*="Group__inner"] > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem,
+.client-dashboard .cd-group .vkuiFormItem,
+.client-dashboard [class*="FormItem"] {
+  margin: 0 0 10px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem:last-child,
+.client-dashboard .cd-group .vkuiFormItem:last-child,
+.client-dashboard [class*="FormItem"]:last-child {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  margin: 0 0 7px !important;
+  padding: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard [class*="FormItem__content"] {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cd-profile-card,
+.cd-service-picker,
+.cd-subsection,
+.cd-note-box,
+.cd-total,
+.client-dashboard .vkuiCard,
+.client-dashboard .cd-card,
+.client-dashboard .vkuiSimpleCell {
+  padding-top: 14px !important;
+  padding-bottom: 14px !important;
+}
+
+.cd-profile-card {
+  padding: 14px 16px !important;
+}
+
+.cd-tabs {
+  margin: 0 !important;
+  padding: 6px !important;
+}
+
+.cd-create-order-action {
+  margin-top: 18px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-create-order-button,
+.client-dashboard .cd-create-order-button .vkuiButton,
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  background-clip: padding-box !important;
+}
+
+.client-dashboard .cd-create-order-button {
+  display: block !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 60px !important;
+  background:
+    radial-gradient(220px 90px at 100% 0%, rgba(255, 245, 218, 0.32), transparent 62%),
+    linear-gradient(135deg, #f7b733 0%, #e8872f 48%, #c8612f 100%) !important;
+  color: #3f261f !important;
+  border: 0 !important;
+  outline: 1px solid rgba(91, 53, 41, 0.18) !important;
+  box-shadow: 0 16px 30px rgba(200, 97, 47, 0.34) !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in::before,
+.client-dashboard .cd-create-order-button .vkuiButton__in::after {
+  display: none !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button .vkuiButton__in *,
+.client-dashboard .cd-create-order-button span {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  font-weight: 900 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background: linear-gradient(135deg, #e8c7a5 0%, #d6a776 100%) !important;
+  color: rgba(63, 38, 31, 0.72) !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.12) !important;
+}
+
+/* Repair over-broad VKUI overrides: labels are labels, fields are fields. */
+.client-dashboard .vkuiFormItem {
+  margin: 0 0 18px !important;
+  padding: 16px !important;
+  border-radius: 24px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.09) !important;
+}
+
+.client-dashboard .vkuiFormItem:last-child {
+  margin-bottom: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  display: block !important;
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  color: #4a2b22 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard [class*="FormItem__content"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__bottom,
+.client-dashboard [class*="FormItem__bottom"] {
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard input,
+.client-dashboard textarea,
+.client-dashboard select,
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"],
+.cd-date-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  border-radius: 16px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  box-shadow: none !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 500 !important;
+}
+
+.client-dashboard textarea {
+  min-height: 104px !important;
+}
+
+.client-dashboard .cd-group .vkuiGroup__inner,
+.client-dashboard .cd-group [class*="Group__inner"] {
+  padding: 18px !important;
+  gap: 16px !important;
+}
+
+.client-dashboard .cd-group {
+  margin-top: 16px !important;
+}
+
+.client-dashboard .cd-group + .cd-group,
+.client-dashboard .cd-group:has(.cd-tabs) + .cd-group {
+  margin-top: 16px !important;
+}
+
+.cd-note-box,
+.cd-total {
+  padding: 18px !important;
+  border-radius: 24px !important;
+}
+
+.cd-create-order-action {
+  margin-top: 18px !important;
+  padding: 0 !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 58px !important;
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(255, 255, 255, 0.55), transparent 62%),
+    linear-gradient(135deg, #fff8e8 0%, #ffd99f 55%, #f0b66f 100%) !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  outline: 0 !important;
+  box-shadow: 0 14px 28px rgba(191, 111, 47, 0.22) !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button .vkuiButton__in *,
+.client-dashboard .cd-create-order-button span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled,
+.client-dashboard .cd-create-order-button[disabled],
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  opacity: 1 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background:
+    linear-gradient(135deg, #fff3dc 0%, #f2cf9e 100%) !important;
+  color: rgba(74, 43, 34, 0.82) !important;
+  -webkit-text-fill-color: rgba(74, 43, 34, 0.82) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.1) !important;
+}
+
+/* Final form geometry fix: prevent FormItem labels from inheriting card/input styles. */
+.client-dashboard .vkuiFormItem {
+  display: block !important;
+  padding: 16px !important;
+  margin: 0 0 16px !important;
+  border-radius: 24px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.08) !important;
+}
+
+.client-dashboard .vkuiFormItem__top,
+.client-dashboard [class*="FormItem__top"] {
+  display: block !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 0 9px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.35 !important;
+}
+
+.client-dashboard .vkuiFormItem__top::before,
+.client-dashboard .vkuiFormItem__top::after,
+.client-dashboard [class*="FormItem__top"]::before,
+.client-dashboard [class*="FormItem__top"]::after {
+  display: none !important;
+  content: none !important;
+}
+
+.client-dashboard .vkuiFormItem__content,
+.client-dashboard [class*="FormItem__content"] {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+.client-dashboard .vkuiFormItem__content::before,
+.client-dashboard .vkuiFormItem__content::after,
+.client-dashboard [class*="FormItem__content"]::before,
+.client-dashboard [class*="FormItem__content"]::after {
+  display: none !important;
+  content: none !important;
+}
+
+.client-dashboard .vkuiFormItem__bottom,
+.client-dashboard [class*="FormItem__bottom"] {
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .vkuiFormItem > *,
+.client-dashboard .vkuiFormItem__content > * {
+  box-sizing: border-box !important;
+}
+
+.client-dashboard input,
+.client-dashboard select,
+.client-dashboard textarea,
+.client-dashboard .vkuiNativeSelect__select,
+.client-dashboard [class*="NativeSelect__select"],
+.cd-date-input {
+  margin: 0 !important;
+  border-radius: 16px !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(255, 255, 255, 0.62), transparent 62%),
+    linear-gradient(135deg, #fffdf8 0%, #ffe8c4 58%, #ffd08a 100%) !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 12px 24px rgba(191, 111, 47, 0.18) !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button .vkuiButton__in *,
+.client-dashboard .cd-create-order-button span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-weight: 500 !important;
+}
+
+/* Custom order form fields: no VKUI FormItem geometry, equal spacing everywhere. */
+.cd-field {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px !important;
+  margin: 0 0 16px !important;
+  border-radius: 24px;
+  background: #fffaf3;
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.08);
+}
+
+.cd-field:last-of-type {
+  margin-bottom: 0 !important;
+}
+
+.cd-field-label {
+  margin: 0 0 10px;
+  padding: 0;
+  color: #4a2b22;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.cd-field-info {
+  color: #4a2b22;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.cd-field .vkuiNativeSelect,
+.cd-field [class*="NativeSelect"],
+.cd-field .vkuiInput,
+.cd-field .vkuiTextarea,
+.cd-field [class*="Input"],
+.cd-field [class*="Textarea"] {
+  width: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cd-field select,
+.cd-field input,
+.cd-field textarea,
+.cd-field .vkuiNativeSelect__select,
+.cd-field [class*="NativeSelect__select"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  border-radius: 16px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  box-shadow: none !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 500 !important;
+}
+
+.cd-field textarea {
+  min-height: 104px !important;
+  padding: 14px !important;
+}
+
+.cd-field .cd-service-picker {
+  margin: 0 !important;
+}
+
+.cd-note-box,
+.cd-total,
+.cd-create-order-action {
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+.cd-total {
+  padding: 22px 18px !important;
+}
+
+.cd-create-order-action {
+  padding: 0 !important;
+}
+
+/* Equal vertical rhythm for the custom order form. */
+.cd-field,
+.cd-field-info,
+.cd-note-box,
+.cd-total,
+.cd-service-picker,
+.cd-create-order-action {
+  box-sizing: border-box !important;
+}
+
+.cd-field {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.cd-field-info {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.cd-note-box {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.cd-service-picker {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.cd-total {
+  padding-top: 18px !important;
+  padding-bottom: 18px !important;
+}
+
+.cd-create-order-action {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.cd-create-order-button .vkuiButton__in {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Role/login follow-up: clean contrast for pets and remove outer order frames. */
+.client-dashboard .cd-pet-card,
+.client-dashboard .cd-pet-card.vkuiCard,
+.client-dashboard .cd-pet-card[class*="Card"] {
+  background:
+    radial-gradient(260px 130px at 100% 0%, rgba(217, 130, 61, 0.08), transparent 64%),
+    #fffdf8 !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+}
+
+.client-dashboard .cd-pet-card .cd-card-body {
+  background: #fffaf3 !important;
+  color: #3f261f !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-pet-card .cd-card-body *,
+.client-dashboard .cd-pet-card .cd-card-body .vkuiFormItem__top,
+.client-dashboard .cd-pet-card .cd-card-body [class*="FormItem__top"],
+.client-dashboard .cd-pet-card .vkuiSimpleCell__children,
+.client-dashboard .cd-pet-card [class*="SimpleCell__children"] {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+}
+
+.client-dashboard .cd-pet-card .cd-card-body .vkuiFormItem,
+.client-dashboard .cd-pet-card .cd-card-body [class*="FormItem"] {
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+}
+
+.client-dashboard .cd-pet-card .cd-card-body input,
+.client-dashboard .cd-pet-card .cd-card-body select,
+.client-dashboard .cd-pet-card .cd-card-body textarea {
+  background: #fffdf8 !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-pet-card .vkuiButton--mode-primary .vkuiButton__in,
+.client-dashboard .cd-pet-card .vkuiButton--mode-commerce .vkuiButton__in {
+  background: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-pet-card .vkuiButton--mode-primary .vkuiButton__content,
+.client-dashboard .cd-pet-card .vkuiButton--mode-commerce .vkuiButton__content,
+.client-dashboard .cd-pet-card .vkuiButton--mode-primary .vkuiButton__content *,
+.client-dashboard .cd-pet-card .vkuiButton--mode-commerce .vkuiButton__content * {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-pet-card .vkuiButton--mode-secondary .vkuiButton__in,
+.client-dashboard .cd-pet-card .vkuiButton--mode-tertiary .vkuiButton__in {
+  background: #fffaf3 !important;
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .vkuiCardGrid:has(.cd-order-card),
+.client-dashboard [class*="CardGrid"]:has(.cd-order-card) {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-order-card,
+.client-dashboard .cd-order-card.vkuiCard,
+.client-dashboard .cd-order-card[class*="Card"] {
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+}
+
+.client-dashboard .cd-order-card::before,
+.client-dashboard .cd-order-card::after,
+.client-dashboard .vkuiCardGrid:has(.cd-order-card)::before,
+.client-dashboard .vkuiCardGrid:has(.cd-order-card)::after,
+.client-dashboard [class*="CardGrid"]:has(.cd-order-card)::before,
+.client-dashboard [class*="CardGrid"]:has(.cd-order-card)::after {
+  display: none !important;
+  content: none !important;
+}
+
+.client-dashboard .cd-order-card .cd-cancel-order-button,
+.client-dashboard .cd-order-card .cd-cancel-order-button .vkuiButton__host,
+.client-dashboard .cd-order-card .cd-cancel-order-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-order-card .cd-cancel-order-button *,
+.client-dashboard .cd-order-card .cd-cancel-order-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+/* Pet tab contrast: keep the tab/card surface, highlight only the title rows and actions. */
+.client-dashboard .cd-header-row {
+  width: 100%;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) {
+  padding: 12px 14px !important;
+  border-radius: 20px !important;
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.24) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.12) !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) span {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in,
+.client-dashboard .cd-edit-pet-button,
+.client-dashboard .cd-edit-pet-button .vkuiButton__host,
+.client-dashboard .cd-edit-pet-button .vkuiButton__in {
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  border: 1px solid rgba(255, 250, 243, 0.72) !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content,
+.client-dashboard .cd-edit-pet-button *,
+.client-dashboard .cd-edit-pet-button .vkuiButton__content {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+}
+
+.client-dashboard .cd-pet-card .cd-pet-head,
+.client-dashboard .cd-pet-card .cd-pet-head.vkuiSimpleCell,
+.client-dashboard .cd-pet-card .cd-pet-head[class*="SimpleCell"] {
+  margin: 0 14px 14px !important;
+  border-radius: 20px !important;
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.24) !important;
+}
+
+.client-dashboard .cd-pet-card .cd-pet-head *,
+.client-dashboard .cd-pet-card .cd-pet-head .vkuiSimpleCell__children,
+.client-dashboard .cd-pet-card .cd-pet-head [class*="SimpleCell__children"],
+.client-dashboard .cd-pet-card .cd-pet-head .vkuiSimpleCell__description,
+.client-dashboard .cd-pet-card .cd-pet-head [class*="SimpleCell__description"] {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-pet-card .cd-pet-head .cd-edit-pet-button *,
+.client-dashboard .cd-pet-card .cd-pet-head .cd-edit-pet-button .vkuiButton__content {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+}
+
+.client-dashboard .cd-order-card .cd-card-actions {
+  padding: 4px 18px 18px !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+
+.client-dashboard .cd-create-order-button,
+.client-dashboard .cd-create-order-button .vkuiButton__host,
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.22) !important;
+}
+
+.client-dashboard .cd-create-order-button *,
+.client-dashboard .cd-create-order-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background: rgba(91, 53, 41, 0.42) !important;
+  background-color: rgba(91, 53, 41, 0.42) !important;
+  color: rgba(255, 250, 243, 0.88) !important;
+  -webkit-text-fill-color: rgba(255, 250, 243, 0.88) !important;
+  box-shadow: none !important;
+}
+
+/* Pets block cleanup: same light surface as the rest of the app. */
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiGroup__inner,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="Group__inner"] {
+  background:
+    radial-gradient(360px 180px at 100% 0%, rgba(217, 130, 61, 0.09), transparent 66%),
+    linear-gradient(145deg, #fffdf8, #fffaf3) !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 18px 38px rgba(91, 53, 41, 0.12) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) span {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+}
+
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.24) !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.14) !important;
+}
+
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .vkuiCardGrid:has(.cd-pet-card),
+.client-dashboard [class*="CardGrid"]:has(.cd-pet-card) {
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-pet-card,
+.client-dashboard .cd-pet-card.vkuiCard,
+.client-dashboard .cd-pet-card[class*="Card"] {
+  padding: 0 !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(260px 130px at 100% 0%, rgba(217, 130, 61, 0.08), transparent 64%),
+    #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 14px 28px rgba(91, 53, 41, 0.1) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-pet-card .cd-pet-head,
+.client-dashboard .cd-pet-card .cd-pet-head.vkuiSimpleCell,
+.client-dashboard .cd-pet-card .cd-pet-head[class*="SimpleCell"] {
+  margin: 16px !important;
+  border-radius: 20px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.08) !important;
+}
+
+.client-dashboard .cd-pet-card .cd-pet-head *,
+.client-dashboard .cd-pet-card .cd-pet-head .vkuiSimpleCell__children,
+.client-dashboard .cd-pet-card .cd-pet-head [class*="SimpleCell__children"],
+.client-dashboard .cd-pet-card .cd-pet-head .vkuiSimpleCell__description,
+.client-dashboard .cd-pet-card .cd-pet-head [class*="SimpleCell__description"] {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+}
+
+.client-dashboard .cd-edit-pet-button,
+.client-dashboard .cd-edit-pet-button .vkuiButton__host,
+.client-dashboard .cd-edit-pet-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.24) !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.14) !important;
+}
+
+.client-dashboard .cd-edit-pet-button *,
+.client-dashboard .cd-edit-pet-button .vkuiButton__content,
+.client-dashboard .cd-pet-card .cd-pet-head .cd-edit-pet-button *,
+.client-dashboard .cd-pet-card .cd-pet-head .cd-edit-pet-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+/* Final pets tab correction: brown section, breathable edit form, distinct actions. */
+.client-dashboard .cd-group:has(.cd-add-pet-button) {
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiGroup__header,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="Group__header"] {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiGroup__inner,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="Group__inner"] {
+  padding: 18px !important;
+  gap: 16px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(420px 220px at 100% 0%, rgba(255, 241, 222, 0.12), transparent 62%),
+    linear-gradient(145deg, #6a3f31 0%, #4f2f26 100%) !important;
+  border: 1px solid rgba(255, 241, 222, 0.18) !important;
+  box-shadow: 0 22px 44px rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) {
+  padding: 0 0 14px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) span {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in {
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  border: 1px solid rgba(255, 250, 243, 0.7) !important;
+  box-shadow: 0 8px 18px rgba(35, 20, 15, 0.18) !important;
+}
+
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiCardGrid:has(.cd-pet-card),
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="CardGrid"]:has(.cd-pet-card) {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card.vkuiCard,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card[class*="Card"] {
+  padding: 0 !important;
+  border-radius: 24px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(255, 241, 222, 0.36) !important;
+  box-shadow: 0 16px 32px rgba(35, 20, 15, 0.16) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head.vkuiSimpleCell,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head[class*="SimpleCell"] {
+  margin: 16px !important;
+  padding: 12px 14px !important;
+  border-radius: 20px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.08) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head [class*="SimpleCell__children"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-head [class*="SimpleCell__description"] {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-edit-pet-button,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-edit-pet-button .vkuiButton__host,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-edit-pet-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.24) !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.14) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-edit-pet-button *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-edit-pet-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body {
+  display: grid !important;
+  gap: 14px !important;
+  margin: 0 16px 16px !important;
+  padding: 18px !important;
+  border-radius: 22px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem"] {
+  margin: 0 !important;
+  padding: 14px !important;
+  border-radius: 18px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem__top,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem__top"] {
+  display: block !important;
+  margin: 0 0 9px !important;
+  padding: 0 !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem__content,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem__content"] {
+  display: block !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body input,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body select,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body textarea,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiInput__el,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiTextarea__el,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiNativeSelect__el {
+  width: 100% !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  border-radius: 16px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.16) !important;
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body textarea,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiTextarea__el {
+  min-height: 104px !important;
+  padding: 14px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:first-child,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:first-child .vkuiButton__host,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:first-child .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.16) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:last-child,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:last-child .vkuiButton__host,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton:last-child .vkuiButton__in {
+  background: #b76049 !important;
+  background-color: #b76049 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(183, 96, 73, 0.28) !important;
+  box-shadow: 0 10px 22px rgba(183, 96, 73, 0.16) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+}
+
+/* Final pets polish: clean form, readable labels, no nested category cards. */
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) {
+  padding: 0 2px 14px !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in {
+  min-height: 36px !important;
+  border-radius: 10px !important;
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 1px solid rgba(74, 43, 34, 0.18) !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 500 !important;
+}
+
+.client-dashboard .cd-add-pet-button::before,
+.client-dashboard .cd-add-pet-button::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::after {
+  display: none !important;
+  content: none !important;
+}
+
+.client-dashboard .cd-subsection-add {
+  margin-top: 18px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add {
+  display: grid !important;
+  gap: 18px !important;
+  padding: 20px !important;
+  border-radius: 22px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add [class*="FormItem"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem__top,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem__top"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add .vkuiFormItem__top,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add [class*="FormItem__top"] {
+  display: block !important;
+  margin: 0 0 10px !important;
+  padding: 0 !important;
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem__content,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body [class*="FormItem__content"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add .vkuiFormItem__content,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add [class*="FormItem__content"] {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body input,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body select,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body textarea,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add input,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add select,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add textarea {
+  width: 100% !important;
+  min-height: 48px !important;
+  box-sizing: border-box !important;
+  border-radius: 14px !important;
+  background: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-title {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  font-family: 'Unbounded', 'Manrope', sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-size-help {
+  display: block !important;
+  margin-top: 12px !important;
+  padding-top: 0 !important;
+  color: rgba(63, 38, 31, 0.72) !important;
+  -webkit-text-fill-color: rgba(63, 38, 31, 0.72) !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton__host,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton__in,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .ed-complete-cancel-button,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .ed-complete-cancel-button .vkuiButton__host,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .ed-complete-cancel-button .vkuiButton__in {
+  min-height: 44px !important;
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 10px 22px rgba(91, 53, 41, 0.16) !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-action-row .vkuiButton__content,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .ed-complete-cancel-button *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .ed-complete-cancel-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 700 !important;
+}
+
+/* Last pets fixes: plain add toggle, better field rhythm, visible submit. */
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in {
+  min-height: 38px !important;
+  border-radius: 12px !important;
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content,
+.client-dashboard .cd-add-pet-button span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 400 !important;
+  font-family: 'Manrope', sans-serif !important;
+  letter-spacing: 0 !important;
+}
+
+.client-dashboard .cd-add-pet-button::before,
+.client-dashboard .cd-add-pet-button::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__host::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__host::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add {
+  gap: 26px !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add .vkuiFormItem {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body .vkuiFormItem + .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add .vkuiFormItem + .vkuiFormItem {
+  margin-top: 8px !important;
+}
+
+.client-dashboard .cd-submit-pet-button,
+.client-dashboard .cd-submit-pet-button .vkuiButton__host,
+.client-dashboard .cd-submit-pet-button .vkuiButton__in {
+  min-height: 52px !important;
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 1px solid rgba(91, 53, 41, 0.28) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-submit-pet-button *,
+.client-dashboard .cd-submit-pet-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-submit-pet-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-submit-pet-button[disabled] .vkuiButton__in {
+  background: rgba(91, 53, 41, 0.5) !important;
+  background-color: rgba(91, 53, 41, 0.5) !important;
+  color: rgba(255, 250, 243, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 250, 243, 0.9) !important;
+}
+
+.client-dashboard .cd-create-order-button,
+.client-dashboard .cd-create-order-button .vkuiButton__host,
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 60px !important;
+  background:
+    radial-gradient(220px 90px at 100% 0%, rgba(255, 255, 255, 0.44), transparent 62%),
+    linear-gradient(135deg, #f7b733 0%, #e8872f 52%, #c8612f 100%) !important;
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  border: 1px solid rgba(120, 61, 29, 0.26) !important;
+  box-shadow: 0 18px 34px rgba(200, 97, 47, 0.34) !important;
+}
+
+.client-dashboard .cd-create-order-button *,
+.client-dashboard .cd-create-order-button .vkuiButton__content {
+  color: #3f261f !important;
+  -webkit-text-fill-color: #3f261f !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard .cd-create-order-button:not(.vkuiButton--disabled) .vkuiButton__in:hover {
+  filter: brightness(1.06) !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background:
+    linear-gradient(135deg, #f3d8b8 0%, #ddb58c 100%) !important;
+  color: rgba(63, 38, 31, 0.72) !important;
+  -webkit-text-fill-color: rgba(63, 38, 31, 0.72) !important;
+  box-shadow: 0 8px 18px rgba(91, 53, 41, 0.1) !important;
+}
+
+/* Button layer reset: VKUI paints several nested nodes, keep all corners identical. */
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button .vkuiButton__host,
+.client-dashboard .cd-add-pet-button .vkuiButton__in,
+.client-dashboard .cd-add-pet-button .vkuiButton__content {
+  border-radius: 12px !important;
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  font-weight: 400 !important;
+}
+
+.client-dashboard .cd-add-pet-button {
+  padding: 0 !important;
+}
+
+.client-dashboard .cd-add-pet-button .vkuiButton__in {
+  min-height: 38px !important;
+  padding: 0 14px !important;
+}
+
+.client-dashboard .cd-add-pet-button,
+.client-dashboard .cd-add-pet-button *,
+.client-dashboard .cd-add-pet-button .vkuiButton__content,
+.client-dashboard .cd-add-pet-button span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+
+.client-dashboard .cd-add-pet-button::before,
+.client-dashboard .cd-add-pet-button::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__host::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__host::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__in::after,
+.client-dashboard .cd-add-pet-button .vkuiButton__content::before,
+.client-dashboard .cd-add-pet-button .vkuiButton__content::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-create-order-button,
+.client-dashboard .cd-create-order-button .vkuiButton__host,
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  border-radius: 18px !important;
+  background:
+    radial-gradient(220px 90px at 100% 0%, rgba(255, 255, 255, 0.22), transparent 62%),
+    linear-gradient(135deg, #6f7f4a 0%, #4f6536 52%, #334827 100%) !important;
+  background-color: #4f6536 !important;
+  background-clip: padding-box !important;
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  border: 0 !important;
+  outline: 1px solid rgba(51, 72, 39, 0.32) !important;
+  box-shadow: 0 18px 34px rgba(51, 72, 39, 0.28) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 60px !important;
+}
+
+.client-dashboard .cd-create-order-button *,
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button span {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard .cd-create-order-button::before,
+.client-dashboard .cd-create-order-button::after,
+.client-dashboard .cd-create-order-button .vkuiButton__host::before,
+.client-dashboard .cd-create-order-button .vkuiButton__host::after,
+.client-dashboard .cd-create-order-button .vkuiButton__in::before,
+.client-dashboard .cd-create-order-button .vkuiButton__in::after {
+  display: none !important;
+  content: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled,
+.client-dashboard .cd-create-order-button[disabled],
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__host,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__host,
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background: linear-gradient(135deg, #c7d0b5 0%, #9baa82 100%) !important;
+  background-color: #9baa82 !important;
+  color: rgba(255, 250, 243, 0.9) !important;
+  -webkit-text-fill-color: rgba(255, 250, 243, 0.9) !important;
+  outline-color: rgba(79, 101, 54, 0.16) !important;
+  box-shadow: 0 8px 18px rgba(51, 72, 39, 0.1) !important;
+}
+
+/* Native pet toggle button: no VKUI inherited bold text or uneven corners. */
+.client-dashboard .cd-add-pet-button {
+  all: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 142px !important;
+  width: 142px !important;
+  min-width: 142px !important;
+  max-width: 142px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  border-radius: 999px !important;
+  border-top-left-radius: 999px !important;
+  border-top-right-radius: 999px !important;
+  border-bottom-right-radius: 999px !important;
+  border-bottom-left-radius: 999px !important;
+  clip-path: none !important;
+  background: #fffaf3 !important;
+  background-color: #fffaf3 !important;
+  background-image: none !important;
+  background-clip: border-box !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  line-height: 36px !important;
+  letter-spacing: 0 !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+  contain: paint !important;
+  user-select: none !important;
+}
+
+.client-dashboard .cd-add-pet-button::before,
+.client-dashboard .cd-add-pet-button::after {
+  display: none !important;
+  content: none !important;
+}
+
+.client-dashboard .cd-add-pet-button:active {
+  transform: scale(0.99);
+}
+
+.client-dashboard .cd-create-order-button,
+.client-dashboard .cd-create-order-button .vkuiButton__host,
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.12) !important;
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-create-order-button .vkuiButton__in {
+  min-height: 60px !important;
+}
+
+.client-dashboard .cd-create-order-button *,
+.client-dashboard .cd-create-order-button .vkuiButton__content,
+.client-dashboard .cd-create-order-button span {
+  color: #4a2b22 !important;
+  -webkit-text-fill-color: #4a2b22 !important;
+  font-weight: 700 !important;
+}
+
+.client-dashboard .cd-create-order-button.vkuiButton--disabled,
+.client-dashboard .cd-create-order-button[disabled],
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__host,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__host,
+.client-dashboard .cd-create-order-button.vkuiButton--disabled .vkuiButton__in,
+.client-dashboard .cd-create-order-button[disabled] .vkuiButton__in {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: rgba(74, 43, 34, 0.82) !important;
+  -webkit-text-fill-color: rgba(74, 43, 34, 0.82) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.1) !important;
+}
+
+/* Unified tabs style shared by client/groomer/admin dashboards. */
+.client-dashboard .cd-tabs {
+  padding: 6px !important;
+  border-radius: 18px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(91, 53, 41, 0.12) !important;
+  box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem,
+.client-dashboard .cd-tabs .vkuiTabsItem__in,
+.client-dashboard .cd-tabs [class*="TabsItem"] {
+  border-radius: 14px !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem *,
+.client-dashboard .cd-tabs .vkuiTabsItem__label,
+.client-dashboard .cd-tabs [class*="TabsItem"] * {
+  color: #5b3529 !important;
+  -webkit-text-fill-color: #5b3529 !important;
+  font-family: 'Manrope', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected *,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"] * {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 600 !important;
+}
+
+/* Hard fix for the pets header action clipping on the right edge. */
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  column-gap: 14px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 10px 14px 2px !important;
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) .cd-add-pet-button {
+  justify-self: end !important;
+  margin-right: 0 !important;
+}
+
+.client-dashboard .cd-header-row:has(.cd-add-pet-button),
+.client-dashboard .cd-header-row:has(.cd-add-pet-button) *,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiGroup__header,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="Group__header"] {
+  overflow: visible !important;
+}
+
+/* Mobile polish: remove VKUI separator artifacts and keep headers/tabs inside the viewport. */
+@media (max-width: 520px) {
+  .client-dashboard,
+  .client-dashboard * {
+    box-sizing: border-box !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__in,
+  .client-dashboard [class*="PanelHeader__in"] {
+    min-height: 56px !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard .vkuiPanelHeader__content *,
+  .client-dashboard [class*="PanelHeader__content"],
+  .client-dashboard [class*="PanelHeader__content"] * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    white-space: normal !important;
+    color: #3f261f !important;
+    -webkit-text-fill-color: #3f261f !important;
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    min-width: 0 !important;
+  }
+
+  .client-dashboard .cd-header-buttons {
+    gap: 4px !important;
+  }
+
+  .client-dashboard .cd-header-buttons .vkuiButton__in {
+    min-height: 30px !important;
+    padding: 0 8px !important;
+  }
+
+  .client-dashboard .cd-header-buttons .vkuiButton__content {
+    font-size: 11px !important;
+    line-height: 1 !important;
+  }
+
+  .client-dashboard .cd-page {
+    width: 100% !important;
+    padding: 14px 10px 40px !important;
+    overflow-x: hidden !important;
+  }
+
+  .client-dashboard .cd-group,
+  .client-dashboard .cd-group .vkuiGroup__inner,
+  .client-dashboard .cd-group .vkuiGroup__header,
+  .client-dashboard .cd-tab-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .client-dashboard .vkuiGroup__separator,
+  .client-dashboard [class*="Group__separator"],
+  .client-dashboard .vkuiGroup__header::before,
+  .client-dashboard .vkuiGroup__header::after,
+  .client-dashboard [class*="Group__header"]::before,
+  .client-dashboard [class*="Group__header"]::after,
+  .client-dashboard .vkuiHeader::before,
+  .client-dashboard .vkuiHeader::after,
+  .client-dashboard [class*="Header"]::before,
+  .client-dashboard [class*="Header"]::after,
+  .client-dashboard .vkuiTabs::before,
+  .client-dashboard .vkuiTabs::after,
+  .client-dashboard .vkuiTabs__in::before,
+  .client-dashboard .vkuiTabs__in::after,
+  .client-dashboard [class*="Tabs"]::before,
+  .client-dashboard [class*="Tabs"]::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .client-dashboard .cd-tabs {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .client-dashboard .cd-tabs [class*="Tabs__in"],
+  .client-dashboard .cd-tabs .vkuiTabs__in {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 4px !important;
+  }
+
+  .client-dashboard .cd-tabs .vkuiTabsItem,
+  .client-dashboard .cd-tabs [class*="TabsItem"] {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  .client-dashboard .cd-tabs .vkuiTabsItem__in,
+  .client-dashboard .cd-tabs [class*="TabsItem__in"] {
+    min-width: 0 !important;
+    padding: 8px 4px !important;
+  }
+
+  .client-dashboard .cd-tabs .vkuiTabsItem *,
+  .client-dashboard .cd-tabs [class*="TabsItem"] * {
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    white-space: normal !important;
+    text-align: center !important;
   }
 }

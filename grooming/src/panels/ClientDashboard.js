@@ -11,7 +11,6 @@
   Badge,
   FormItem,
   NativeSelect,
-  Checkbox,
   Input,
   Textarea,
   Tabs,
@@ -74,9 +73,67 @@ const getRecencyCoefficient = (recency) => {
   return 1;
 };
 
+const getRecencyDurationCoefficient = (recency) => {
+  if (recency === 'never') return 1.3;
+  if (recency === '3_plus_months') return 1.2;
+  if (recency === '1_3_months') return 1.1;
+  return 1;
+};
+
+const isRecencySensitiveService = (serviceName) => {
+  const name = String(serviceName || '').trim().toLowerCase();
+  if (!name) return false;
+
+  const fixedDurationPatterns = [
+    /когт/,
+    /зуб/,
+    /уш/,
+    /паразит/,
+    /парааналь/,
+    /гигиен(?!.*стриж)/,
+  ];
+
+  if (fixedDurationPatterns.some((pattern) => pattern.test(name))) {
+    return false;
+  }
+
+  return /груминг|стриж|вычес|линьк|тримминг|spa|спа|мыть|сушк/.test(name);
+};
+
+const getAdjustedServiceDuration = (service, recency) => {
+  const numeric = Number(service?.durationMinutes);
+  const baseDuration = Number.isFinite(numeric) && numeric > 0 ? numeric : 60;
+  if (!isRecencySensitiveService(service?.name)) {
+    return baseDuration;
+  }
+  return Math.ceil((baseDuration * getRecencyDurationCoefficient(recency)) / 5) * 5;
+};
+
 const getRecencyModifierLabel = (recency) => (
   GROOMING_RECENCY_OPTIONS.find((option) => option.value === recency)?.modifier || 'без надбавки'
 );
+
+const SERVICE_CATEGORIES = [
+  { id: 'all', label: 'Все', icon: '✦' },
+  { id: 'complex', label: 'Комплексы', icon: '★' },
+  { id: 'haircut', label: 'Стрижки', icon: '✂' },
+  { id: 'coat', label: 'Шерсть', icon: '≈' },
+  { id: 'hygiene', label: 'Гигиена', icon: '○' },
+  { id: 'spa', label: 'SPA', icon: '◇' },
+];
+
+const getServiceCategory = (service) => {
+  const name = String(service?.name || '').toLowerCase();
+  const description = String(service?.description || '').toLowerCase();
+  const text = `${name} ${description}`;
+
+  if (/комплекс|люкс/.test(text)) return 'complex';
+  if (/стриж|тримминг/.test(text)) return 'haircut';
+  if (/вычес|линьк|колтун|подшерст|шерст/.test(text)) return 'coat';
+  if (/spa|спа|маск|массаж|пилинг/.test(text)) return 'spa';
+  if (/когт|зуб|уш|глаз|гигиен|паразит|парааналь/.test(text)) return 'hygiene';
+  return 'hygiene';
+};
 
 const KIND_OPTIONS = ['Собака', 'Кошка'];
 const GENDER_OPTIONS = [
@@ -154,6 +211,8 @@ export const ClientDashboard = ({ id }) => {
   const [selectedTime, setSelectedTime] = useState('');
   const [groomingRecency, setGroomingRecency] = useState('recent');
   const [clientComment, setClientComment] = useState('');
+  const [serviceCategory, setServiceCategory] = useState('all');
+  const [serviceSearch, setServiceSearch] = useState('');
   const [availableEmployees, setAvailableEmployees] = useState([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityMessage, setAvailabilityMessage] = useState('');
@@ -190,6 +249,28 @@ export const ClientDashboard = ({ id }) => {
       return animalType === 'all' || animalType === selectedPetAnimalType;
     });
   }, [services, selectedPetAnimalType]);
+  const serviceCategoryCounts = useMemo(() => {
+    const counts = filteredServices.reduce((acc, service) => {
+      const category = getServiceCategory(service);
+      acc[category] = (acc[category] || 0) + 1;
+      acc.all += 1;
+      return acc;
+    }, { all: 0 });
+
+    return counts;
+  }, [filteredServices]);
+  const visibleServices = useMemo(() => {
+    const query = serviceSearch.trim().toLowerCase();
+
+    return filteredServices.filter((service) => {
+      const matchesCategory = serviceCategory === 'all' || getServiceCategory(service) === serviceCategory;
+      const matchesSearch = !query
+        || String(service.name || '').toLowerCase().includes(query)
+        || String(service.description || '').toLowerCase().includes(query);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [filteredServices, serviceCategory, serviceSearch]);
   const sizeCoefficient = SIZE_COEFFICIENTS[selectedPet?.size || 'small'] || 1;
   const selectedEmployee = useMemo(
     () => availableEmployees.find((employee) => employee.id === selectedEmployeeId) || null,
@@ -209,10 +290,9 @@ export const ClientDashboard = ({ id }) => {
   const totalServicesDuration = useMemo(() => {
     return selectedServiceIds.reduce((sum, serviceId) => {
       const service = services.find((item) => item.id === serviceId);
-      const numeric = Number(service?.durationMinutes);
-      return sum + (Number.isFinite(numeric) && numeric > 0 ? numeric : 60);
+      return sum + getAdjustedServiceDuration(service, groomingRecency);
     }, 0);
-  }, [services, selectedServiceIds]);
+  }, [services, selectedServiceIds, groomingRecency]);
 
   const finalServicesTotal = baseServicesTotal * sizeCoefficient * recencyCoefficient * groomerLevelCoefficient;
 
@@ -345,6 +425,7 @@ export const ClientDashboard = ({ id }) => {
       const availability = await clientApi.getAvailability({
         date: dateValue,
         serviceIds: serviceIdsValue,
+        groomingRecency,
       });
 
       setAvailableEmployees(availability.employees || []);
@@ -367,11 +448,11 @@ export const ClientDashboard = ({ id }) => {
     } finally {
       setAvailabilityLoading(false);
     }
-  }, []);
+  }, [groomingRecency]);
 
   useEffect(() => {
     refreshAvailability(selectedDate, selectedServiceIds);
-  }, [selectedDate, selectedServiceIds, refreshAvailability]);
+  }, [selectedDate, selectedServiceIds, groomingRecency, refreshAvailability]);
 
   useEffect(() => {
     const filteredIds = new Set(filteredServices.map((service) => service.id));
@@ -386,6 +467,12 @@ export const ClientDashboard = ({ id }) => {
       return [];
     });
   }, [filteredServices]);
+
+  useEffect(() => {
+    if (serviceCategory !== 'all' && !serviceCategoryCounts[serviceCategory]) {
+      setServiceCategory('all');
+    }
+  }, [serviceCategory, serviceCategoryCounts]);
 
   useEffect(() => {
     if (!selectedPetId || orders.length === 0) {
@@ -721,17 +808,13 @@ export const ClientDashboard = ({ id }) => {
           {successMessage ? <div className="cd-alert">{successMessage}</div> : null}
           {profile && (
             <Group className="cd-group" header={<Header mode="secondary">Профиль 👤</Header>}>
-              <CardGrid size="l">
-                <Card mode="shadow" className="cd-card">
-                  <SimpleCell
-                    before={<Avatar size={48} initials={profile['ФИО']?.charAt(0) || 'К'} />}
-                    description={profile['Номер_телефона'] || 'Телефон не указан'}
-                    className="cd-simplecell"
-                  >
-                    {profile['ФИО'] || 'Клиент'}
-                  </SimpleCell>
-                </Card>
-              </CardGrid>
+              <div className="cd-profile-card">
+                <Avatar size={48} initials={profile['ФИО']?.charAt(0) || 'К'} />
+                <div className="cd-profile-info">
+                  <div className="cd-profile-name">{profile['ФИО'] || 'Клиент'}</div>
+                  <div className="cd-profile-phone">{profile['Номер_телефона'] || 'Телефон не указан'}</div>
+                </div>
+              </div>
             </Group>
           )}
 
@@ -756,9 +839,20 @@ export const ClientDashboard = ({ id }) => {
               <Header mode="secondary">
                 <div className="cd-header-row">
                   <span>Питомцы 🐾</span>
-                  <Button size="s" mode="secondary" onClick={() => setShowAddPet((prev) => !prev)}>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="cd-add-pet-button"
+                    onClick={() => setShowAddPet((prev) => !prev)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setShowAddPet((prev) => !prev);
+                      }
+                    }}
+                  >
                     {showAddPet ? 'Скрыть форму' : 'Добавить'}
-                  </Button>
+                  </div>
                 </div>
               </Header>
             }
@@ -775,11 +869,12 @@ export const ClientDashboard = ({ id }) => {
                       <SimpleCell
                         before={<Avatar size={48} initials={pet.name?.charAt(0) || 'П'} />}
                         description={`${pet.breed || 'Порода не указана'}${pet.age ? ` · ${pet.age} лет` : ''}${sizeLabel}`}
-                        className="cd-simplecell"
+                        className="cd-simplecell cd-pet-head"
                         after={
                           <Button
                             size="s"
                             mode="secondary"
+                            className="cd-edit-pet-button"
                             onClick={() => setEditingPetId(isEditing ? '' : pet.id)}
                           >
                             {isEditing ? 'Свернуть' : 'Редактировать'}
@@ -942,7 +1037,13 @@ export const ClientDashboard = ({ id }) => {
                 />
               </FormItem>
               <FormItem>
-                <Button size="l" stretched onClick={handleCreatePet} disabled={!newPetName || creatingPet}>
+                <Button
+                  size="l"
+                  stretched
+                  className="cd-submit-pet-button"
+                  onClick={handleCreatePet}
+                  disabled={!newPetName || creatingPet}
+                >
                   {creatingPet ? 'Добавление...' : 'Добавить питомца'}
                 </Button>
               </FormItem>
@@ -953,7 +1054,8 @@ export const ClientDashboard = ({ id }) => {
 
           {activeTab === 'orders' ? (
           <Group className="cd-group" header={<Header mode="secondary">Создать заказ ✂️</Header>}>
-            <FormItem top="Питомец">
+            <div className="cd-field">
+              <div className="cd-field-label">Питомец</div>
               <NativeSelect value={selectedPetId} onChange={(e) => setSelectedPetId(e.target.value)} disabled={pets.length === 0}>
                 {pets.length === 0 ? (
                   <option value="">Нет питомцев</option>
@@ -965,17 +1067,16 @@ export const ClientDashboard = ({ id }) => {
                   ))
                 )}
               </NativeSelect>
-            </FormItem>
+            </div>
 
             {selectedPet ? (
-              <FormItem>
-                <SimpleCell>
-                  Размер питомца: {SIZE_LABELS[selectedPet.size || 'small']} · {getSizeModifierLabel(selectedPet.size || 'small')}
-                </SimpleCell>
-              </FormItem>
+              <div className="cd-field cd-field-info">
+                Размер питомца: {SIZE_LABELS[selectedPet.size || 'small']} · {getSizeModifierLabel(selectedPet.size || 'small')}
+              </div>
             ) : null}
 
-            <FormItem top="Когда были на груминге в последний раз">
+            <div className="cd-field">
+              <div className="cd-field-label">Когда были на груминге в последний раз</div>
               <NativeSelect value={groomingRecency} onChange={(e) => setGroomingRecency(e.target.value)}>
                 {GROOMING_RECENCY_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -983,58 +1084,109 @@ export const ClientDashboard = ({ id }) => {
                   </option>
                 ))}
               </NativeSelect>
-            </FormItem>
+            </div>
 
-            <FormItem>
-              <SimpleCell>
-                Последний груминг: {getRecencyModifierLabel(groomingRecency)}
-              </SimpleCell>
-            </FormItem>
+            <div className="cd-field cd-field-info">
+              Последний груминг: {getRecencyModifierLabel(groomingRecency)}
+            </div>
 
-            <FormItem top="Услуги">
+            <div className="cd-field">
+              <div className="cd-field-label">Услуги</div>
               {filteredServices.length === 0 ? (
                 <div className="cd-empty">Нет услуг</div>
               ) : (
-                <div className="cd-service-list">
-                  {filteredServices.map((service) => {
+                <div className="cd-service-picker">
+                  <div className="cd-service-picker-head">
+                    <div>
+                      <div className="cd-service-picker-title">Выберите услуги</div>
+                      <div className="cd-service-picker-subtitle">
+                        Можно выбрать несколько услуг. Время пересчитается автоматически.
+                      </div>
+                    </div>
+                    <Badge mode="new">{selectedServiceIds.length}</Badge>
+                  </div>
+
+                  <Input
+                    value={serviceSearch}
+                    onChange={(e) => setServiceSearch(e.target.value)}
+                    placeholder="Найти услугу по названию"
+                    className="cd-service-search"
+                  />
+
+                  <div className="cd-category-scroll">
+                    {SERVICE_CATEGORIES.filter((category) => category.id === 'all' || serviceCategoryCounts[category.id]).map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        className={`cd-category-chip${serviceCategory === category.id ? ' cd-category-chip-active' : ''}`}
+                        onClick={() => setServiceCategory(category.id)}
+                      >
+                        <span className="cd-category-icon">{category.icon}</span>
+                        <span>{category.label}</span>
+                        <span className="cd-category-count">{serviceCategoryCounts[category.id] || 0}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {visibleServices.length === 0 ? (
+                    <div className="cd-empty">По выбранному фильтру услуг нет</div>
+                  ) : null}
+
+                  <div className="cd-service-list">
+                  {visibleServices.map((service) => {
                     const isChecked = selectedServiceIds.includes(service.id);
                     const numericPrice = Number(service.price);
                     const priceLabel = Number.isFinite(numericPrice) ? `${numericPrice} ₽` : 'Цена не указана';
-                    const durationLabel = Number.isFinite(Number(service.durationMinutes))
-                      ? `${service.durationMinutes} мин`
-                      : '60 мин';
+                    const baseDuration = Number.isFinite(Number(service.durationMinutes))
+                      ? Number(service.durationMinutes)
+                      : 60;
+                    const adjustedDuration = getAdjustedServiceDuration(service, groomingRecency);
+                    const durationLabel = adjustedDuration !== baseDuration
+                      ? `${adjustedDuration} мин с учётом давности`
+                      : `${baseDuration} мин`;
+                    const category = SERVICE_CATEGORIES.find((item) => item.id === getServiceCategory(service));
 
                     return (
-                      <div key={service.id} className="cd-service-row">
-                        <Checkbox
-                          checked={isChecked}
-                          onChange={(e) =>
-                            setSelectedServiceIds((prev) =>
-                              e.target.checked ? [...prev, service.id] : prev.filter((id) => id !== service.id),
-                            )
-                          }
-                        >
-                          {service.name} · Базовая цена {priceLabel} · {durationLabel}
-                        </Checkbox>
-                        {service.description ? (
-                          <div className="cd-service-desc">
-                            {service.description}
-                          </div>
-                        ) : null}
-                      </div>
+                      <button
+                        key={service.id}
+                        type="button"
+                        className={`cd-service-row${isChecked ? ' cd-service-row-selected' : ''}`}
+                        onClick={() =>
+                          setSelectedServiceIds((prev) =>
+                            isChecked ? prev.filter((id) => id !== service.id) : [...prev, service.id],
+                          )
+                        }
+                      >
+                        <span className="cd-service-check">{isChecked ? '✓' : '+'}</span>
+                        <span className="cd-service-main">
+                          <span className="cd-service-title-row">
+                            <span className="cd-service-name">{service.name}</span>
+                            <span className="cd-service-category">{category?.label || 'Услуга'}</span>
+                          </span>
+                          {service.description ? (
+                            <span className="cd-service-desc">
+                              {service.description}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span className="cd-service-meta">
+                          <span>{priceLabel}</span>
+                          <span>{durationLabel}</span>
+                        </span>
+                      </button>
                     );
                   })}
+                  </div>
                 </div>
               )}
-            </FormItem>
+            </div>
 
-            <FormItem>
-              <div className="cd-hint cd-note-box">
-                У услуги указана базовая цена. Финальная стоимость рассчитывается с учётом размера питомца, давности последнего визита и уровня выбранного грумера.
-              </div>
-            </FormItem>
+            <div className="cd-hint cd-note-box">
+              У услуги указаны базовая цена и базовое время. Финальная стоимость рассчитывается с учётом размера питомца, давности последнего визита и уровня выбранного грумера. Время увеличивается по давности только для услуг, зависящих от состояния шерсти.
+            </div>
 
-            <FormItem top="Дата заказа">
+            <div className="cd-field">
+              <div className="cd-field-label">Дата заказа</div>
               <input
                 type="date"
                 value={selectedDate}
@@ -1042,11 +1194,12 @@ export const ClientDashboard = ({ id }) => {
                 min={new Date().toISOString().split('T')[0]}
                 className="cd-date-input"
               />
-            </FormItem>
+            </div>
 
             {availabilityMessage ? <SimpleCell>{availabilityMessage}</SimpleCell> : null}
 
-            <FormItem top="Грумер">
+            <div className="cd-field">
+              <div className="cd-field-label">Грумер</div>
               <NativeSelect
                 value={selectedEmployeeId}
                 onChange={(e) => {
@@ -1069,18 +1222,17 @@ export const ClientDashboard = ({ id }) => {
                   ))
                 )}
               </NativeSelect>
-            </FormItem>
+            </div>
 
             {selectedEmployee ? (
-              <FormItem>
-                <SimpleCell>
-                  Выбранный специалист: {selectedEmployee.displayName || selectedEmployee.fullName}
-                  {selectedEmployee.roleId ? ` · ${getGroomerModifierLabel(selectedEmployee.roleId)}` : ''}
-                </SimpleCell>
-              </FormItem>
+              <div className="cd-field cd-field-info">
+                Выбранный специалист: {selectedEmployee.displayName || selectedEmployee.fullName}
+                {selectedEmployee.roleId ? ` · ${getGroomerModifierLabel(selectedEmployee.roleId)}` : ''}
+              </div>
             ) : null}
 
-            <FormItem top="Время">
+            <div className="cd-field">
+              <div className="cd-field-label">Время</div>
               <NativeSelect
                 value={selectedTime}
                 onChange={(e) => setSelectedTime(e.target.value)}
@@ -1098,31 +1250,36 @@ export const ClientDashboard = ({ id }) => {
                   ))
                 )}
               </NativeSelect>
-            </FormItem>
+            </div>
 
-            <FormItem top="Комментарий к записи">
+            <div className="cd-field">
+              <div className="cd-field-label">Комментарий к записи</div>
               <Textarea
                 value={clientComment}
                 onChange={(e) => setClientComment(e.target.value)}
                 placeholder="Например, чувствительная кожа, аккуратно с ушами"
               />
-            </FormItem>
+            </div>
 
             {selectedServiceIds.length > 0 ? (
-              <FormItem>
-                <div className="cd-total">
-                  <div>Итоговая стоимость</div>
-                  <div className="cd-total-value">{finalServicesTotal.toFixed(2)} ₽</div>
-                  <div className="cd-hint">Длительность {totalServicesDuration} мин</div>
-                </div>
-              </FormItem>
+              <div className="cd-total">
+                <div>Итоговая стоимость</div>
+                <div className="cd-total-value">{finalServicesTotal.toFixed(2)} ₽</div>
+                <div className="cd-hint">Длительность {totalServicesDuration} мин</div>
+              </div>
             ) : null}
 
-            <FormItem>
-              <Button size="l" stretched onClick={handleCreateOrder} disabled={!canCreateOrder || creatingOrder}>
+            <div className="cd-create-order-action">
+              <Button
+                size="l"
+                stretched
+                className="cd-create-order-button"
+                onClick={handleCreateOrder}
+                disabled={!canCreateOrder || creatingOrder}
+              >
                 {creatingOrder ? 'Создание...' : 'Создать заказ'}
               </Button>
-            </FormItem>
+            </div>
           </Group>
           ) : null}
 
@@ -1170,7 +1327,12 @@ export const ClientDashboard = ({ id }) => {
                       {order.details?.masterComment ? <SimpleCell>📝 Комментарий мастера: {order.details.masterComment}</SimpleCell> : null}
                       {!isCompletedStatus(statusLabel) && !isCancelledStatus(statusLabel) ? (
                         <div className="cd-card-actions">
-                          <Button size="m" mode="destructive" onClick={() => handleDeleteOrder(order.id)}>
+                          <Button
+                            size="m"
+                            mode="destructive"
+                            className="cd-cancel-order-button"
+                            onClick={() => handleDeleteOrder(order.id)}
+                          >
                             Отменить заказ
                           </Button>
                         </div>

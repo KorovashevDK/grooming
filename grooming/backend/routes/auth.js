@@ -42,6 +42,41 @@ const ADMIN_ROLE_IDS = [ROLE_IDS.cashier, ROLE_IDS.admin, ROLE_IDS.manager];
 
 const normalizePhone = (value) => String(value || '').replace(/\D/g, '');
 
+const normalizeFullName = (value) => String(value || '')
+  .trim()
+  .replace(/\s+/g, ' ')
+  .toLocaleLowerCase('ru-RU');
+
+const getNameParts = (value) => normalizeFullName(value)
+  .split(' ')
+  .filter(Boolean);
+
+const getNameKeys = (value) => {
+  const parts = getNameParts(value);
+  if (parts.length < 2) {
+    return new Set();
+  }
+
+  const keys = new Set([`${parts[0]} ${parts[1]}`, `${parts[1]} ${parts[0]}`]);
+  if (parts.length >= 3) {
+    keys.add(`${parts[1]} ${parts[0]}`);
+    keys.add(`${parts[0]} ${parts[1]}`);
+  }
+
+  return keys;
+};
+
+const isSameFullName = (actual, expected) => (
+  (normalizeFullName(actual) !== ''
+    && normalizeFullName(expected) !== ''
+    && normalizeFullName(actual) === normalizeFullName(expected))
+  || [...getNameKeys(actual)].some((key) => getNameKeys(expected).has(key))
+);
+
+const findByFullName = (items, fullName) => (
+  (items || []).find((item) => isSameFullName(item.fullName, fullName)) || null
+);
+
 const formatPhoneForStorage = (value) => {
   const digits = normalizePhone(value);
   if (!digits) {
@@ -98,6 +133,18 @@ const getOwnerByVkId = async (vkId) => {
     `);
   return result.recordset[0] || null;
 };
+
+const ownerMatchesFullName = (owner, fullName) => (
+  !!owner && (
+    isSameFullName(owner.fullName, fullName)
+    || isSameFullName(owner.fullName, formatOwnerName(fullName))
+  )
+);
+
+const sendNameMismatch = (res) => res.json({
+  status: 'name_mismatch',
+  error: 'VK ID найден, но имя и фамилия не совпадают с записью',
+});
 
 const updateOwnerPhoneIfMissing = async (ownerId, phone) => {
   if (!ownerId || !phone) {
@@ -275,30 +322,36 @@ router.post('/discover', async (req, res) => {
       return res.status(400).json({ error: 'VK ID is required' });
     }
 
-    const roleIds = await getRoleIdsByVkId(vkId);
-    const resolved = resolveRolesByIds(roleIds);
+    const employees = await getEmployeesByVkId(vkId);
     const owner = await getOwnerByVkId(vkId);
+    const matchedEmployee = findByFullName(employees, fullName);
+    const matchedOwner = ownerMatchesFullName(owner, fullName) ? owner : null;
+
+    if ((employees.length > 0 || owner) && !matchedEmployee && !matchedOwner) {
+      return sendNameMismatch(res);
+    }
+
+    const roleIds = matchedEmployee ? await getEmployeeRoleIdsBySchedule(matchedEmployee.employeeId) : [];
+    const resolved = resolveRolesByIds(roleIds);
 
     if (resolved.size > 0) {
-      const employees = await getEmployeesByVkId(vkId);
-      const employee = employees[0] || null;
       const availableRoles = buildAvailableRoles(resolved);
       return res.json({
         status: 'employee_found',
         availableRoles,
         defaultRole: getDefaultRole(availableRoles),
-        fullName: employee?.fullName || fullName || '',
+        fullName: matchedEmployee.fullName || fullName || '',
         phoneMissingForClient: !owner || !owner.phone || String(owner.phone).trim() === '',
       });
     }
 
-    if (owner) {
+    if (matchedOwner) {
       return res.json({
         status: 'client_found',
         availableRoles: ['client'],
         defaultRole: 'client',
-        fullName: owner.fullName || fullName || '',
-        phoneMissing: !owner.phone || String(owner.phone).trim() === '',
+        fullName: matchedOwner.fullName || fullName || '',
+        phoneMissing: !matchedOwner.phone || String(matchedOwner.phone).trim() === '',
       });
     }
 
@@ -320,7 +373,9 @@ router.get('/roles', authenticateToken, async (req, res) => {
     const vkId = req.user.vkId;
 
     const roles = new Set(['client']);
-    const roleIds = await getRoleIdsByVkId(vkId);
+    const employees = await getEmployeesByVkId(vkId);
+    const matchedEmployee = findByFullName(employees, req.user.fullName);
+    const roleIds = matchedEmployee ? await getEmployeeRoleIdsBySchedule(matchedEmployee.employeeId) : [];
     const resolved = resolveRolesByIds(roleIds);
     resolved.forEach((role) => roles.add(role));
 
@@ -342,8 +397,13 @@ router.post('/switch-role', authenticateToken, async (req, res) => {
 
     const employees = await getEmployeesByVkId(vkId);
     const owner = await getOwnerByVkId(vkId);
+    const matchedEmployeeByName = findByFullName(employees, req.user.fullName);
 
     if (role === 'client') {
+      if (owner && !ownerMatchesFullName(owner, req.user.fullName)) {
+        return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
+      }
+
       const clientOwner = await ensureClientOwner({
         vkId,
         fullName: req.user.fullName || owner?.fullName || '',
@@ -362,9 +422,17 @@ router.post('/switch-role', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Employee role is not available' });
     }
 
+    if (!matchedEmployeeByName) {
+      return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
+    }
+
     const matchedEmployee = await getEmployeeByVkIdAndRole(vkId, role);
     if (!matchedEmployee) {
       return res.status(403).json({ error: 'Requested role is not available' });
+    }
+
+    if (!isSameFullName(matchedEmployee.fullName, req.user.fullName)) {
+      return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
     }
 
     const token = jwt.sign(
@@ -401,11 +469,20 @@ router.post('/', async (req, res) => {
     await poolConnect;
 
     // 1) Сначала проверяем сотрудников и роли по расписанию
-    const roleIds = await getRoleIdsByVkId(vkId);
+    const employees = await getEmployeesByVkId(vkId);
+    const owner = await getOwnerByVkId(vkId);
+    const matchedEmployeeByName = findByFullName(employees, fullName);
+    const matchedOwnerByName = ownerMatchesFullName(owner, fullName) ? owner : null;
+
+    if ((employees.length > 0 || owner) && !matchedEmployeeByName && !matchedOwnerByName) {
+      return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
+    }
+
+    const roleIds = matchedEmployeeByName ? await getEmployeeRoleIdsBySchedule(matchedEmployeeByName.employeeId) : [];
     const resolved = resolveRolesByIds(roleIds);
     if (resolved.has('admin')) {
       const employee = await getEmployeeByVkIdAndRole(vkId, 'admin');
-      if (employee) {
+      if (employee && isSameFullName(employee.fullName, fullName)) {
         if (phone) {
           await ensureClientOwner({
             vkId,
@@ -423,7 +500,7 @@ router.post('/', async (req, res) => {
     }
     if (resolved.has('groomer')) {
       const employee = await getEmployeeByVkIdAndRole(vkId, 'groomer');
-      if (employee) {
+      if (employee && isSameFullName(employee.fullName, fullName)) {
         if (phone) {
           await ensureClientOwner({
             vkId,
@@ -441,8 +518,7 @@ router.post('/', async (req, res) => {
     }
 
     // 2) Затем проверяем владельцев
-    const owner = await getOwnerByVkId(vkId);
-    if (owner) {
+    if (matchedOwnerByName) {
       await updateOwnerPhoneIfMissing(owner.ownerId, phone);
 
       const token = jwt.sign(

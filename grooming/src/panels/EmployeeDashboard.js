@@ -653,6 +653,7 @@ export const EmployeeDashboard = ({ id }) => {
                                 <Button
                                   size="s"
                                   mode="secondary"
+                                  className="ed-complete-cancel-button"
                                   stretched
                                   onClick={() => {
                                     setCompletingOrderId('');
@@ -667,6 +668,7 @@ export const EmployeeDashboard = ({ id }) => {
                             <div className="ed-action-row">
                               <Button
                                 size="s"
+                                className="ed-complete-start-button"
                                 stretched
                                 onClick={() => {
                                   setCompletingOrderId(order.orderId);
@@ -791,7 +793,12 @@ export const EmployeeDashboard = ({ id }) => {
                     </NativeSelect>
                   </FormItem>
                   <div className="ed-form-actions">
-                    <Button size="m" onClick={handleSaveSchedule} disabled={savingSchedule}>
+                    <Button
+                      size="m"
+                      className="ed-save-schedule-button"
+                      onClick={handleSaveSchedule}
+                      disabled={savingSchedule}
+                    >
                       {editingScheduleId ? 'Сохранить изменения' : 'Добавить смену'}
                     </Button>
                     {editingScheduleId ? (

@@ -52,6 +52,16 @@ const toTimeMinutes = (value) => {
 
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ₽`;
 
+const formatPercent = (value) => `${Math.round(Number(value || 0))}%`;
+
+const getRate = (part, total) => {
+  const safeTotal = Number(total || 0);
+  if (!safeTotal) {
+    return 0;
+  }
+  return (Number(part || 0) / safeTotal) * 100;
+};
+
 const formatDateTime = (value) => {
   const date = toDate(value);
   return date ? date.toLocaleString('ru-RU') : 'Не указано';
@@ -699,7 +709,7 @@ export const AdminDashboard = ({ id }) => {
                         onChange={(e) => setLatestOrderFilters((prev) => ({ ...prev, date: e.target.value }))}
                       />
                     </FormItem>
-                    <FormItem top="Владелец">
+                    <FormItem top="Владелец" className="adm-owner-filter-item">
                       <Input
                         value={latestOrderFilters.ownerQuery}
                         placeholder="Имя или фамилия"
@@ -774,6 +784,7 @@ export const AdminDashboard = ({ id }) => {
                       <div className="adm-order-meta">
                         <div>Оформление: {formatDateTime(order.orderDate)}</div>
                         <div>Запись: {formatDateTime(order.startTime)} — {formatDateTime(order.endTime)}</div>
+                        <div>Статус заказа: {statusMeta.label}</div>
                         <div>Сотрудник: {order.employeeName || 'Не назначен'}{roleLabel ? ` · ${roleLabel}` : ''}</div>
                         <div>Питомец: {order.petKind || '—'}{order.petAge ? ` · ${formatAgeLabel(order.petAge)}` : ''}{order.petSize ? ` · ${SIZE_LABELS[order.petSize] || order.petSize}` : ''}</div>
                         <div>Стоимость заказа: {formatMoney(order.orderTotal || order.serviceRevenue)}</div>
@@ -848,7 +859,8 @@ export const AdminDashboard = ({ id }) => {
                   </div>
                 </Group>
 
-                <Group className="adm-schedule-panel" header={<Header mode="secondary">Фильтр расписания</Header>}>
+                <Group className="adm-schedule-panel">
+                  <div className="ed-form-title">Фильтр расписания</div>
                   <div className="adm-form-grid">
                     <FormItem top="Сотрудник">
                       <NativeSelect value={scheduleFilterEmployeeId} onChange={(e) => setScheduleFilterEmployeeId(e.target.value)}>
@@ -895,7 +907,7 @@ export const AdminDashboard = ({ id }) => {
               </div>
 
               <div className="adm-section-title">Ближайшие смены</div>
-              <Group>
+              <Group className="adm-schedule-list-panel">
                 {scheduleSummary.upcoming.length ? scheduleSummary.upcoming.slice(0, visibleUpcomingShifts).map((entry) => (
                   <Card key={entry.scheduleId} mode="shadow" className="ed-schedule-card">
                     <div className="ed-schedule-head">
@@ -966,7 +978,7 @@ export const AdminDashboard = ({ id }) => {
               </Group>
 
               <div className="adm-section-title">Архив смен</div>
-              <Group>
+              <Group className="adm-schedule-list-panel">
                 {scheduleSummary.past.length ? scheduleSummary.past.slice(0, visiblePastShifts).map((entry) => (
                   <Card key={entry.scheduleId} mode="shadow" className="ed-schedule-card">
                     <div className="ed-schedule-head">
@@ -1010,22 +1022,61 @@ export const AdminDashboard = ({ id }) => {
 
           {activeTab === 'stats' ? (
             <div id="admin-tabpanel-stats" role="tabpanel" aria-labelledby="admin-tab-stats" className="adm-panel-gap">
-              <Group header={<Header mode="secondary">Статистика по месяцам</Header>}>
+              <Group className="adm-month-group" header={<Header mode="secondary">Статистика по месяцам</Header>}>
                 <div className="adm-month-grid">
-                  {monthlyStats.length ? monthlyStats.map((month) => (
-                    <div key={month.key} className="adm-month-card">
-                      <div className="adm-month-title">{month.label}</div>
-                      <div className="adm-month-stats">
-                        <div>Заказов: {month.totalOrders}</div>
-                        <div>Услуг: {month.totalServices}</div>
-                        <div>Выполнено: {month.completedServices}</div>
-                        <div>Отменено: {month.cancelledServices}</div>
-                        <div>Смен: {month.shifts}</div>
-                        <div>Выручка: {formatMoney(month.revenue)}</div>
-                        <div>Зарплата: {formatMoney(month.salary)}</div>
+                  {monthlyStats.length ? monthlyStats.map((month) => {
+                    const averageOrder = month.totalOrders ? Number(month.revenue || 0) / Number(month.totalOrders) : 0;
+                    const completionRate = getRate(month.completedServices, month.totalServices);
+                    const cancellationRate = getRate(month.cancelledServices, month.totalServices);
+                    const salaryShare = getRate(month.salary, month.revenue);
+                    const servicesPerOrder = month.totalOrders ? Number(month.totalServices || 0) / Number(month.totalOrders) : 0;
+
+                    return (
+                      <div key={month.key} className="adm-month-card">
+                        <div className="adm-month-head">
+                          <div>
+                            <div className="adm-month-title">{month.label}</div>
+                            <div className="adm-month-subtitle">
+                              {month.totalOrders} заказов · {month.totalServices} услуг · {month.shifts} смен
+                            </div>
+                          </div>
+                          <div className="adm-month-revenue">
+                            <span>Выручка</span>
+                            <strong>{formatMoney(month.revenue)}</strong>
+                          </div>
+                        </div>
+
+                        <div className="adm-month-highlights">
+                          <div>
+                            <span>Средний чек</span>
+                            <strong>{formatMoney(averageOrder)}</strong>
+                          </div>
+                          <div>
+                            <span>Завершённость</span>
+                            <strong>{formatPercent(completionRate)}</strong>
+                          </div>
+                          <div>
+                            <span>Отмены</span>
+                            <strong>{formatPercent(cancellationRate)}</strong>
+                          </div>
+                          <div>
+                            <span>Зарплата / выручка</span>
+                            <strong>{formatPercent(salaryShare)}</strong>
+                          </div>
+                        </div>
+
+                        <div className="adm-month-stats">
+                          <div><span>Заказов</span><strong>{month.totalOrders}</strong></div>
+                          <div><span>Услуг</span><strong>{month.totalServices}</strong></div>
+                          <div><span>Выполнено</span><strong>{month.completedServices}</strong></div>
+                          <div><span>Отменено</span><strong>{month.cancelledServices}</strong></div>
+                          <div><span>Смен</span><strong>{month.shifts}</strong></div>
+                          <div><span>Услуг на заказ</span><strong>{servicesPerOrder.toFixed(1)}</strong></div>
+                          <div><span>Зарплата</span><strong>{formatMoney(month.salary)}</strong></div>
+                        </div>
                       </div>
-                    </div>
-                  )) : <div className="ed-empty">Пока нет статистики по месяцам.</div>}
+                    );
+                  }) : <div className="ed-empty">Пока нет статистики по месяцам.</div>}
                 </div>
               </Group>
             </div>

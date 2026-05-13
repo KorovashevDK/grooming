@@ -69,6 +69,49 @@ const getRecencyCoefficient = (recency) => {
   return 1;
 };
 
+const getRecencyDurationCoefficient = (recency) => {
+  const value = String(recency || '').trim().toLowerCase();
+  if (!value || value === 'recent') return 1;
+  if (value === '1_3_months') return 1.1;
+  if (value === '3_plus_months') return 1.2;
+  if (value === 'never') return 1.3;
+  return 1;
+};
+
+const isRecencySensitiveService = (serviceName) => {
+  const name = String(serviceName || '').trim().toLowerCase();
+  if (!name) return false;
+
+  const fixedDurationPatterns = [
+    /когт/,
+    /зуб/,
+    /уш/,
+    /паразит/,
+    /парааналь/,
+    /гигиен(?!.*стриж)/,
+  ];
+
+  if (fixedDurationPatterns.some((pattern) => pattern.test(name))) {
+    return false;
+  }
+
+  return /груминг|стриж|вычес|линьк|тримминг|spa|спа|мыть|сушк/.test(name);
+};
+
+const getAdjustedServiceDuration = (row, recency) => {
+  const raw = row['Длительность_мин'];
+  const baseDuration = Number(raw);
+  const safeBaseDuration = Number.isFinite(baseDuration) && baseDuration > 0 ? baseDuration : 60;
+  const serviceName = row['Наименование'];
+
+  if (!isRecencySensitiveService(serviceName)) {
+    return safeBaseDuration;
+  }
+
+  const adjusted = safeBaseDuration * getRecencyDurationCoefficient(recency);
+  return Math.ceil(adjusted / 5) * 5;
+};
+
 const getRecencyLabel = (recency) => {
   const value = String(recency || '').trim().toLowerCase();
   if (value === '1_3_months') return '1-3 месяца назад';
@@ -252,7 +295,7 @@ router.get('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer'
 
 router.post('/availability', authenticateToken, checkRole(['client', 'admin', 'groomer']), async (req, res) => {
   try {
-    const { date, serviceIds } = req.body;
+    const { date, serviceIds, groomingRecency } = req.body;
     const normalizedServiceIds = Array.isArray(serviceIds) ? serviceIds.filter(Boolean) : [];
     if (!date || normalizedServiceIds.length === 0) {
       return res.status(400).json({ error: 'date and serviceIds are required' });
@@ -282,13 +325,10 @@ router.post('/availability', authenticateToken, checkRole(['client', 'admin', 'g
       return res.status(404).json({ error: 'Services not found' });
     }
 
-    const getServiceDuration = (row) => {
-      const raw = row['Длительность_мин'];
-      const numeric = Number(raw);
-      return Number.isFinite(numeric) && numeric > 0 ? numeric : 60;
-    };
-
-    const totalDurationMinutes = servicesResult.recordset.reduce((sum, row) => sum + getServiceDuration(row), 0);
+    const totalDurationMinutes = servicesResult.recordset.reduce(
+      (sum, row) => sum + getAdjustedServiceDuration(row, groomingRecency),
+      0,
+    );
     const stepMinutes = 30;
 
     const scheduleRequest = pool.request()
@@ -519,19 +559,13 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
       return null;
     };
 
-    const getServiceDuration = (row) => {
-      const raw = row['\u0414\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c_\u043c\u0438\u043d'];
-      const numeric = Number(raw);
-      return Number.isFinite(numeric) && numeric > 0 ? numeric : 60;
-    };
-
     const serviceBasePriceById = new Map();
     const serviceDurationById = new Map();
     let totalDurationMinutes = 0;
     for (const row of servicesResult.recordset) {
       const rowId = row['\u041a\u043e\u0434_\u0443\u0441\u043b\u0443\u0433\u0438'];
       const rowPrice = getServiceBasePrice(row);
-      const rowDuration = getServiceDuration(row);
+      const rowDuration = getAdjustedServiceDuration(row, groomingRecency);
       serviceBasePriceById.set(rowId, rowPrice);
       serviceDurationById.set(rowId, rowDuration);
       totalDurationMinutes += rowDuration;

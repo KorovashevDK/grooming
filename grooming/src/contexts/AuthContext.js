@@ -23,7 +23,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('userData');
     localStorage.removeItem('roles');
     localStorage.removeItem('activeRole');
+    sessionStorage.setItem('grooming:manualLogout', '1');
     setUser(null);
+    window.dispatchEvent(new Event('grooming:logout'));
     routeNavigator.replace('/login');
   }, [routeNavigator]);
 
@@ -76,6 +78,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (data?.token) {
+        sessionStorage.removeItem('grooming:manualLogout');
         localStorage.setItem('token', data.token);
         localStorage.setItem('userData', JSON.stringify(data));
         setUser(data);
