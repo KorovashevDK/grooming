@@ -650,6 +650,7 @@ export const AdminDashboard = ({ id }) => {
 
           <Tabs className="ed-tabs">
             <TabsItem
+              className={`ed-tab-item${activeTab === 'overview' ? ' ed-tab-item-active' : ''}`}
               id="admin-tab-overview"
               aria-controls="admin-tabpanel-overview"
               selected={activeTab === 'overview'}
@@ -658,6 +659,7 @@ export const AdminDashboard = ({ id }) => {
               Обзор
             </TabsItem>
             <TabsItem
+              className={`ed-tab-item${activeTab === 'schedule' ? ' ed-tab-item-active' : ''}`}
               id="admin-tab-schedule"
               aria-controls="admin-tabpanel-schedule"
               selected={activeTab === 'schedule'}
@@ -666,6 +668,7 @@ export const AdminDashboard = ({ id }) => {
               Расписание
             </TabsItem>
             <TabsItem
+              className={`ed-tab-item${activeTab === 'stats' ? ' ed-tab-item-active' : ''}`}
               id="admin-tab-stats"
               aria-controls="admin-tabpanel-stats"
               selected={activeTab === 'stats'}
@@ -939,8 +942,8 @@ export const AdminDashboard = ({ id }) => {
                     </div>
                     <div className="ed-card-actions">
                       <div className="ed-action-row">
-                        <Button size="s" mode="secondary" onClick={() => handleEditSchedule(entry)}>Редактировать</Button>
-                        <Button size="s" mode="destructive" onClick={() => handleDeleteSchedule(entry.scheduleId)}>Удалить</Button>
+                        <Button size="s" mode="secondary" className="ed-shift-action-button" onClick={() => handleEditSchedule(entry)}>Редактировать</Button>
+                        <Button size="s" mode="destructive" className="ed-shift-action-button" onClick={() => handleDeleteSchedule(entry.scheduleId)}>Удалить</Button>
                       </div>
                     </div>
                     <div className="adm-bookings-list">

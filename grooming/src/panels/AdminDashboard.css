@@ -948,3 +948,109 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Final mobile schedule cleanup for admin cabinet. */
+@media (max-width: 520px) {
+  .admin-dashboard .ed-tabs,
+  .admin-dashboard .ed-tabs .vkuiTabs__in,
+  .admin-dashboard .ed-tabs [class*="Tabs__in"] {
+    background: #fffdf8 !important;
+    overflow: hidden !important;
+  }
+
+  .admin-dashboard .ed-tabs .vkuiTabsItem::before,
+  .admin-dashboard .ed-tabs .vkuiTabsItem::after,
+  .admin-dashboard .ed-tabs .vkuiTabsItem__in::before,
+  .admin-dashboard .ed-tabs .vkuiTabsItem__in::after,
+  .admin-dashboard .ed-tabs .vkuiTabsItem__underline,
+  .admin-dashboard .ed-tabs [class*="TabsItem"]::before,
+  .admin-dashboard .ed-tabs [class*="TabsItem"]::after,
+  .admin-dashboard .ed-tabs [class*="TabsItem__in"]::before,
+  .admin-dashboard .ed-tabs [class*="TabsItem__in"]::after,
+  .admin-dashboard .ed-tabs [class*="TabsItem__underline"] {
+    display: none !important;
+    content: none !important;
+    width: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .admin-dashboard .adm-panel-gap,
+  .admin-dashboard .adm-grid,
+  .admin-dashboard .adm-schedule-panel,
+  .admin-dashboard .adm-schedule-list-panel {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    overflow: visible !important;
+  }
+
+  .admin-dashboard .adm-schedule-panel .vkuiGroup__separator,
+  .admin-dashboard .adm-schedule-list-panel .vkuiGroup__separator,
+  .admin-dashboard .adm-schedule-panel .vkuiSeparator,
+  .admin-dashboard .adm-schedule-list-panel .vkuiSeparator,
+  .admin-dashboard .adm-schedule-panel [class*="Group__separator"],
+  .admin-dashboard .adm-schedule-list-panel [class*="Group__separator"],
+  .admin-dashboard .adm-schedule-panel [class*="Separator"],
+  .admin-dashboard .adm-schedule-list-panel [class*="Separator"],
+  .admin-dashboard .adm-schedule-panel .vkuiGroup__inner::before,
+  .admin-dashboard .adm-schedule-panel .vkuiGroup__inner::after,
+  .admin-dashboard .adm-schedule-list-panel .vkuiGroup__inner::before,
+  .admin-dashboard .adm-schedule-list-panel .vkuiGroup__inner::after,
+  .admin-dashboard .adm-schedule-panel [class*="Group__inner"]::before,
+  .admin-dashboard .adm-schedule-panel [class*="Group__inner"]::after,
+  .admin-dashboard .adm-schedule-list-panel [class*="Group__inner"]::before,
+  .admin-dashboard .adm-schedule-list-panel [class*="Group__inner"]::after,
+  .admin-dashboard .adm-section-title::before,
+  .admin-dashboard .adm-section-title::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .admin-dashboard .adm-schedule-panel .vkuiGroup__inner,
+  .admin-dashboard .adm-schedule-list-panel .vkuiGroup__inner,
+  .admin-dashboard .adm-schedule-panel [class*="Group__inner"],
+  .admin-dashboard .adm-schedule-list-panel [class*="Group__inner"] {
+    overflow: hidden !important;
+    background:
+      radial-gradient(360px 180px at 100% 0%, rgba(217, 130, 61, 0.09), transparent 66%),
+      linear-gradient(145deg, var(--adm-paper-strong), var(--adm-paper)) !important;
+    border: 1px solid var(--adm-line) !important;
+    box-shadow: var(--adm-shadow) !important;
+  }
+
+  .admin-dashboard .adm-schedule-panel {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .admin-dashboard .ed-tabs .vkuiTabsItem--selected,
+  .admin-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+  .admin-dashboard .ed-tabs [class*="TabsItem--selected"] {
+    background: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.32) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+  }
+
+  .admin-dashboard .ed-schedule-card .ed-card-actions .vkuiButton,
+  .admin-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__host,
+  .admin-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__in {
+    background: #5b3529 !important;
+    background-color: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.28) !important;
+    box-shadow: 0 10px 20px rgba(91, 53, 41, 0.16) !important;
+  }
+
+  .admin-dashboard .ed-schedule-card .ed-card-actions .vkuiButton *,
+  .admin-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__content {
+    color: #fffaf3 !important;
+    -webkit-text-fill-color: #fffaf3 !important;
+    font-weight: 700 !important;
+  }
+}

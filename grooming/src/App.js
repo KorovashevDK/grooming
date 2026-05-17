@@ -314,6 +314,17 @@ export const App = () => {
     }
   };
 
+  const handleRoleSelect = async (role, panel) => {
+    setAuthError('');
+    const result = await switchRole(role);
+    if (result.success) {
+      routeNavigator.push(`/${panel}`);
+      return;
+    }
+
+    setAuthError(result.error || 'Не удалось переключить роль');
+  };
+
   const renderLoginPanel = () => {
     if (bridge.isWebView()) {
       return (
@@ -345,8 +356,22 @@ export const App = () => {
                 <AuthNotice title={`Найден сотрудник: ${devAuthForm.fullName || 'Пользователь'}`}>
                   Доступные роли: {(authDiscovery.availableRoles || []).map((role) => ROLE_LABELS[role] || role).join(', ')}
                 </AuthNotice>
+                {authDiscovery?.phoneMissingForClient ? (
+                  <FormItem top="Телефон для клиентского раздела">
+                    <Input
+                      value={devAuthForm.phone}
+                      onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Заполните номер телефона"
+                    />
+                  </FormItem>
+                ) : null}
               <FormItem>
-                <Button stretched size="l" onClick={handleContinueLogin}>
+                <Button
+                  stretched
+                  size="l"
+                  onClick={handleContinueLogin}
+                  disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
+                >
                   Открыть доступные разделы
                 </Button>
               </FormItem>
@@ -543,17 +568,13 @@ export const App = () => {
               subtitle="Откройте клиентский, рабочий или административный интерфейс в том же визуальном стиле салона."
             >
               <Group className="auth-group auth-role-group" header={<Header mode="secondary">Выберите раздел</Header>}>
+                {authError ? <AuthNotice title="Не удалось открыть раздел" tone="error">{authError}</AuthNotice> : null}
                 {availableRoles.includes('client') ? (
                   <RoleCard
                     role="client"
                     title="Клиент"
                     description="Записи, питомцы и профиль"
-                    onClick={async () => {
-                      const result = await switchRole('client');
-                      if (result.success) {
-                        routeNavigator.push(`/${CLIENT_PANELS.DASHBOARD}`);
-                      }
-                    }}
+                    onClick={() => handleRoleSelect('client', CLIENT_PANELS.DASHBOARD)}
                   />
                 ) : null}
                 {availableRoles.includes('groomer') ? (
@@ -561,12 +582,7 @@ export const App = () => {
                     role="groomer"
                     title="Грумер"
                     description="Заказы, смены и выполнение услуг"
-                    onClick={async () => {
-                      const result = await switchRole('groomer');
-                      if (result.success) {
-                        routeNavigator.push(`/${EMPLOYEE_PANELS.DASHBOARD}`);
-                      }
-                    }}
+                    onClick={() => handleRoleSelect('groomer', EMPLOYEE_PANELS.DASHBOARD)}
                   />
                 ) : null}
                 {availableRoles.includes('admin') ? (
@@ -574,12 +590,7 @@ export const App = () => {
                     role="admin"
                     title="Администратор"
                     description="Расписание, сотрудники и управление"
-                    onClick={async () => {
-                      const result = await switchRole('admin');
-                      if (result.success) {
-                        routeNavigator.push(`/${ADMIN_PANELS.DASHBOARD}`);
-                      }
-                    }}
+                    onClick={() => handleRoleSelect('admin', ADMIN_PANELS.DASHBOARD)}
                   />
                 ) : null}
               </Group>

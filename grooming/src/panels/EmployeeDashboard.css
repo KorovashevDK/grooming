@@ -1262,3 +1262,132 @@
     text-align: center !important;
   }
 }
+
+/* Final mobile cleanup: remove VKUI tab underlines/separators and make schedule actions visible. */
+@media (max-width: 520px) {
+  .employee-dashboard .ed-tabs,
+  .employee-dashboard .ed-tabs .vkuiTabs__in,
+  .employee-dashboard .ed-tabs [class*="Tabs__in"] {
+    background: #fffdf8 !important;
+    overflow: hidden !important;
+  }
+
+  .employee-dashboard .ed-tabs .vkuiTabsItem::before,
+  .employee-dashboard .ed-tabs .vkuiTabsItem::after,
+  .employee-dashboard .ed-tabs .vkuiTabsItem__in::before,
+  .employee-dashboard .ed-tabs .vkuiTabsItem__in::after,
+  .employee-dashboard .ed-tabs .vkuiTabsItem__underline,
+  .employee-dashboard .ed-tabs [class*="TabsItem"]::before,
+  .employee-dashboard .ed-tabs [class*="TabsItem"]::after,
+  .employee-dashboard .ed-tabs [class*="TabsItem__in"]::before,
+  .employee-dashboard .ed-tabs [class*="TabsItem__in"]::after,
+  .employee-dashboard .ed-tabs [class*="TabsItem__underline"] {
+    display: none !important;
+    content: none !important;
+    width: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiGroup__separator,
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiSeparator,
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Group__separator"],
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Separator"],
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiGroup__inner::before,
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiGroup__inner::after,
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Group__inner"]::before,
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Group__inner"]::after,
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiTabs::before,
+  .employee-dashboard .ed-group:has(.ed-tabs) .vkuiTabs::after,
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Tabs"]::before,
+  .employee-dashboard .ed-group:has(.ed-tabs) [class*="Tabs"]::after {
+    display: none !important;
+    content: none !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .employee-dashboard:not(.admin-dashboard) .ed-group:has(.ed-tabs) .vkuiGroup__inner,
+  .employee-dashboard:not(.admin-dashboard) .ed-group:has(.ed-tabs) [class*="Group__inner"] {
+    overflow: hidden !important;
+    background: #fffdf8 !important;
+    border: 1px solid rgba(91, 53, 41, 0.12) !important;
+    box-shadow: 0 12px 24px rgba(91, 53, 41, 0.1) !important;
+  }
+
+  .employee-dashboard .ed-tabs .vkuiTabsItem--selected,
+  .employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+  .employee-dashboard .ed-tabs [class*="TabsItem--selected"] {
+    background: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.32) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+  }
+
+  .employee-dashboard .ed-schedule-card .ed-card-actions .vkuiButton,
+  .employee-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__host,
+  .employee-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__in {
+    background: #5b3529 !important;
+    background-color: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.28) !important;
+    box-shadow: 0 10px 20px rgba(91, 53, 41, 0.16) !important;
+  }
+
+  .employee-dashboard .ed-schedule-card .ed-card-actions .vkuiButton *,
+  .employee-dashboard .ed-schedule-card .ed-card-actions .vkuiButton__content {
+    color: #fffaf3 !important;
+    -webkit-text-fill-color: #fffaf3 !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Final hard override for groomer/admin tabs. */
+.employee-dashboard .ed-tabs .vkuiTabsItem__underline,
+.employee-dashboard .ed-tabs [class*="TabsItem__underline"] {
+  display: none !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+}
+
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected *,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"] * {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 800 !important;
+}
+
+.employee-dashboard .ed-header-actions .vkuiButton__content,
+.employee-dashboard .ed-header-actions .vkuiButton__content *,
+.employee-dashboard .ed-toolbar .vkuiButton__content,
+.employee-dashboard .ed-toolbar .vkuiButton__content * {
+  font-weight: 800 !important;
+}
+
+.employee-dashboard .ed-shift-action-button,
+.employee-dashboard .ed-shift-action-button .vkuiButton__host,
+.employee-dashboard .ed-shift-action-button .vkuiButton__in,
+.admin-dashboard .ed-shift-action-button,
+.admin-dashboard .ed-shift-action-button .vkuiButton__host,
+.admin-dashboard .ed-shift-action-button .vkuiButton__in {
+  background: #5b3529 !important;
+  background-color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: 0 10px 20px rgba(91, 53, 41, 0.16) !important;
+}
+
+.employee-dashboard .ed-shift-action-button *,
+.employee-dashboard .ed-shift-action-button .vkuiButton__content,
+.admin-dashboard .ed-shift-action-button *,
+.admin-dashboard .ed-shift-action-button .vkuiButton__content {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 800 !important;
+}

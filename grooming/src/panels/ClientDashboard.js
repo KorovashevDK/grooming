@@ -17,7 +17,7 @@
   TabsItem,
 } from '@vkontakte/vkui';
 import { useAuth } from '../contexts/AuthContext';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import PropTypes from 'prop-types';
 import { clientApi, employeesApi, petsApi, servicesApi } from '../api/endpoints';
@@ -191,6 +191,105 @@ const PET_SIZE_HELP = {
   cat: 'Кошки: маленький — до 3 кг, средний — 3–5 кг, большой — от 5 кг.',
 };
 
+const AVAILABILITY_LOOKAHEAD_DAYS = 14;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const toValidDate = (value) => {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const formatDateInput = (date) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const addDaysToDateInput = (dateValue, days) => {
+  const date = toValidDate(`${dateValue}T00:00:00`);
+  if (!date) return '';
+  date.setDate(date.getDate() + days);
+  return formatDateInput(date);
+};
+
+const getAvailabilityDateRange = (dateValue) => {
+  if (!toValidDate(`${dateValue}T00:00:00`)) return [];
+  return Array.from({ length: AVAILABILITY_LOOKAHEAD_DAYS }, (_, index) => addDaysToDateInput(dateValue, index));
+};
+
+const formatDisplayDate = (value) => {
+  const date = toValidDate(value);
+  if (!date) return 'Дата не указана';
+  return date.toLocaleDateString('ru-RU', { day: '2-digit', month: 'long' });
+};
+
+const formatFullDisplayDate = (value) => {
+  const date = toValidDate(value);
+  if (!date) return 'Дата не указана';
+  return date.toLocaleDateString('ru-RU');
+};
+
+const getRelativeDayLabel = (dateValue) => {
+  const date = toValidDate(`${dateValue}T00:00:00`);
+  if (!date) return '';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((date.getTime() - today.getTime()) / DAY_MS);
+  if (diffDays === 0) return 'сегодня';
+  if (diffDays === 1) return 'завтра';
+  if (diffDays > 1 && diffDays < 7) return `через ${diffDays} дн.`;
+  return date.toLocaleDateString('ru-RU', { weekday: 'short' });
+};
+
+const getWordForm = (value, forms) => {
+  const abs = Math.abs(value) % 100;
+  const last = abs % 10;
+  if (abs > 10 && abs < 20) return forms[2];
+  if (last > 1 && last < 5) return forms[1];
+  if (last === 1) return forms[0];
+  return forms[2];
+};
+
+const formatElapsedFromDate = (dateValue) => {
+  const date = toValidDate(dateValue);
+  if (!date) return 'дата не определена';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const visitDate = new Date(date);
+  visitDate.setHours(0, 0, 0, 0);
+  const days = Math.max(0, Math.floor((today.getTime() - visitDate.getTime()) / DAY_MS));
+
+  if (days === 0) return 'сегодня';
+  if (days < 7) return `${days} ${getWordForm(days, ['день', 'дня', 'дней'])} назад`;
+  if (days < 31) {
+    const weeks = Math.floor(days / 7);
+    return `${weeks} ${getWordForm(weeks, ['неделю', 'недели', 'недель'])} назад`;
+  }
+  if (days < 365) {
+    const months = Math.floor(days / 30);
+    return `${months} ${getWordForm(months, ['месяц', 'месяца', 'месяцев'])} назад`;
+  }
+
+  const years = Math.floor(days / 365);
+  return `${years} ${getWordForm(years, ['год', 'года', 'лет'])} назад`;
+};
+
+const getRecencyByDate = (dateValue) => {
+  const date = toValidDate(dateValue);
+  if (!date) return 'never';
+  const daysDiff = Math.floor((Date.now() - date.getTime()) / DAY_MS);
+  if (daysDiff <= 30) return 'recent';
+  if (daysDiff <= 90) return '1_3_months';
+  return '3_plus_months';
+};
+
+const getEmployeeLabel = (employee) => {
+  const roleName = employee?.roleName || GROOMER_LEVEL_LABELS[employee?.roleId] || '';
+  return employee?.displayName || `${employee?.fullName || 'Грумер'}${roleName ? ` · ${roleName}` : ''}`;
+};
+
 export const ClientDashboard = ({ id }) => {
   const { logout } = useAuth();
   const routeNavigator = useRouteNavigator();
@@ -198,7 +297,7 @@ export const ClientDashboard = ({ id }) => {
   const [profile, setProfile] = useState(null);
   const [pets, setPets] = useState([]);
   const [services, setServices] = useState([]);
-  const [employees, setEmployees] = useState([]);
+  const [, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creatingOrder, setCreatingOrder] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -214,8 +313,11 @@ export const ClientDashboard = ({ id }) => {
   const [serviceCategory, setServiceCategory] = useState('all');
   const [serviceSearch, setServiceSearch] = useState('');
   const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [availabilityDays, setAvailabilityDays] = useState([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [groomingRecencySelectValue, setGroomingRecencySelectValue] = useState('period:recent');
+  const preferredSlotRef = useRef({ employeeId: '', time: '' });
 
   const [newPetName, setNewPetName] = useState('');
   const [newPetKind, setNewPetKind] = useState('Собака');
@@ -299,6 +401,60 @@ export const ClientDashboard = ({ id }) => {
   const canCreateOrder = useMemo(
     () => Boolean(selectedPetId && selectedServiceIds.length > 0 && selectedEmployeeId && selectedDate && selectedTime),
     [selectedPetId, selectedServiceIds, selectedEmployeeId, selectedDate, selectedTime],
+  );
+
+  const completedPetVisitHistory = useMemo(() => {
+    if (!selectedPetId || orders.length === 0) {
+      return [];
+    }
+
+    const visits = new Map();
+
+    orders.forEach((order) => {
+      const orderId = order['Код_заказа'];
+      const petId = order['Код_груминг_клиента'];
+      const visitDate = order.serviceStart;
+      if (!orderId || petId !== selectedPetId || !visitDate || !isCompletedStatus(order.serviceStatus)) {
+        return;
+      }
+
+      if (!visits.has(orderId)) {
+        visits.set(orderId, {
+          id: orderId,
+          date: visitDate,
+          employeeName: order.employeeName || '',
+          services: [],
+        });
+      }
+
+      const entry = visits.get(orderId);
+      if (order.serviceName && !entry.services.includes(order.serviceName)) {
+        entry.services.push(order.serviceName);
+      }
+      if (!entry.employeeName && order.employeeName) {
+        entry.employeeName = order.employeeName;
+      }
+    });
+
+    return Array.from(visits.values())
+      .map((visit) => ({
+        ...visit,
+        dateLabel: formatFullDisplayDate(visit.date),
+        elapsedLabel: formatElapsedFromDate(visit.date),
+        recency: getRecencyByDate(visit.date),
+        servicesLabel: visit.services.length > 0 ? visit.services.join(', ') : 'Груминг',
+      }))
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [orders, selectedPetId]);
+
+  const latestCompletedVisit = completedPetVisitHistory[0] || null;
+  const selectedAvailabilityDay = useMemo(
+    () => availabilityDays.find((day) => day.date === selectedDate) || null,
+    [availabilityDays, selectedDate],
+  );
+  const firstAvailableDay = useMemo(
+    () => availabilityDays.find((day) => day.totalSlots > 0) || null,
+    [availabilityDays],
   );
 
   const loadClientData = async () => {
@@ -413,6 +569,7 @@ export const ClientDashboard = ({ id }) => {
   const refreshAvailability = useCallback(async (dateValue, serviceIdsValue) => {
     if (!dateValue || serviceIdsValue.length === 0) {
       setAvailableEmployees([]);
+      setAvailabilityDays([]);
       setSelectedEmployeeId('');
       setSelectedTime('');
       return;
@@ -422,25 +579,72 @@ export const ClientDashboard = ({ id }) => {
     setAvailabilityMessage('');
 
     try {
-      const availability = await clientApi.getAvailability({
-        date: dateValue,
-        serviceIds: serviceIdsValue,
-        groomingRecency,
-      });
+      const dates = getAvailabilityDateRange(dateValue);
+      const days = await Promise.all(dates.map(async (dayDate) => {
+        try {
+          const availability = await clientApi.getAvailability({
+            date: dayDate,
+            serviceIds: serviceIdsValue,
+            groomingRecency,
+          });
+          const employeesForDay = availability.employees || [];
+          const totalSlots = employeesForDay.reduce((sum, employee) => sum + (employee.slots?.length || 0), 0);
 
-      setAvailableEmployees(availability.employees || []);
+          return {
+            date: dayDate,
+            durationMinutes: availability.durationMinutes || totalServicesDuration,
+            employees: employeesForDay,
+            totalSlots,
+            failed: false,
+          };
+        } catch (error) {
+          console.error('Error fetching availability day:', dayDate, error);
+          return {
+            date: dayDate,
+            durationMinutes: totalServicesDuration,
+            employees: [],
+            totalSlots: 0,
+            failed: true,
+          };
+        }
+      }));
 
-      if ((availability.employees || []).length === 0) {
-        setAvailabilityMessage('Нет доступных грумеров на выбранную дату');
-      }
+      setAvailabilityDays(days);
 
-      const firstEmployee = (availability.employees || [])[0];
-      if (firstEmployee) {
-        setSelectedEmployeeId(firstEmployee.id);
-        setSelectedTime(firstEmployee.slots?.[0] || '');
-      } else {
+      const requestedDay = days.find((day) => day.date === dateValue);
+      const dayToUse = requestedDay?.totalSlots > 0
+        ? requestedDay
+        : days.find((day) => day.totalSlots > 0);
+
+      if (!dayToUse) {
+        setAvailableEmployees([]);
         setSelectedEmployeeId('');
         setSelectedTime('');
+        setAvailabilityMessage(`Свободных слотов на ближайшие ${AVAILABILITY_LOOKAHEAD_DAYS} дней не найдено`);
+        return;
+      }
+
+      setAvailableEmployees(dayToUse.employees || []);
+
+      if (dayToUse.date !== dateValue) {
+        setAvailabilityMessage(`На ${formatDisplayDate(dateValue)} свободных слотов нет. Ближайшие варианты найдены на ${formatDisplayDate(dayToUse.date)}.`);
+        setSelectedDate(dayToUse.date);
+      } else {
+        setAvailabilityMessage('');
+      }
+
+      const preferred = preferredSlotRef.current || {};
+      const preferredEmployee = (dayToUse.employees || []).find(
+        (employee) => employee.id === preferred.employeeId && (employee.slots || []).includes(preferred.time),
+      );
+      const firstEmployeeWithSlot = preferredEmployee
+        || (dayToUse.employees || []).find((employee) => (employee.slots || []).length > 0);
+
+      if (firstEmployeeWithSlot) {
+        const nextTime = preferredEmployee ? preferred.time : firstEmployeeWithSlot.slots[0];
+        preferredSlotRef.current = { employeeId: firstEmployeeWithSlot.id, time: nextTime };
+        setSelectedEmployeeId(firstEmployeeWithSlot.id);
+        setSelectedTime(nextTime || '');
       }
     } catch (error) {
       console.error('Error fetching availability:', error);
@@ -448,7 +652,7 @@ export const ClientDashboard = ({ id }) => {
     } finally {
       setAvailabilityLoading(false);
     }
-  }, [groomingRecency]);
+  }, [groomingRecency, totalServicesDuration]);
 
   useEffect(() => {
     refreshAvailability(selectedDate, selectedServiceIds);
@@ -475,30 +679,59 @@ export const ClientDashboard = ({ id }) => {
   }, [serviceCategory, serviceCategoryCounts]);
 
   useEffect(() => {
-    if (!selectedPetId || orders.length === 0) {
+    if (!selectedPetId) {
       return;
     }
 
-    const petOrders = orders
-      .filter((order) => order['Код_груминг_клиента'] === selectedPetId && order.serviceStart)
-      .sort((a, b) => new Date(b.serviceStart).getTime() - new Date(a.serviceStart).getTime());
-
-    if (petOrders.length === 0) {
+    if (!latestCompletedVisit) {
       setGroomingRecency('never');
+      setGroomingRecencySelectValue('period:never');
       return;
     }
 
-    const lastVisit = new Date(petOrders[0].serviceStart);
-    const daysDiff = Math.floor((Date.now() - lastVisit.getTime()) / (1000 * 60 * 60 * 24));
+    setGroomingRecency(latestCompletedVisit.recency);
+    setGroomingRecencySelectValue(`history:${latestCompletedVisit.id}`);
+  }, [selectedPetId, latestCompletedVisit]);
 
-    if (daysDiff <= 30) {
-      setGroomingRecency('recent');
-    } else if (daysDiff <= 90) {
-      setGroomingRecency('1_3_months');
-    } else {
-      setGroomingRecency('3_plus_months');
+  const handleRecencyChange = (value) => {
+    setGroomingRecencySelectValue(value);
+
+    if (value.startsWith('history:')) {
+      const visitId = value.replace('history:', '');
+      const visit = completedPetVisitHistory.find((item) => item.id === visitId);
+      setGroomingRecency(visit?.recency || 'recent');
+      return;
     }
-  }, [selectedPetId, orders]);
+
+    setGroomingRecency(value.replace('period:', '') || 'recent');
+  };
+
+  const handleDateChange = (value) => {
+    preferredSlotRef.current = { employeeId: '', time: '' };
+    setSelectedDate(value);
+  };
+
+  const handleAvailabilitySlotSelect = (day, employee, slot) => {
+    preferredSlotRef.current = { employeeId: employee.id, time: slot };
+    setSelectedDate(day.date);
+    setAvailableEmployees(day.employees || []);
+    setSelectedEmployeeId(employee.id);
+    setSelectedTime(slot);
+    setAvailabilityMessage('');
+  };
+
+  const handleEmployeeChange = (value) => {
+    const employee = availableEmployees.find((item) => item.id === value);
+    const nextTime = employee?.slots?.[0] || '';
+    preferredSlotRef.current = { employeeId: value, time: nextTime };
+    setSelectedEmployeeId(value);
+    setSelectedTime(nextTime);
+  };
+
+  const handleTimeChange = (value) => {
+    preferredSlotRef.current = { employeeId: selectedEmployeeId, time: value };
+    setSelectedTime(value);
+  };
 
   const handleCreateOrder = async () => {
     if (!canCreateOrder || creatingOrder) return;
@@ -527,7 +760,10 @@ export const ClientDashboard = ({ id }) => {
       setSelectedDate('');
       setSelectedTime('');
       setGroomingRecency('recent');
+      setGroomingRecencySelectValue('period:recent');
       setClientComment('');
+      setAvailabilityDays([]);
+      preferredSlotRef.current = { employeeId: '', time: '' };
       setSuccessMessage('Запись успешно оформлена');
     } catch (error) {
       console.error('Error creating order:', error);
@@ -665,7 +901,6 @@ export const ClientDashboard = ({ id }) => {
           date: order['Дата_заказа'],
           startTime: order.serviceStart,
           endTime: order.serviceEnd,
-          duration: order.serviceDuration,
           employeeName: order.employeeName,
           petName: order.petName,
           petKind: order.petKind,
@@ -729,12 +964,15 @@ export const ClientDashboard = ({ id }) => {
 
   useEffect(() => {
     if (selectedTime && slotsForSelectedEmployee.length > 0 && !slotsForSelectedEmployee.includes(selectedTime)) {
-      setSelectedTime(slotsForSelectedEmployee[0] || '');
+      const nextTime = slotsForSelectedEmployee[0] || '';
+      preferredSlotRef.current = { employeeId: selectedEmployeeId, time: nextTime };
+      setSelectedTime(nextTime);
     }
     if (slotsForSelectedEmployee.length === 0) {
+      preferredSlotRef.current = { employeeId: selectedEmployeeId, time: '' };
       setSelectedTime('');
     }
-  }, [selectedTime, slotsForSelectedEmployee]);
+  }, [selectedEmployeeId, selectedTime, slotsForSelectedEmployee]);
 
   return (
     <Panel id={id} className="client-dashboard">
@@ -747,7 +985,8 @@ export const ClientDashboard = ({ id }) => {
               className="cd-header-role-button"
               onClick={() => routeNavigator.push('/role-menu')}
             >
-              Выбор роли
+              <span className="cd-header-text-full">Выбор роли</span>
+              <span className="cd-header-text-mobile">Роль</span>
             </Button>
             <Button
               mode="tertiary"
@@ -755,12 +994,14 @@ export const ClientDashboard = ({ id }) => {
               className="cd-header-exit-button"
               onClick={logout}
             >
-              Выйти
+              <span className="cd-header-text-full">Выйти</span>
+              <span className="cd-header-text-mobile">Выход</span>
             </Button>
           </div>
         )}
       >
-        Пёс Пижон · Личный кабинет
+        <span className="cd-panel-title-full">Пёс Пижон · Личный кабинет</span>
+        <span className="cd-panel-title-mobile">Пёс Пижон · Личный кабинет</span>
       </PanelHeader>
 
       {loading ? (
@@ -769,13 +1010,50 @@ export const ClientDashboard = ({ id }) => {
         </div>
       ) : (
         <div className="cd-page">
-          <div className="cd-toolbar">
-            <Button mode="secondary" size="m" onClick={() => routeNavigator.push('/role-menu')}>
-              Выбор роли
-            </Button>
-            <Button mode="tertiary" size="m" onClick={logout}>
-              Выйти
-            </Button>
+          <div
+            className="cd-client-actions-shell"
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              width: 'min(1120px, calc(100vw - 32px))',
+              maxWidth: '1120px',
+              margin: '42px auto 18px',
+              padding: 0,
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              className="cd-client-actions"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '10px',
+                width: '100%',
+                maxWidth: '100%',
+                margin: 0,
+                padding: 0,
+                boxSizing: 'border-box',
+              }}
+            >
+              <Button
+                mode="secondary"
+                size="m"
+                className="cd-client-action-button cd-client-role-button"
+                style={{ width: '100%' }}
+                onClick={() => routeNavigator.push('/role-menu')}
+              >
+                Выбор роли
+              </Button>
+              <Button
+                mode="tertiary"
+                size="m"
+                className="cd-client-action-button cd-client-exit-button"
+                style={{ width: '100%' }}
+                onClick={logout}
+              >
+                Выйти
+              </Button>
+            </div>
           </div>
 
           <section className="cd-hero">
@@ -820,13 +1098,25 @@ export const ClientDashboard = ({ id }) => {
 
           <Group className="cd-group" header={<Header mode="secondary">Управление 🧭</Header>}>
             <Tabs className="cd-tabs">
-              <TabsItem selected={activeTab === 'orders'} onClick={() => setActiveTab('orders')}>
+              <TabsItem
+                className={`cd-tab-item${activeTab === 'orders' ? ' cd-tab-item-active' : ''}`}
+                selected={activeTab === 'orders'}
+                onClick={() => setActiveTab('orders')}
+              >
                 Запись
               </TabsItem>
-              <TabsItem selected={activeTab === 'pets'} onClick={() => setActiveTab('pets')}>
+              <TabsItem
+                className={`cd-tab-item${activeTab === 'pets' ? ' cd-tab-item-active' : ''}`}
+                selected={activeTab === 'pets'}
+                onClick={() => setActiveTab('pets')}
+              >
                 Питомцы
               </TabsItem>
-              <TabsItem selected={activeTab === 'history'} onClick={() => setActiveTab('history')}>
+              <TabsItem
+                className={`cd-tab-item${activeTab === 'history' ? ' cd-tab-item-active' : ''}`}
+                selected={activeTab === 'history'}
+                onClick={() => setActiveTab('history')}
+              >
                 Мои заказы
               </TabsItem>
             </Tabs>
@@ -1077,17 +1367,32 @@ export const ClientDashboard = ({ id }) => {
 
             <div className="cd-field">
               <div className="cd-field-label">Когда были на груминге в последний раз</div>
-              <NativeSelect value={groomingRecency} onChange={(e) => setGroomingRecency(e.target.value)}>
+              <NativeSelect value={groomingRecencySelectValue} onChange={(e) => handleRecencyChange(e.target.value)}>
                 {GROOMING_RECENCY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <option key={option.value} value={`period:${option.value}`}>
                     {option.label}
+                    {latestCompletedVisit?.recency === option.value
+                      ? ` (последняя: ${latestCompletedVisit.dateLabel}, ${latestCompletedVisit.elapsedLabel})`
+                      : ''}
                   </option>
                 ))}
+                {completedPetVisitHistory.length > 0 ? (
+                  <optgroup label="Выполненные записи этого питомца">
+                    {completedPetVisitHistory.map((visit) => (
+                      <option key={visit.id} value={`history:${visit.id}`}>
+                        {visit.dateLabel} · {visit.servicesLabel} ({visit.elapsedLabel})
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
               </NativeSelect>
             </div>
 
             <div className="cd-field cd-field-info">
               Последний груминг: {getRecencyModifierLabel(groomingRecency)}
+              {latestCompletedVisit
+                ? ` · найдено по истории: ${latestCompletedVisit.dateLabel}, ${latestCompletedVisit.elapsedLabel}`
+                : ' · выполненных записей для питомца пока нет'}
             </div>
 
             <div className="cd-field">
@@ -1190,7 +1495,7 @@ export const ClientDashboard = ({ id }) => {
               <input
                 type="date"
                 value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                onChange={(e) => handleDateChange(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
                 className="cd-date-input"
               />
@@ -1198,16 +1503,109 @@ export const ClientDashboard = ({ id }) => {
 
             {availabilityMessage ? <SimpleCell>{availabilityMessage}</SimpleCell> : null}
 
+            {selectedDate && selectedServiceIds.length > 0 ? (
+              <div className="cd-field cd-availability-field">
+                <div className="cd-availability-head">
+                  <div>
+                    <div className="cd-field-label">Ближайшие доступные записи</div>
+                    <div className="cd-availability-subtitle">
+                      {availabilityLoading
+                        ? 'Проверяем расписание на ближайшие дни...'
+                        : firstAvailableDay
+                          ? `Нашли ${firstAvailableDay.totalSlots} слотов на ближайшую подходящую дату. Длительность услуги: ${selectedAvailabilityDay?.durationMinutes || totalServicesDuration} мин.`
+                          : `Свободные окна появятся здесь после проверки ${AVAILABILITY_LOOKAHEAD_DAYS} дней.`}
+                    </div>
+                  </div>
+                  {selectedDate ? (
+                    <Badge mode={firstAvailableDay ? 'new' : 'default'}>
+                      {firstAvailableDay ? `${formatDisplayDate(firstAvailableDay.date)}` : 'нет слотов'}
+                    </Badge>
+                  ) : null}
+                </div>
+
+                {availabilityDays.length > 0 ? (
+                  <div className="cd-availability-days">
+                    {availabilityDays.map((day) => (
+                      <button
+                        key={day.date}
+                        type="button"
+                        className={`cd-availability-day${day.date === selectedDate ? ' cd-availability-day-active' : ''}${day.totalSlots === 0 ? ' cd-availability-day-empty' : ''}`}
+                        onClick={() => {
+                          if (day.totalSlots === 0) return;
+                          const firstEmployee = day.employees.find((employee) => (employee.slots || []).length > 0);
+                          const firstSlot = firstEmployee?.slots?.[0];
+                          if (firstEmployee && firstSlot) {
+                            handleAvailabilitySlotSelect(day, firstEmployee, firstSlot);
+                          }
+                        }}
+                        disabled={day.totalSlots === 0}
+                      >
+                        <span>{formatDisplayDate(day.date)}</span>
+                        <small>{getRelativeDayLabel(day.date)}</small>
+                        <strong>{day.totalSlots > 0 ? `${day.totalSlots} сл.` : 'нет'}</strong>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
+                {availabilityLoading ? (
+                  <div className="cd-availability-empty">Ищем свободные окна у всех грумеров</div>
+                ) : availabilityDays.some((day) => day.totalSlots > 0) ? (
+                  <div className="cd-availability-list">
+                    {availabilityDays
+                      .filter((day) => day.totalSlots > 0)
+                      .map((day) => (
+                        <div key={day.date} className="cd-availability-date-card">
+                          <div className="cd-availability-date-title">
+                            <span>{formatDisplayDate(day.date)}</span>
+                            <small>{getRelativeDayLabel(day.date)}</small>
+                          </div>
+                          <div className="cd-availability-employees">
+                            {day.employees
+                              .filter((employee) => (employee.slots || []).length > 0)
+                              .map((employee) => (
+                                <div key={`${day.date}-${employee.id}`} className="cd-availability-employee">
+                                  <div className="cd-availability-employee-name">
+                                    {getEmployeeLabel(employee)}
+                                    {employee.roleId ? (
+                                      <span>{getGroomerModifierLabel(employee.roleId)}</span>
+                                    ) : null}
+                                  </div>
+                                  <div className="cd-availability-slots">
+                                    {employee.slots.map((slot) => {
+                                      const isSelected = day.date === selectedDate
+                                        && employee.id === selectedEmployeeId
+                                        && slot === selectedTime;
+
+                                      return (
+                                        <button
+                                          key={`${day.date}-${employee.id}-${slot}`}
+                                          type="button"
+                                          className={`cd-slot-button${isSelected ? ' cd-slot-button-active' : ''}`}
+                                          onClick={() => handleAvailabilitySlotSelect(day, employee, slot)}
+                                        >
+                                          {slot}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="cd-availability-empty">Свободных окон на ближайшие дни нет</div>
+                )}
+              </div>
+            ) : null}
+
             <div className="cd-field">
               <div className="cd-field-label">Грумер</div>
               <NativeSelect
                 value={selectedEmployeeId}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSelectedEmployeeId(value);
-                  const employee = availableEmployees.find((item) => item.id === value);
-                  setSelectedTime(employee?.slots?.[0] || '');
-                }}
+                onChange={(e) => handleEmployeeChange(e.target.value)}
                 disabled={availabilityLoading || availableEmployees.length === 0}
               >
                 {availabilityLoading ? (
@@ -1217,7 +1615,7 @@ export const ClientDashboard = ({ id }) => {
                 ) : (
                   availableEmployees.map((employee) => (
                     <option key={employee.id} value={employee.id}>
-                      {employee.displayName || `${employee.fullName}${employee.roleName ? ` · ${employee.roleName}` : ''}`}
+                      {getEmployeeLabel(employee)}
                     </option>
                   ))
                 )}
@@ -1226,7 +1624,7 @@ export const ClientDashboard = ({ id }) => {
 
             {selectedEmployee ? (
               <div className="cd-field cd-field-info">
-                Выбранный специалист: {selectedEmployee.displayName || selectedEmployee.fullName}
+                Выбранный специалист: {getEmployeeLabel(selectedEmployee)}
                 {selectedEmployee.roleId ? ` · ${getGroomerModifierLabel(selectedEmployee.roleId)}` : ''}
               </div>
             ) : null}
@@ -1235,7 +1633,7 @@ export const ClientDashboard = ({ id }) => {
               <div className="cd-field-label">Время</div>
               <NativeSelect
                 value={selectedTime}
-                onChange={(e) => setSelectedTime(e.target.value)}
+                onChange={(e) => handleTimeChange(e.target.value)}
                 disabled={availabilityLoading || slotsForSelectedEmployee.length === 0}
               >
                 {availabilityLoading ? (

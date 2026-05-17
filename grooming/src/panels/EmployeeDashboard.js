@@ -566,13 +566,25 @@ export const EmployeeDashboard = ({ id }) => {
 
           <Group className="ed-group" header={<Header mode="secondary">Управление</Header>}>
             <Tabs className="ed-tabs">
-              <TabsItem selected={activeTab === 'orders'} onClick={() => setActiveTab('orders')}>
+              <TabsItem
+                className={`ed-tab-item${activeTab === 'orders' ? ' ed-tab-item-active' : ''}`}
+                selected={activeTab === 'orders'}
+                onClick={() => setActiveTab('orders')}
+              >
                 Записи
               </TabsItem>
-              <TabsItem selected={activeTab === 'schedule'} onClick={() => setActiveTab('schedule')}>
+              <TabsItem
+                className={`ed-tab-item${activeTab === 'schedule' ? ' ed-tab-item-active' : ''}`}
+                selected={activeTab === 'schedule'}
+                onClick={() => setActiveTab('schedule')}
+              >
                 Расписание
               </TabsItem>
-              <TabsItem selected={activeTab === 'stats'} onClick={() => setActiveTab('stats')}>
+              <TabsItem
+                className={`ed-tab-item${activeTab === 'stats' ? ' ed-tab-item-active' : ''}`}
+                selected={activeTab === 'stats'}
+                onClick={() => setActiveTab('stats')}
+              >
                 Статистика
               </TabsItem>
             </Tabs>
@@ -877,11 +889,11 @@ export const EmployeeDashboard = ({ id }) => {
                       <div className="ed-card-actions">
                         <div className="ed-action-row">
                           {entry.isGroomerShift ? (
-                            <Button size="s" mode="secondary" onClick={() => handleEditSchedule(entry)}>
+                            <Button size="s" mode="secondary" className="ed-shift-action-button" onClick={() => handleEditSchedule(entry)}>
                               Редактировать
                             </Button>
                           ) : null}
-                          <Button size="s" mode="destructive" onClick={() => handleDeleteSchedule(entry.scheduleId)}>
+                          <Button size="s" mode="destructive" className="ed-shift-action-button" onClick={() => handleDeleteSchedule(entry.scheduleId)}>
                             Удалить
                           </Button>
                         </div>
@@ -968,11 +980,11 @@ export const EmployeeDashboard = ({ id }) => {
                       <div className="ed-card-actions">
                         <div className="ed-action-row">
                           {entry.isGroomerShift ? (
-                            <Button size="s" mode="secondary" onClick={() => handleEditSchedule(entry)}>
+                            <Button size="s" mode="secondary" className="ed-shift-action-button" onClick={() => handleEditSchedule(entry)}>
                               Редактировать
                             </Button>
                           ) : null}
-                          <Button size="s" mode="destructive" onClick={() => handleDeleteSchedule(entry.scheduleId)}>
+                          <Button size="s" mode="destructive" className="ed-shift-action-button" onClick={() => handleDeleteSchedule(entry.scheduleId)}>
                             Удалить
                           </Button>
                         </div>

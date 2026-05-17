@@ -101,7 +101,7 @@ export const AuthProvider = ({ children }) => {
       const data = await authApi.switchRole(role);
       if (data?.token) {
         localStorage.setItem('token', data.token);
-        const nextUser = { ...(user || {}), role: data.role || role };
+        const nextUser = data.user || { ...(user || {}), role: data.role || role };
         localStorage.setItem('userData', JSON.stringify(nextUser));
         setUser(nextUser);
         return { success: true, data };

@@ -3323,6 +3323,179 @@
   justify-content: center !important;
 }
 
+.cd-availability-field {
+  display: grid;
+  gap: 14px;
+}
+
+.cd-availability-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cd-availability-subtitle {
+  color: rgba(74, 43, 34, 0.68);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.cd-availability-days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+
+.cd-availability-days::-webkit-scrollbar {
+  display: none;
+}
+
+.cd-availability-day {
+  appearance: none;
+  min-width: 112px;
+  border: 1px solid rgba(91, 53, 41, 0.16);
+  border-radius: 16px;
+  padding: 10px;
+  background: #fffdf8;
+  color: #4a2b22;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 8px 16px rgba(91, 53, 41, 0.08);
+}
+
+.cd-availability-day span,
+.cd-availability-day strong,
+.cd-availability-day small {
+  display: block;
+  line-height: 1.2;
+}
+
+.cd-availability-day span {
+  font-weight: 800;
+}
+
+.cd-availability-day small {
+  color: rgba(74, 43, 34, 0.62);
+  font-size: 11px;
+}
+
+.cd-availability-day strong {
+  font-size: 12px;
+}
+
+.cd-availability-day-active {
+  background: #60392d;
+  color: #fffaf3;
+  border-color: #60392d;
+}
+
+.cd-availability-day-active small {
+  color: rgba(255, 250, 243, 0.72);
+}
+
+.cd-availability-day-empty {
+  opacity: 0.58;
+  cursor: default;
+}
+
+.cd-availability-list {
+  display: grid;
+  gap: 12px;
+}
+
+.cd-availability-date-card {
+  border: 1px solid rgba(91, 53, 41, 0.12);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 253, 248, 0.78);
+}
+
+.cd-availability-date-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: #4a2b22;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.cd-availability-date-title small {
+  color: rgba(74, 43, 34, 0.62);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cd-availability-employees {
+  display: grid;
+  gap: 10px;
+}
+
+.cd-availability-employee {
+  display: grid;
+  gap: 8px;
+}
+
+.cd-availability-employee-name {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #4a2b22;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cd-availability-employee-name span {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: rgba(91, 53, 41, 0.1);
+  color: rgba(74, 43, 34, 0.72);
+  font-size: 11px;
+}
+
+.cd-availability-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cd-slot-button {
+  appearance: none;
+  border: 1px solid rgba(91, 53, 41, 0.16);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #fffaf3;
+  color: #4a2b22;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cd-slot-button-active {
+  background: #60392d;
+  color: #fffaf3;
+  border-color: #60392d;
+  box-shadow: 0 8px 16px rgba(91, 53, 41, 0.18);
+}
+
+.cd-availability-empty {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(91, 53, 41, 0.22);
+  background: rgba(255, 253, 248, 0.72);
+  color: rgba(74, 43, 34, 0.7);
+  text-align: center;
+  font-size: 13px;
+}
+
 /* Role/login follow-up: clean contrast for pets and remove outer order frames. */
 .client-dashboard .cd-pet-card,
 .client-dashboard .cd-pet-card.vkuiCard,
@@ -4504,5 +4677,806 @@
     line-height: 1.1 !important;
     white-space: normal !important;
     text-align: center !important;
+  }
+}
+
+/* Final mobile header/tabs cleanup. */
+@media (max-width: 520px) {
+  .client-dashboard .vkuiPanelHeader__before,
+  .client-dashboard [class*="PanelHeader__before"] {
+    flex: 0 0 0 !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    text-align: left !important;
+    padding-left: 8px !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    flex: 0 0 auto !important;
+    max-width: calc(100vw - 84px) !important;
+    overflow: visible !important;
+    padding-right: 4px !important;
+  }
+
+  .client-dashboard .cd-panel-title-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-panel-title-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-buttons {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    max-width: 100% !important;
+  }
+
+  .client-dashboard .cd-header-role-button,
+  .client-dashboard .cd-header-exit-button {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    max-width: none !important;
+  }
+
+  .client-dashboard .cd-header-role-button .vkuiButton__in,
+  .client-dashboard .cd-header-exit-button .vkuiButton__in {
+    padding-left: 7px !important;
+    padding-right: 7px !important;
+  }
+
+  .client-dashboard .cd-tabs .vkuiTabsItem::before,
+  .client-dashboard .cd-tabs .vkuiTabsItem::after,
+  .client-dashboard .cd-tabs .vkuiTabsItem__in::before,
+  .client-dashboard .cd-tabs .vkuiTabsItem__in::after,
+  .client-dashboard .cd-tabs .vkuiTabsItem__underline,
+  .client-dashboard .cd-tabs [class*="TabsItem"]::before,
+  .client-dashboard .cd-tabs [class*="TabsItem"]::after,
+  .client-dashboard .cd-tabs [class*="TabsItem__in"]::before,
+  .client-dashboard .cd-tabs [class*="TabsItem__in"]::after,
+  .client-dashboard .cd-tabs [class*="TabsItem__underline"] {
+    display: none !important;
+    content: none !important;
+    width: auto !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+.client-dashboard .cd-panel-title-mobile {
+  display: none;
+}
+
+.client-dashboard .cd-header-text-mobile {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard .vkuiPanelHeader__content *,
+  .client-dashboard [class*="PanelHeader__content"],
+  .client-dashboard [class*="PanelHeader__content"] * {
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    padding-left: 6px !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    max-width: calc(100vw - 126px) !important;
+  }
+
+  .client-dashboard .cd-header-buttons {
+    gap: 3px !important;
+  }
+
+  .client-dashboard .cd-header-buttons .vkuiButton__in {
+    min-height: 28px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  .client-dashboard .cd-header-buttons .vkuiButton__content {
+    font-size: 10px !important;
+    line-height: 1 !important;
+  }
+
+  .client-dashboard .cd-header-text-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-header-text-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-tabs .vkuiTabsItem--selected,
+  .client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+  .client-dashboard .cd-tabs [class*="TabsItem--selected"] {
+    background: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.32) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+  }
+}
+
+/* Final hard override for client mobile header and active tabs. */
+.client-dashboard .cd-tabs .vkuiTabsItem__underline,
+.client-dashboard .cd-tabs [class*="TabsItem__underline"] {
+  display: none !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected *,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"] * {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 800 !important;
+}
+
+@media (max-width: 520px) {
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    display: none !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: 100% !important;
+    padding-left: 10px !important;
+    text-align: left !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard .vkuiPanelHeader__content *,
+  .client-dashboard [class*="PanelHeader__content"],
+  .client-dashboard [class*="PanelHeader__content"] * {
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .client-dashboard .cd-panel-title-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-panel-title-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-text-full {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-text-mobile {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-toolbar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 4px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .client-dashboard .cd-toolbar .vkuiButton,
+  .client-dashboard .cd-toolbar .vkuiButton__host,
+  .client-dashboard .cd-toolbar .vkuiButton__in {
+    width: 100% !important;
+    min-height: 38px !important;
+  }
+}
+
+/* Absolute final client overrides. */
+.client-dashboard .cd-toolbar {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin: 0 0 14px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.client-dashboard .cd-toolbar .vkuiButton,
+.client-dashboard .cd-toolbar .vkuiButton__host,
+.client-dashboard .cd-toolbar .vkuiButton__in {
+  display: flex !important;
+  width: 100% !important;
+}
+
+.client-dashboard .cd-toolbar-button,
+.client-dashboard .cd-toolbar-button .vkuiButton__host,
+.client-dashboard .cd-toolbar-button .vkuiButton__in {
+  display: flex !important;
+  width: 100% !important;
+  min-height: 40px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.client-dashboard .cd-toolbar-role-button .vkuiButton__in {
+  background: #fffaf3 !important;
+  color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-toolbar-exit-button .vkuiButton__in {
+  background: rgba(255, 250, 243, 0.72) !important;
+  color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+}
+
+.client-dashboard .cd-tabs,
+.employee-dashboard .ed-tabs,
+.admin-dashboard .ed-tabs {
+  overflow: hidden !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem__underline,
+.client-dashboard .cd-tabs [class*="TabsItem__underline"],
+.employee-dashboard .ed-tabs .vkuiTabsItem__underline,
+.employee-dashboard .ed-tabs [class*="TabsItem__underline"],
+.admin-dashboard .ed-tabs .vkuiTabsItem__underline,
+.admin-dashboard .ed-tabs [class*="TabsItem__underline"] {
+  display: none !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"],
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"],
+.admin-dashboard .ed-tabs .vkuiTabsItem--selected,
+.admin-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__in,
+.admin-dashboard .ed-tabs [class*="TabsItem--selected"] {
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+}
+
+.client-dashboard .cd-tabs .vkuiTabsItem--selected *,
+.client-dashboard .cd-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.client-dashboard .cd-tabs [class*="TabsItem--selected"] *,
+.client-dashboard .cd-tab-item-active *,
+.client-dashboard .cd-tab-item-active .vkuiTabsItem__label,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected *,
+.employee-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.employee-dashboard .ed-tabs [class*="TabsItem--selected"] *,
+.employee-dashboard .ed-tab-item-active *,
+.employee-dashboard .ed-tab-item-active .vkuiTabsItem__label,
+.admin-dashboard .ed-tabs .vkuiTabsItem--selected *,
+.admin-dashboard .ed-tabs .vkuiTabsItem--selected .vkuiTabsItem__label,
+.admin-dashboard .ed-tabs [class*="TabsItem--selected"] *,
+.admin-dashboard .ed-tab-item-active *,
+.admin-dashboard .ed-tab-item-active .vkuiTabsItem__label {
+  color: #fffaf3 !important;
+  -webkit-text-fill-color: #fffaf3 !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard .cd-tab-item-active,
+.client-dashboard .cd-tab-item-active .vkuiTabsItem__in,
+.employee-dashboard .ed-tab-item-active,
+.employee-dashboard .ed-tab-item-active .vkuiTabsItem__in,
+.admin-dashboard .ed-tab-item-active,
+.admin-dashboard .ed-tab-item-active .vkuiTabsItem__in {
+  background: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.32) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 243, 0.08), 0 8px 16px rgba(91, 53, 41, 0.16) !important;
+}
+
+/* Final client mobile header parity with groomer/admin dashboards. */
+.client-dashboard .cd-header-buttons .vkuiButton__content,
+.client-dashboard .cd-header-buttons .vkuiButton__content *,
+.client-dashboard .cd-toolbar-button .vkuiButton__content,
+.client-dashboard .cd-toolbar-button .vkuiButton__content * {
+  font-weight: 800 !important;
+}
+
+@media (max-width: 520px) {
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    max-width: calc(100vw - 108px) !important;
+    padding-right: 4px !important;
+    overflow: visible !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: calc(100vw - 116px) !important;
+    padding-left: 10px !important;
+    text-align: left !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard .vkuiPanelHeader__content *,
+  .client-dashboard [class*="PanelHeader__content"],
+  .client-dashboard [class*="PanelHeader__content"] * {
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .client-dashboard .cd-panel-title-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-panel-title-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-text-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-header-text-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-buttons {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+    max-width: 100% !important;
+  }
+
+  .client-dashboard .cd-header-role-button,
+  .client-dashboard .cd-header-exit-button {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+  }
+
+  .client-dashboard .cd-header-role-button .vkuiButton__in,
+  .client-dashboard .cd-header-exit-button .vkuiButton__in {
+    min-height: 30px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .client-dashboard .cd-header-buttons .vkuiButton__content {
+    font-size: 11px !important;
+    line-height: 1 !important;
+    font-weight: 800 !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .client-dashboard .vkuiPanelHeader__after,
+  .client-dashboard .vkuiPanelHeader__right,
+  .client-dashboard [class*="PanelHeader__after"],
+  .client-dashboard [class*="PanelHeader__right"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding-right: 4px !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    padding-left: 10px !important;
+    text-align: left !important;
+  }
+
+  .client-dashboard .cd-header-buttons,
+  .client-dashboard .cd-header-role-button,
+  .client-dashboard .cd-header-exit-button,
+  .client-dashboard .cd-header-role-button .vkuiButton__host,
+  .client-dashboard .cd-header-role-button .vkuiButton__in,
+  .client-dashboard .cd-header-exit-button .vkuiButton__host,
+  .client-dashboard .cd-header-exit-button .vkuiButton__in {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .client-dashboard .cd-panel-title-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-panel-title-mobile {
+    display: inline !important;
+  }
+
+  .client-dashboard .cd-header-text-full {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-header-text-mobile {
+    display: inline !important;
+  }
+}
+
+.client-dashboard .cd-mobile-top-actions {
+  display: none;
+}
+
+@media (max-width: 520px) {
+  .client-dashboard .cd-header-buttons,
+  .client-dashboard .cd-header-role-button,
+  .client-dashboard .cd-header-exit-button,
+  .client-dashboard .cd-header-role-button .vkuiButton__host,
+  .client-dashboard .cd-header-role-button .vkuiButton__in,
+  .client-dashboard .cd-header-exit-button .vkuiButton__host,
+  .client-dashboard .cd-header-exit-button .vkuiButton__in {
+    display: none !important;
+  }
+
+  .client-dashboard .vkuiPanelHeader__content,
+  .client-dashboard [class*="PanelHeader__content"] {
+    max-width: 100% !important;
+  }
+
+  .client-dashboard .cd-mobile-top-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin: 4px 0 14px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    justify-items: center !important;
+  }
+
+  .client-dashboard .cd-mobile-action-button,
+  .client-dashboard .cd-mobile-action-button .vkuiButton__host,
+  .client-dashboard .cd-mobile-action-button .vkuiButton__in {
+    display: flex !important;
+    width: min(100%, 320px) !important;
+    min-height: 40px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .client-dashboard .cd-mobile-action-button .vkuiButton__content,
+  .client-dashboard .cd-mobile-action-button .vkuiButton__content * {
+    font-weight: 800 !important;
+  }
+
+  .client-dashboard .cd-mobile-top-actions .vkuiButton--mode-secondary .vkuiButton__in {
+    background: #fffaf3 !important;
+    color: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.18) !important;
+  }
+
+  .client-dashboard .cd-mobile-top-actions .vkuiButton--mode-tertiary .vkuiButton__in {
+    background: rgba(255, 250, 243, 0.72) !important;
+    color: #5b3529 !important;
+    border: 1px solid rgba(91, 53, 41, 0.14) !important;
+  }
+}
+
+/* Match groomer/admin mobile action layout: one centered full-width column. */
+@media (max-width: 720px) {
+  .client-dashboard .cd-mobile-top-actions {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto 16px !important;
+    padding: 0 !important;
+    justify-items: stretch !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .client-dashboard .cd-toolbar .vkuiButton,
+  .client-dashboard .cd-toolbar .vkuiButton__host,
+  .client-dashboard .cd-toolbar .vkuiButton__in,
+  .client-dashboard .cd-toolbar-button,
+  .client-dashboard .cd-toolbar-button .vkuiButton__host,
+  .client-dashboard .cd-toolbar-button .vkuiButton__in {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    box-sizing: border-box !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .client-dashboard .cd-toolbar .vkuiButton__content,
+  .client-dashboard .cd-toolbar .vkuiButton__content * {
+    font-weight: 800 !important;
+  }
+}
+
+/* Final mobile placement for client role/logout buttons. */
+@media (max-width: 720px) {
+  .client-dashboard .cd-page {
+    padding-top: 42px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  .client-dashboard .cd-toolbar {
+    position: static !important;
+    left: auto !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 32px 0 18px !important;
+    padding: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    justify-items: stretch !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+
+  .client-dashboard .cd-toolbar-button,
+  .client-dashboard .cd-toolbar-button .vkuiButton__host,
+  .client-dashboard .cd-toolbar-button .vkuiButton__in {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    box-sizing: border-box !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .client-dashboard .cd-toolbar .vkuiButton__content,
+  .client-dashboard .cd-toolbar-button .vkuiButton__content {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+/* Hard final mobile alignment: client role/logout buttons match groomer/admin layout. */
+@media (max-width: 720px) {
+  .client-dashboard .cd-page {
+    padding-top: 58px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .client-dashboard .cd-toolbar {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    width: min(1120px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin: 36px auto 18px !important;
+    padding: 0 !important;
+    justify-items: stretch !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
+  }
+
+  .client-dashboard .cd-toolbar > .vkuiButton,
+  .client-dashboard .cd-toolbar-button,
+  .client-dashboard .cd-toolbar-button .vkuiButton__host,
+  .client-dashboard .cd-toolbar-button .vkuiButton__in {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  .client-dashboard .cd-toolbar-button .vkuiButton__in {
+    min-height: 44px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  .client-dashboard .cd-toolbar-button .vkuiButton__content,
+  .client-dashboard .cd-toolbar-button .vkuiButton__content * {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    font-weight: 800 !important;
+  }
+}
+
+/* Client actions are wrapped separately so the block itself is centered like every dashboard section. */
+.client-dashboard .cd-client-actions-shell {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  width: min(1120px, calc(100vw - 32px)) !important;
+  max-width: 1120px !important;
+  margin: 0 auto 18px !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-client-actions-shell .cd-client-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  justify-items: stretch !important;
+  align-items: stretch !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-client-actions-shell .cd-toolbar-button,
+.client-dashboard .cd-client-actions-shell .cd-toolbar-button .vkuiButton__host,
+.client-dashboard .cd-client-actions-shell .cd-toolbar-button .vkuiButton__in {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-client-actions-shell .cd-client-actions .vkuiButton__in,
+.client-dashboard .cd-client-actions-shell .cd-client-actions .vkuiButton__content {
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+@media (max-width: 720px) {
+  .client-dashboard .cd-client-actions-shell {
+    display: flex !important;
+    justify-content: center !important;
+    width: min(1120px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin: 42px auto 18px !important;
+  }
+
+  .client-dashboard .cd-client-actions-shell .cd-client-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    justify-items: stretch !important;
+  }
+
+  .client-dashboard .cd-client-actions-shell .cd-toolbar-button .vkuiButton__in,
+  .client-dashboard .cd-client-actions-shell .cd-toolbar-button .vkuiButton__content {
+    justify-content: center !important;
+    text-align: center !important;
+  }
+}
+
+/* Final single source for client role/logout actions. */
+.client-dashboard .cd-client-action-button,
+.client-dashboard .cd-client-action-button .vkuiButton__host,
+.client-dashboard .cd-client-action-button .vkuiButton__in {
+  display: flex !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.client-dashboard .cd-client-action-button .vkuiButton__in {
+  min-height: 44px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  border-radius: 16px !important;
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+.client-dashboard .cd-client-action-button .vkuiButton__content,
+.client-dashboard .cd-client-action-button .vkuiButton__content * {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+}
+
+.client-dashboard .cd-client-role-button .vkuiButton__in {
+  background: #fffaf3 !important;
+  color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.18) !important;
+}
+
+.client-dashboard .cd-client-exit-button .vkuiButton__in {
+  background: rgba(255, 250, 243, 0.72) !important;
+  color: #5b3529 !important;
+  border: 1px solid rgba(91, 53, 41, 0.14) !important;
+}
+
+@media (max-width: 720px) {
+  .client-dashboard .cd-header-buttons {
+    display: none !important;
+  }
+
+  .client-dashboard .cd-client-actions-shell {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: min(1120px, calc(100vw - 32px)) !important;
+    max-width: calc(100vw - 32px) !important;
+    margin: 42px auto 18px !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .client-dashboard .cd-client-actions {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    justify-items: stretch !important;
+    align-items: stretch !important;
+    box-sizing: border-box !important;
   }
 }

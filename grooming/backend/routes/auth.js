@@ -184,7 +184,7 @@ const ensureClientOwner = async ({ vkId, fullName, phone }) => {
   const ownerName = formatOwnerName(fullName) || 'Не указано';
   await pool.request()
     .input('id', sql.UniqueIdentifier, ownerId)
-    .input('name', sql.VarChar(100), ownerName)
+    .input('name', sql.NVarChar(100), ownerName)
     .input('phone', sql.VarChar(20), formattedPhone)
     .input('vkId', sql.BigInt, vkId)
     .query(`
@@ -400,22 +400,40 @@ router.post('/switch-role', authenticateToken, async (req, res) => {
     const matchedEmployeeByName = findByFullName(employees, req.user.fullName);
 
     if (role === 'client') {
-      if (owner && !ownerMatchesFullName(owner, req.user.fullName)) {
+      const clientFullName = req.user.fullName || owner?.fullName || matchedEmployeeByName?.fullName || '';
+      const clientPhone = req.user.phone || owner?.phone || matchedEmployeeByName?.phone || '';
+
+      if (owner && clientFullName && !ownerMatchesFullName(owner, clientFullName)) {
         return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
+      }
+
+      if (!owner && !normalizePhone(clientPhone)) {
+        return res.status(409).json({
+          error: 'Для клиентского раздела нужен телефон. Выйдите и войдите снова, затем заполните телефон.',
+          needsRegistration: true,
+        });
       }
 
       const clientOwner = await ensureClientOwner({
         vkId,
-        fullName: req.user.fullName || owner?.fullName || '',
-        phone: req.user.phone || owner?.phone || '',
+        fullName: clientFullName,
+        phone: clientPhone,
       });
 
+      const user = {
+        userId: clientOwner.ownerId,
+        vkId,
+        role: 'client',
+        fullName: clientOwner.fullName,
+        phone: clientOwner.phone,
+      };
+
       const token = jwt.sign(
-        { userId: clientOwner.ownerId, vkId, role: 'client', fullName: clientOwner.fullName, phone: clientOwner.phone },
+        user,
         process.env.JWT_SECRET,
         { expiresIn: '24h' }
       );
-      return res.json({ role: 'client', token });
+      return res.json({ role: 'client', user, token });
     }
 
     if (!employees.length) {
@@ -435,15 +453,31 @@ router.post('/switch-role', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'VK ID найден, но имя и фамилия не совпадают с записью' });
     }
 
+    const user = {
+      userId: matchedEmployee.employeeId,
+      vkId: matchedEmployee.vkId,
+      role,
+      fullName: matchedEmployee.fullName || '',
+      phone: matchedEmployee.phone || '',
+    };
+
     const token = jwt.sign(
-      { userId: matchedEmployee.employeeId, vkId: matchedEmployee.vkId, role, fullName: matchedEmployee.fullName || '', phone: matchedEmployee.phone || '' },
+      user,
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
-    return res.json({ role, token });
+    return res.json({ role, user, token });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to switch role', details: err.message });
+    console.error('Switch role error:', {
+      message: err.message,
+      stack: err.stack,
+      role: req.body?.role,
+      vkId: req.user?.vkId,
+      userId: req.user?.userId,
+      currentRole: req.user?.role,
+    });
+    res.status(err.statusCode || 500).json({ error: 'Failed to switch role', details: err.message });
   }
 });
 

@@ -1,0 +1,41 @@
+server {
+    listen 80;
+    server_name api.groomingptz.ru;
+
+    # If certbot manages HTTPS, keep this HTTP block minimal and let certbot
+    # add the HTTPS redirect/certificate directives.
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name api.groomingptz.ru;
+
+    # Replace these paths with the actual certbot certificate paths on the VPS.
+    ssl_certificate /etc/letsencrypt/live/api.groomingptz.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.groomingptz.ru/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
