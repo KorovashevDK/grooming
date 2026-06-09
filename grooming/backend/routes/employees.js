@@ -12,6 +12,7 @@ const T = {
   services: '[\u0413\u0440\u0443\u043c\u0438\u043d\u0433_\u0443\u0441\u043b\u0443\u0433\u0438]',
   schedule: '[\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435_\u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u043e\u0432]',
   roles: '[\u0414\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438]',
+  groomerCards: '[\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0438_\u0433\u0440\u0443\u043c\u0435\u0440\u043e\u0432]',
 };
 
 const C = {
@@ -44,8 +45,21 @@ const C = {
   scheduleRoleId: '[ID_\u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438]',
 };
 
+const CARD_COLUMNS = {
+  photoUrl: '[\u0424\u043e\u0442\u043e_URL]',
+  description: '[\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435]',
+  specialization: '[\u0421\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0437\u0430\u0446\u0438\u044f]',
+  certificates: '[\u0421\u0435\u0440\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u044b]',
+  experienceSince: '[\u0421\u0442\u0430\u0436_\u0441_\u0434\u0430\u0442\u044b]',
+  experienceYears: '[\u0421\u0442\u0430\u0436_\u043b\u0435\u0442]',
+  updatedAt: '[\u0414\u0430\u0442\u0430_\u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f]',
+};
+
 const sendDbError = (res, err, context) =>
   res.status(500).json({ error: 'Database query failed', context, details: err.message });
+
+const isSchemaError = (err) =>
+  /Invalid column name|Invalid object name|could not be bound|Ambiguous column name/i.test(err?.message || '');
 
 const mergeMasterComment = (existingNote, masterComment) => {
   const source = String(existingNote || '').trim();
@@ -61,6 +75,139 @@ const mergeMasterComment = (existingNote, masterComment) => {
     return source.replace(/Комментарий мастера:\s*.*$/i, `Комментарий мастера: ${cleanComment}`);
   }
   return `${source}; Комментарий мастера: ${cleanComment}`;
+};
+
+const normalizeCardText = (value, maxLength = 1000) => {
+  const text = String(value || '').trim();
+  return text ? text.slice(0, maxLength) : null;
+};
+
+const normalizeCardDate = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+};
+
+const normalizeExperienceYears = (value) => {
+  if (value === '' || value === null || value === undefined) return null;
+  const years = Number(value);
+  if (!Number.isFinite(years) || years < 0 || years > 80) return null;
+  return Math.round(years);
+};
+
+const formatDateOnly = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const normalizeGroomerCardPayload = (body = {}) => ({
+  photoUrl: normalizeCardText(body.photoUrl, 2_000_000),
+  description: normalizeCardText(body.description, 2000),
+  specialization: normalizeCardText(body.specialization, 500),
+  certificates: normalizeCardText(body.certificates, 2000),
+  experienceSince: normalizeCardDate(body.experienceSince),
+  experienceYears: normalizeExperienceYears(body.experienceYears),
+});
+
+const mapGroomerCardRow = (row = {}) => ({
+  employeeId: row.employeeId || '',
+  fullName: row.fullName || 'Сотрудник',
+  roleName: row.roleName || 'Грумер',
+  photoUrl: row.photoUrl || '',
+  description: row.description || '',
+  specialization: row.specialization || '',
+  certificates: row.certificates || '',
+  experienceSince: formatDateOnly(row.experienceSince),
+  experienceYears: row.experienceYears ?? '',
+  updatedAt: row.updatedAt || null,
+});
+
+const getGroomerCardByEmployeeId = async (employeeId) => {
+  let result;
+  try {
+    result = await pool.request()
+      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .query(`
+        SELECT emp.${C.employeeId} as employeeId,
+               emp.${C.employeeName} as fullName,
+               role.[Наименование] as roleName,
+               card.${CARD_COLUMNS.photoUrl} as photoUrl,
+               card.${CARD_COLUMNS.description} as description,
+               card.${CARD_COLUMNS.specialization} as specialization,
+               card.${CARD_COLUMNS.certificates} as certificates,
+               card.${CARD_COLUMNS.experienceSince} as experienceSince,
+               card.${CARD_COLUMNS.experienceYears} as experienceYears,
+               card.${CARD_COLUMNS.updatedAt} as updatedAt
+        FROM ${T.employees} emp
+        LEFT JOIN ${T.groomerCards} card ON card.${C.employeeId} = emp.${C.employeeId}
+        OUTER APPLY (
+          SELECT TOP 1 r.[Наименование]
+          FROM ${T.schedule} sch
+          LEFT JOIN ${T.roles} r ON r.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE sch.${C.employeeId} = emp.${C.employeeId}
+          ORDER BY sch.${C.scheduleDate} DESC
+        ) role
+        WHERE emp.${C.employeeId} = @employeeId
+      `);
+  } catch (err) {
+    if (!isSchemaError(err)) {
+      throw err;
+    }
+    result = await pool.request()
+      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .query(`
+        SELECT emp.${C.employeeId} as employeeId,
+               emp.${C.employeeName} as fullName,
+               role.[Наименование] as roleName
+        FROM ${T.employees} emp
+        OUTER APPLY (
+          SELECT TOP 1 r.[Наименование]
+          FROM ${T.schedule} sch
+          LEFT JOIN ${T.roles} r ON r.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE sch.${C.employeeId} = emp.${C.employeeId}
+          ORDER BY sch.${C.scheduleDate} DESC
+        ) role
+        WHERE emp.${C.employeeId} = @employeeId
+      `);
+  }
+
+  return result.recordset[0] ? mapGroomerCardRow(result.recordset[0]) : null;
+};
+
+const saveGroomerCard = async (employeeId, payload) => {
+  await pool.request()
+    .input('employeeId', sql.UniqueIdentifier, employeeId)
+    .input('photoUrl', sql.NVarChar(sql.MAX), payload.photoUrl)
+    .input('description', sql.NVarChar(sql.MAX), payload.description)
+    .input('specialization', sql.NVarChar(500), payload.specialization)
+    .input('certificates', sql.NVarChar(sql.MAX), payload.certificates)
+    .input('experienceSince', sql.Date, payload.experienceSince)
+    .input('experienceYears', sql.Int, payload.experienceYears)
+    .query(`
+      MERGE ${T.groomerCards} AS target
+      USING (SELECT @employeeId AS ${C.employeeId}) AS source
+      ON target.${C.employeeId} = source.${C.employeeId}
+      WHEN MATCHED THEN
+        UPDATE SET
+          ${CARD_COLUMNS.photoUrl} = @photoUrl,
+          ${CARD_COLUMNS.description} = @description,
+          ${CARD_COLUMNS.specialization} = @specialization,
+          ${CARD_COLUMNS.certificates} = @certificates,
+          ${CARD_COLUMNS.experienceSince} = @experienceSince,
+          ${CARD_COLUMNS.experienceYears} = @experienceYears,
+          ${CARD_COLUMNS.updatedAt} = SYSUTCDATETIME()
+      WHEN NOT MATCHED THEN
+        INSERT (${C.employeeId}, ${CARD_COLUMNS.photoUrl}, ${CARD_COLUMNS.description}, ${CARD_COLUMNS.specialization}, ${CARD_COLUMNS.certificates}, ${CARD_COLUMNS.experienceSince}, ${CARD_COLUMNS.experienceYears}, ${CARD_COLUMNS.updatedAt})
+        VALUES (@employeeId, @photoUrl, @description, @specialization, @certificates, @experienceSince, @experienceYears, SYSUTCDATETIME());
+    `);
 };
 
 router.get('/list', authenticateToken, checkRole(['client', 'admin']), async (_req, res) => {
@@ -96,6 +243,7 @@ router.get('/dashboard', authenticateToken, checkRole(['admin', 'groomer']), asy
              pet.${C.petBreed} as petBreed,
              pet.${C.petAge} as petAge,
              pet.${C.petSize} as petSize,
+             og.${C.employeeId} as employeeId,
              g.${C.serviceName} as serviceName,
              og.${C.status} as serviceStatus,
              og.${C.note} as note,
@@ -117,6 +265,95 @@ router.get('/dashboard', authenticateToken, checkRole(['admin', 'groomer']), asy
     res.json({ assignedOrders: assignedOrdersResult.recordset });
   } catch (err) {
     sendDbError(res, err, 'employees.dashboard');
+  }
+});
+
+router.get('/groomer-card', authenticateToken, checkRole(['admin', 'groomer']), async (req, res) => {
+  try {
+    await poolConnect;
+    const card = await getGroomerCardByEmployeeId(req.user.userId);
+    if (!card) {
+      return res.status(404).json({ error: 'Groomer not found' });
+    }
+    res.json(card);
+  } catch (err) {
+    sendDbError(res, err, 'employees.groomerCard.get');
+  }
+});
+
+router.patch('/groomer-card', authenticateToken, checkRole(['admin', 'groomer']), async (req, res) => {
+  try {
+    await poolConnect;
+    await saveGroomerCard(req.user.userId, normalizeGroomerCardPayload(req.body));
+    const card = await getGroomerCardByEmployeeId(req.user.userId);
+    res.json(card);
+  } catch (err) {
+    sendDbError(res, err, 'employees.groomerCard.update');
+  }
+});
+
+router.get('/groomer-cards', authenticateToken, checkRole(['admin']), async (_req, res) => {
+  try {
+    await poolConnect;
+    let result;
+    try {
+      result = await pool.request().query(`
+        SELECT emp.${C.employeeId} as employeeId,
+               emp.${C.employeeName} as fullName,
+               role.[Наименование] as roleName,
+               card.${CARD_COLUMNS.photoUrl} as photoUrl,
+               card.${CARD_COLUMNS.description} as description,
+               card.${CARD_COLUMNS.specialization} as specialization,
+               card.${CARD_COLUMNS.certificates} as certificates,
+               card.${CARD_COLUMNS.experienceSince} as experienceSince,
+               card.${CARD_COLUMNS.experienceYears} as experienceYears,
+               card.${CARD_COLUMNS.updatedAt} as updatedAt
+        FROM ${T.employees} emp
+        LEFT JOIN ${T.groomerCards} card ON card.${C.employeeId} = emp.${C.employeeId}
+        OUTER APPLY (
+          SELECT TOP 1 r.[Наименование]
+          FROM ${T.schedule} sch
+          LEFT JOIN ${T.roles} r ON r.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE sch.${C.employeeId} = emp.${C.employeeId}
+          ORDER BY sch.${C.scheduleDate} DESC
+        ) role
+        ORDER BY emp.${C.employeeName} ASC
+      `);
+    } catch (err) {
+      if (!isSchemaError(err)) {
+        throw err;
+      }
+      result = await pool.request().query(`
+        SELECT emp.${C.employeeId} as employeeId,
+               emp.${C.employeeName} as fullName,
+               role.[Наименование] as roleName
+        FROM ${T.employees} emp
+        OUTER APPLY (
+          SELECT TOP 1 r.[Наименование]
+          FROM ${T.schedule} sch
+          LEFT JOIN ${T.roles} r ON r.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE sch.${C.employeeId} = emp.${C.employeeId}
+          ORDER BY sch.${C.scheduleDate} DESC
+        ) role
+        ORDER BY emp.${C.employeeName} ASC
+      `);
+    }
+
+    res.json(result.recordset.map(mapGroomerCardRow));
+  } catch (err) {
+    sendDbError(res, err, 'employees.groomerCards.list');
+  }
+});
+
+router.patch('/groomer-cards/:employeeId', authenticateToken, checkRole(['admin']), async (req, res) => {
+  try {
+    await poolConnect;
+    const { employeeId } = req.params;
+    await saveGroomerCard(employeeId, normalizeGroomerCardPayload(req.body));
+    const card = await getGroomerCardByEmployeeId(employeeId);
+    res.json(card);
+  } catch (err) {
+    sendDbError(res, err, 'employees.groomerCards.update');
   }
 });
 
@@ -178,20 +415,23 @@ const normalizeTime = (value) => {
 router.get('/schedule', authenticateToken, checkRole(['admin', 'groomer']), async (req, res) => {
   try {
     await poolConnect;
-    const employeeId = req.user.userId;
+    const vkId = req.user.vkId;
 
     const result = await pool.request()
-      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .input('vkId', sql.BigInt, vkId)
       .query(`
         SELECT sch.${C.scheduleId} as scheduleId,
-               sch.${C.scheduleDate} as scheduleDate,
+               sch.${C.employeeId} as employeeId,
+               emp.${C.employeeName} as employeeName,
+               CONVERT(varchar(10), sch.${C.scheduleDate}, 23) as scheduleDate,
                CONVERT(varchar(5), sch.${C.scheduleStart}, 108) as scheduleStart,
                CONVERT(varchar(5), sch.${C.scheduleEnd}, 108) as scheduleEnd,
                sch.${C.scheduleRoleId} as roleId,
                role.[Наименование] as roleName
         FROM ${T.schedule} sch
+        JOIN ${T.employees} emp ON emp.${C.employeeId} = sch.${C.employeeId}
         LEFT JOIN ${T.roles} role ON role.ID_должности = sch.${C.scheduleRoleId}
-        WHERE sch.${C.employeeId} = @employeeId
+        WHERE emp.${C.employeeVkId} = @vkId
         ORDER BY sch.${C.scheduleDate} DESC, sch.${C.scheduleStart} ASC
       `);
 
@@ -250,7 +490,7 @@ router.post('/schedule', authenticateToken, checkRole(['admin', 'groomer']), asy
 router.patch('/schedule/:scheduleId', authenticateToken, checkRole(['admin', 'groomer']), async (req, res) => {
   try {
     await poolConnect;
-    const employeeId = req.user.userId;
+    const vkId = req.user.vkId;
     const { scheduleId } = req.params;
     const { date, startTime, endTime, roleId } = req.body || {};
 
@@ -275,18 +515,21 @@ router.patch('/schedule/:scheduleId', authenticateToken, checkRole(['admin', 'gr
 
     await pool.request()
       .input('scheduleId', sql.UniqueIdentifier, scheduleId)
-      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .input('vkId', sql.BigInt, vkId)
       .input('roleId', sql.UniqueIdentifier, finalRoleId)
       .input('date', sql.Date, date)
       .input('startTimeText', sql.VarChar(8), normalizedStart)
       .input('endTimeText', sql.VarChar(8), normalizedEnd)
       .query(`
-        UPDATE ${T.schedule}
+        UPDATE sch
         SET ${C.scheduleRoleId} = @roleId,
             ${C.scheduleDate} = @date,
             ${C.scheduleStart} = CAST(@startTimeText AS time),
             ${C.scheduleEnd} = CAST(@endTimeText AS time)
-        WHERE ${C.scheduleId} = @scheduleId AND ${C.employeeId} = @employeeId
+        FROM ${T.schedule} sch
+        JOIN ${T.employees} emp ON emp.${C.employeeId} = sch.${C.employeeId}
+        WHERE sch.${C.scheduleId} = @scheduleId
+          AND emp.${C.employeeVkId} = @vkId
       `);
 
     res.json({ success: true });
@@ -298,15 +541,18 @@ router.patch('/schedule/:scheduleId', authenticateToken, checkRole(['admin', 'gr
 router.delete('/schedule/:scheduleId', authenticateToken, checkRole(['admin', 'groomer']), async (req, res) => {
   try {
     await poolConnect;
-    const employeeId = req.user.userId;
+    const vkId = req.user.vkId;
     const { scheduleId } = req.params;
 
     await pool.request()
       .input('scheduleId', sql.UniqueIdentifier, scheduleId)
-      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .input('vkId', sql.BigInt, vkId)
       .query(`
-        DELETE FROM ${T.schedule}
-        WHERE ${C.scheduleId} = @scheduleId AND ${C.employeeId} = @employeeId
+        DELETE sch
+        FROM ${T.schedule} sch
+        JOIN ${T.employees} emp ON emp.${C.employeeId} = sch.${C.employeeId}
+        WHERE sch.${C.scheduleId} = @scheduleId
+          AND emp.${C.employeeVkId} = @vkId
       `);
 
     res.json({ success: true });

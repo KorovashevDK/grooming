@@ -1,9 +1,11 @@
-﻿import { Panel, PanelHeader, Group, Header, Card, CardGrid, SimpleCell, Avatar, Button, Badge, FormItem, Input, NativeSelect, Tabs, TabsItem } from '@vkontakte/vkui';
+import { Panel, PanelHeader, Group, Header, Card, CardGrid, SimpleCell, Avatar, Button, Badge, FormItem, Input, Tabs, TabsItem } from '@vkontakte/vkui';
+import { Textarea } from '@vkontakte/vkui';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import PropTypes from 'prop-types';
 import { employeeApi } from '../api/endpoints';
+import { LegalInfoButton } from '../components/LegalInfoButton';
 import './EmployeeDashboard.css';
 
 const SIZE_LABELS = {
@@ -64,6 +66,26 @@ const formatDateTime = (value) => {
   return date ? date.toLocaleString('ru-RU') : 'Не указано';
 };
 
+const getDateKey = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = toDate(value);
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateLabel = (value) => {
+  const key = getDateKey(value);
+  if (!key) return 'Дата не указана';
+  const date = new Date(`${key}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? 'Дата не указана' : date.toLocaleDateString('ru-RU');
+};
+
 const formatDurationLabel = (minutes) => {
   const total = Number(minutes);
   if (!Number.isFinite(total) || total <= 0) {
@@ -87,6 +109,134 @@ const getHourlyRate = (roleId) => HOURLY_RATE_BY_ROLE_ID[roleId] || 0;
 const formatMoney = (value) => (
   Number.isFinite(Number(value)) ? `${Number(value).toFixed(2)} ₽` : '0.00 ₽'
 );
+
+const MAX_GROOMER_PHOTO_SIZE = 1.5 * 1024 * 1024;
+
+const formatYearsLabel = (value) => {
+  const years = Math.round(Number(value) || 0);
+  const mod10 = years % 10;
+  const mod100 = years % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${years} год`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${years} года`;
+  return `${years} лет`;
+};
+
+const normalizeDateInputValue = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  return getDateKey(value);
+};
+
+const formatExperienceLabel = (experienceSince) => {
+  const sinceDate = experienceSince ? new Date(`${experienceSince}T00:00:00`) : null;
+  if (!sinceDate || Number.isNaN(sinceDate.getTime())) {
+    return 'Стаж пока не указан';
+  }
+
+  const months = Math.max(1, Math.floor((Date.now() - sinceDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+  if (months < 12) {
+    return `Стаж ${months} мес.`;
+  }
+
+  const years = Math.floor(months / 12);
+  const tailMonths = months % 12;
+  return `Стаж ${formatYearsLabel(years)}${tailMonths ? ` ${tailMonths} мес.` : ''}`;
+};
+
+const readImageFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  if (!file) {
+    reject(new Error('Файл не выбран'));
+    return;
+  }
+  if (!file.type?.startsWith('image/')) {
+    reject(new Error('Можно выбрать только изображение'));
+    return;
+  }
+  if (file.size > MAX_GROOMER_PHOTO_SIZE) {
+    reject(new Error('Фото должно быть меньше 1.5 МБ'));
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
+  reader.readAsDataURL(file);
+});
+
+const EMPTY_GROOMER_CARD_FORM = {
+  photoUrl: '',
+  description: '',
+  specialization: '',
+  certificates: '',
+  experienceSince: '',
+  experienceYears: '',
+};
+
+const mapGroomerCardToForm = (card = {}) => ({
+  photoUrl: card.photoUrl || '',
+  description: card.description || '',
+  specialization: card.specialization || '',
+  certificates: card.certificates || '',
+  experienceSince: normalizeDateInputValue(card.experienceSince),
+  experienceYears: '',
+});
+
+const EmployeeSelect = ({ value, options, onChange, placeholder = 'Выберите значение', disabled = false }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <div className={`ed-select${open ? ' ed-select-open' : ''}`}>
+      <button
+        type="button"
+        className="ed-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{selectedOption?.label || placeholder}</span>
+        <span className="ed-select-arrow" aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div className="ed-select-menu" role="listbox">
+          {options.map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                className={`ed-select-option${isSelected ? ' ed-select-option-selected' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+EmployeeSelect.propTypes = {
+  value: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  })).isRequired,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+};
 
 const parseBookingDetails = (value) => {
   const source = String(value || '').trim();
@@ -132,6 +282,15 @@ export const EmployeeDashboard = ({ id }) => {
   const [visiblePastShifts, setVisiblePastShifts] = useState(3);
   const [completingOrderId, setCompletingOrderId] = useState('');
   const [completionNote, setCompletionNote] = useState('');
+  const [groomerCardForm, setGroomerCardForm] = useState(EMPTY_GROOMER_CARD_FORM);
+  const [savingGroomerCard, setSavingGroomerCard] = useState(false);
+  const [groomerCardMessage, setGroomerCardMessage] = useState('');
+  const [orderFilters, setOrderFilters] = useState({
+    status: 'all',
+    date: '',
+    query: '',
+    sort: 'date_asc',
+  });
   const [scheduleForm, setScheduleForm] = useState({
     date: '',
     startTime: '',
@@ -140,12 +299,14 @@ export const EmployeeDashboard = ({ id }) => {
   });
 
   const loadDashboardData = async () => {
-    const [ordersData, scheduleData] = await Promise.all([
+    const [ordersData, scheduleData, groomerCardData] = await Promise.all([
       employeeApi.getDashboard(),
       employeeApi.getSchedule(),
+      employeeApi.getGroomerCard(),
     ]);
     setOrders(ordersData.assignedOrders || []);
     setSchedule(scheduleData.schedule || []);
+    setGroomerCardForm(mapGroomerCardToForm(groomerCardData));
   };
 
   useEffect(() => {
@@ -173,6 +334,44 @@ export const EmployeeDashboard = ({ id }) => {
     } catch (error) {
       console.error('Error updating order status:', error);
       setErrorMessage('Не удалось изменить статус заказа');
+    }
+  };
+
+  const handleGroomerCardFieldChange = (field, value) => {
+    setGroomerCardMessage('');
+    setGroomerCardForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleGroomerPhotoFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      setErrorMessage('');
+      const dataUrl = await readImageFileAsDataUrl(file);
+      handleGroomerCardFieldChange('photoUrl', dataUrl);
+    } catch (error) {
+      setErrorMessage(error.message || 'Не удалось загрузить фото');
+    }
+  };
+
+  const handleSaveGroomerCard = async () => {
+    try {
+      setSavingGroomerCard(true);
+      setErrorMessage('');
+      setGroomerCardMessage('');
+      const savedCard = await employeeApi.updateGroomerCard({
+        ...groomerCardForm,
+        experienceYears: '',
+      });
+      setGroomerCardForm(mapGroomerCardToForm(savedCard));
+      setGroomerCardMessage('Карточка грумера сохранена');
+    } catch (error) {
+      console.error('Error saving groomer card:', error);
+      setErrorMessage(error?.data?.details || 'Не удалось сохранить карточку грумера');
+    } finally {
+      setSavingGroomerCard(false);
     }
   };
 
@@ -256,14 +455,61 @@ export const EmployeeDashboard = ({ id }) => {
     });
   }, [orders]);
 
+  const filteredOrders = useMemo(() => {
+    const query = orderFilters.query.trim().toLowerCase();
+
+    const filtered = groupedOrders.filter((order) => {
+      const rawStatus = order.serviceStatus || order['Статус'];
+      const isCompleted = isCompletedOrderStatus(rawStatus);
+      const orderDateKey = getDateKey(order.startTime);
+
+      if (orderFilters.status === 'pending' && isCompleted) {
+        return false;
+      }
+      if (orderFilters.status === 'completed' && !isCompleted) {
+        return false;
+      }
+      if (orderFilters.date && orderDateKey !== orderFilters.date) {
+        return false;
+      }
+      if (query) {
+        const haystack = [
+          order.clientName,
+          order.petName,
+          order.petBreed,
+          order.petKind,
+          order.services?.join(' '),
+          order.serviceName,
+          order.details?.clientComment,
+          order.details?.masterComment,
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        if (!haystack.includes(query)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const aTime = toDate(a.startTime)?.getTime() || 0;
+      const bTime = toDate(b.startTime)?.getTime() || 0;
+      if (orderFilters.sort === 'date_desc') {
+        return bTime - aTime;
+      }
+      return aTime - bTime;
+    });
+  }, [groupedOrders, orderFilters]);
+
   const pendingOrders = useMemo(
-    () => groupedOrders.filter((order) => !/completed|выполн/i.test(String(order.serviceStatus || order['Статус'] || ''))),
-    [groupedOrders],
+    () => filteredOrders.filter((order) => !isCompletedOrderStatus(order.serviceStatus || order['Статус'])),
+    [filteredOrders],
   );
 
   const completedOrders = useMemo(
-    () => groupedOrders.filter((order) => /completed|выполн/i.test(String(order.serviceStatus || order['Статус'] || ''))),
-    [groupedOrders],
+    () => filteredOrders.filter((order) => isCompletedOrderStatus(order.serviceStatus || order['Статус'])),
+    [filteredOrders],
   );
 
   const scheduleSummary = useMemo(() => {
@@ -271,7 +517,7 @@ export const EmployeeDashboard = ({ id }) => {
 
     const items = schedule.map((entry) => {
       const isGroomerShift = GROOMER_ROLE_IDS.includes(entry.roleId);
-      const scheduleDate = entry.scheduleDate ? String(entry.scheduleDate).split('T')[0] : null;
+      const scheduleDate = getDateKey(entry.scheduleDate);
       const startMinutes = toTimeMinutes(entry.scheduleStart);
       const endMinutes = toTimeMinutes(entry.scheduleEnd);
       const shiftHours = startMinutes !== null && endMinutes !== null && endMinutes > startMinutes
@@ -280,13 +526,16 @@ export const EmployeeDashboard = ({ id }) => {
 
       const bookings = (isGroomerShift ? groupedOrders : [])
         .filter((order) => {
+          if (entry.employeeId && order.employeeId && entry.employeeId !== order.employeeId) {
+            return false;
+          }
           const orderStart = toDate(order.startTime);
           const orderEnd = toDate(order.endTime);
           if (!orderStart || !orderEnd || !scheduleDate) {
             return false;
           }
 
-          const orderDate = orderStart.toISOString().slice(0, 10);
+          const orderDate = getDateKey(order.startTime);
           const orderStartMinutes = orderStart.getHours() * 60 + orderStart.getMinutes();
           const orderEndMinutes = orderEnd.getHours() * 60 + orderEnd.getMinutes();
 
@@ -323,7 +572,7 @@ export const EmployeeDashboard = ({ id }) => {
 
       return {
         ...entry,
-        dateLabel: entry.scheduleDate ? new Date(entry.scheduleDate).toLocaleDateString('ru-RU') : 'Дата не указана',
+        dateLabel: formatDateLabel(entry.scheduleDate),
         timeLabel: `${entry.scheduleStart || '--:--'}–${entry.scheduleEnd || '--:--'}`,
         actualTimeLabel: formatDurationLabel(actualDurationMinutes),
         bookings,
@@ -373,7 +622,8 @@ export const EmployeeDashboard = ({ id }) => {
     const allShifts = [...scheduleSummary.upcoming, ...scheduleSummary.past];
 
     for (const shift of allShifts) {
-      const date = shift.scheduleDate ? new Date(shift.scheduleDate) : null;
+      const dateKey = getDateKey(shift.scheduleDate);
+      const date = dateKey ? new Date(`${dateKey}T00:00:00`) : null;
       if (!date || Number.isNaN(date.getTime())) {
         continue;
       }
@@ -461,7 +711,7 @@ export const EmployeeDashboard = ({ id }) => {
     }
     setEditingScheduleId(entry.scheduleId);
     setScheduleForm({
-      date: entry.scheduleDate ? entry.scheduleDate.split('T')[0] : '',
+      date: getDateKey(entry.scheduleDate),
       startTime: entry.scheduleStart || '',
       endTime: entry.scheduleEnd || '',
       roleId: entry.roleId || '',
@@ -491,18 +741,21 @@ export const EmployeeDashboard = ({ id }) => {
     <Panel id={id} className="employee-dashboard">
       <PanelHeader
         after={(
-          <div className="ed-header-actions">
-            <Button mode="secondary" size="s" onClick={() => routeNavigator.push('/role-menu')}>
-              Выбор роли
-            </Button>
-            <Button mode="tertiary" size="s" onClick={logout}>
-              Выйти
-            </Button>
+          <div className="dashboard-header-actions">
+            <div className="ed-header-actions">
+              <Button mode="secondary" size="s" onClick={() => routeNavigator.push('/role-menu')}>
+                Выбор роли
+              </Button>
+              <Button mode="tertiary" size="s" onClick={logout}>
+                Выйти
+              </Button>
+            </div>
           </div>
         )}
       >
         Пёс Пижон · Кабинет грумера
       </PanelHeader>
+      <LegalInfoButton />
 
       {loading ? (
         <div className="ed-loading">
@@ -581,6 +834,13 @@ export const EmployeeDashboard = ({ id }) => {
                 Расписание
               </TabsItem>
               <TabsItem
+                className={`ed-tab-item${activeTab === 'profile' ? ' ed-tab-item-active' : ''}`}
+                selected={activeTab === 'profile'}
+                onClick={() => setActiveTab('profile')}
+              >
+                Карточка
+              </TabsItem>
+              <TabsItem
                 className={`ed-tab-item${activeTab === 'stats' ? ' ed-tab-item-active' : ''}`}
                 selected={activeTab === 'stats'}
                 onClick={() => setActiveTab('stats')}
@@ -592,6 +852,64 @@ export const EmployeeDashboard = ({ id }) => {
 
           {activeTab === 'orders' ? (
           <Group className="ed-group" header={<Header mode="secondary">Мои записи</Header>}>
+            <div className="ed-order-filters">
+              <FormItem top="Поиск" className="ed-order-filter-search">
+                <Input
+                  value={orderFilters.query}
+                  placeholder="Клиент, питомец, порода или услуга"
+                  onChange={(e) => setOrderFilters((prev) => ({ ...prev, query: e.target.value }))}
+                />
+              </FormItem>
+              <FormItem top="Статус" className="ed-order-filter-status">
+                <EmployeeSelect
+                  value={orderFilters.status}
+                  onChange={(value) => setOrderFilters((prev) => ({ ...prev, status: value }))}
+                  options={[
+                    { value: 'all', label: 'Все записи' },
+                    { value: 'pending', label: 'Требуют подтверждения' },
+                    { value: 'completed', label: 'Выполненные' },
+                  ]}
+                />
+              </FormItem>
+              <FormItem top="Дата записи" className="ed-order-filter-date">
+                <Input
+                  type="date"
+                  value={orderFilters.date}
+                  onChange={(e) => setOrderFilters((prev) => ({ ...prev, date: e.target.value }))}
+                />
+              </FormItem>
+              <FormItem top="Сортировка" className="ed-order-filter-sort">
+                <EmployeeSelect
+                  value={orderFilters.sort}
+                  onChange={(value) => setOrderFilters((prev) => ({ ...prev, sort: value }))}
+                  options={[
+                    { value: 'date_asc', label: 'От ближайшей' },
+                    { value: 'date_desc', label: 'От поздней' },
+                  ]}
+                />
+              </FormItem>
+              <FormItem top={<span className="ed-filter-empty-label">Действия</span>} className="ed-order-filter-actions-item">
+                <div className="ed-order-filter-actions">
+                  <Button
+                    mode="secondary"
+                    size="m"
+                    className="ed-order-filter-reset"
+                    onClick={() => setOrderFilters({
+                      status: 'all',
+                      date: '',
+                      query: '',
+                      sort: 'date_asc',
+                    })}
+                  >
+                    Сбросить фильтры
+                  </Button>
+                  <div className="ed-order-filter-count">
+                    Найдено: {filteredOrders.length} из {groupedOrders.length}
+                  </div>
+                </div>
+              </FormItem>
+            </div>
+
             {pendingOrders.length > 0 ? (
               <>
                 <div className="ed-section-title">Требуют подтверждения выполнения</div>
@@ -698,9 +1016,9 @@ export const EmployeeDashboard = ({ id }) => {
                 );
                 })}
               </>
-            ) : (
+            ) : orderFilters.status !== 'completed' ? (
               <div className="ed-empty">Нет записей, требующих подтверждения</div>
-            )}
+            ) : null}
 
             {completedOrders.length > 0 ? (
               <>
@@ -764,7 +1082,8 @@ export const EmployeeDashboard = ({ id }) => {
           {activeTab === 'schedule' ? (
           <Group className="ed-group" header={<Header mode="secondary">Моё расписание</Header>}>
             <CardGrid size="l">
-              <Card ref={scheduleFormRef} mode="shadow" className="ed-card ed-schedule-form-card">
+              <Card mode="shadow" className="ed-card ed-schedule-form-card">
+                <div ref={scheduleFormRef} />
                 <div className="ed-schedule-form">
                   <div className="ed-form-title">
                     {editingScheduleId ? 'Редактирование смены' : 'Добавление смены'}
@@ -792,17 +1111,15 @@ export const EmployeeDashboard = ({ id }) => {
                     />
                   </FormItem>
                   <FormItem top="Должность">
-                    <NativeSelect
+                    <EmployeeSelect
                       value={scheduleForm.roleId}
-                      onChange={(e) => setScheduleForm((prev) => ({ ...prev, roleId: e.target.value }))}
-                    >
-                      <option value="">Выберите роль</option>
-                      {roleOptions.map((role) => (
-                        <option key={role.id} value={role.id}>
-                          {role.label}
-                        </option>
-                      ))}
-                    </NativeSelect>
+                      onChange={(value) => setScheduleForm((prev) => ({ ...prev, roleId: value }))}
+                      placeholder="Выберите роль"
+                      options={roleOptions.map((role) => ({
+                        value: role.id,
+                        label: role.label || 'Должность',
+                      }))}
+                    />
                   </FormItem>
                   <div className="ed-form-actions">
                     <Button
@@ -1003,6 +1320,91 @@ export const EmployeeDashboard = ({ id }) => {
               </>
             ) : null}
 
+          </Group>
+          ) : null}
+
+          {activeTab === 'profile' ? (
+          <Group className="ed-group" header={<Header mode="secondary">Публичная карточка грумера</Header>}>
+            <CardGrid size="l">
+              <Card mode="shadow" className="ed-card ed-groomer-card-form">
+                <div className="ed-groomer-card-layout">
+                  <div className="ed-groomer-card-preview">
+                    <div className="ed-groomer-card-photo">
+                      {groomerCardForm.photoUrl ? (
+                        <img src={groomerCardForm.photoUrl} alt="Фото грумера" />
+                      ) : (
+                        <span>{String(user?.fullName || 'Г').trim().charAt(0).toUpperCase() || 'Г'}</span>
+                      )}
+                    </div>
+                    <div className="ed-groomer-card-name">{user?.fullName || 'Грумер'}</div>
+                    <div className="ed-groomer-card-muted">
+                      {groomerCardForm.specialization || 'Специализация пока не указана'}
+                    </div>
+                    <div className="ed-groomer-card-muted">
+                      {formatExperienceLabel(groomerCardForm.experienceSince)}
+                    </div>
+                  </div>
+
+                  <div className="ed-groomer-card-fields">
+                    <FormItem top="Фото">
+                      <div className="ed-file-actions">
+                        <label className="ed-file-button">
+                          <span>Выбрать фото</span>
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleGroomerPhotoFileChange}
+                          />
+                        </label>
+                        {groomerCardForm.photoUrl ? (
+                          <Button
+                            size="s"
+                            mode="secondary"
+                            onClick={() => handleGroomerCardFieldChange('photoUrl', '')}
+                          >
+                            Убрать фото
+                          </Button>
+                        ) : null}
+                      </div>
+                    </FormItem>
+                    <FormItem top="Специализация">
+                      <Input
+                        value={groomerCardForm.specialization}
+                        onChange={(e) => handleGroomerCardFieldChange('specialization', e.target.value)}
+                        placeholder="Например: шпицы, пудели, кошки, тримминг"
+                      />
+                    </FormItem>
+                    <FormItem top="Работает с">
+                      <Input
+                        type="date"
+                        value={groomerCardForm.experienceSince}
+                        onChange={(e) => handleGroomerCardFieldChange('experienceSince', e.target.value)}
+                      />
+                    </FormItem>
+                    <FormItem top="Описание">
+                      <Textarea
+                        value={groomerCardForm.description}
+                        onChange={(e) => handleGroomerCardFieldChange('description', e.target.value)}
+                        placeholder="Коротко о подходе к работе, опыте и любимых направлениях"
+                      />
+                    </FormItem>
+                    <FormItem top="Сертификаты">
+                      <Textarea
+                        value={groomerCardForm.certificates}
+                        onChange={(e) => handleGroomerCardFieldChange('certificates', e.target.value)}
+                        placeholder="Курсы, дипломы, повышение квалификации"
+                      />
+                    </FormItem>
+                    {groomerCardMessage ? <div className="ed-success-note">{groomerCardMessage}</div> : null}
+                    <div className="ed-form-actions">
+                      <Button size="m" className="ed-save-schedule-button" onClick={handleSaveGroomerCard} loading={savingGroomerCard}>
+                        Сохранить карточку
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </CardGrid>
           </Group>
           ) : null}
 

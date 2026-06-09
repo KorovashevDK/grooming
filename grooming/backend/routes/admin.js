@@ -268,7 +268,7 @@ const loadDashboardPayload = async () => {
              e.${C.employeeName} as employeeName,
              sch.${C.scheduleRoleId} as roleId,
              role.[Наименование] as roleName,
-             sch.${C.scheduleDate} as scheduleDate,
+             CONVERT(varchar(10), sch.${C.scheduleDate}, 23) as scheduleDate,
              CONVERT(varchar(5), sch.${C.scheduleStart}, 108) as scheduleStart,
              CONVERT(varchar(5), sch.${C.scheduleEnd}, 108) as scheduleEnd
       FROM ${T.schedule} sch

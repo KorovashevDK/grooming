@@ -36,6 +36,117 @@
   gap: 10px;
 }
 
+.adm-select {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+.adm-select-trigger {
+  width: 100%;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(91, 53, 41, 0.18);
+  background: #fffdf8;
+  color: #60392d;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  box-sizing: border-box;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(91, 53, 41, 0.08);
+}
+
+.adm-select-trigger span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.adm-select-arrow {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(96, 57, 45, 0.1);
+  flex: 0 0 auto;
+}
+
+.adm-select-arrow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid #60392d;
+  border-bottom: 2px solid #60392d;
+  transform: translate(-50%, -64%) rotate(45deg);
+}
+
+.adm-select-open .adm-select-arrow {
+  transform: rotate(180deg);
+}
+
+.adm-select-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 80;
+  width: 100%;
+  max-width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 16px;
+  border: 1px solid rgba(91, 53, 41, 0.16);
+  background: #fffdf8;
+  box-shadow: 0 18px 36px rgba(35, 20, 15, 0.24);
+  box-sizing: border-box;
+}
+
+.adm-select-option {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #60392d;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  overflow-wrap: anywhere;
+}
+
+.adm-select-option-selected,
+.adm-select-option:hover {
+  background: rgba(96, 57, 45, 0.1);
+  border-color: rgba(96, 57, 45, 0.16);
+}
+
+.admin-dashboard .adm-remove-photo-button,
+.admin-dashboard .adm-remove-photo-button .vkuiButton__in,
+.admin-dashboard .adm-remove-photo-button .vkuiButton__content {
+  background: #fff4e2 !important;
+  background-color: #fff4e2 !important;
+  border-color: rgba(96, 57, 45, 0.28) !important;
+  color: #60392d !important;
+  -webkit-text-fill-color: #60392d !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+}
+
 .adm-section-title {
   margin: 18px 0 10px;
   color: #fff1de;

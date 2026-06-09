@@ -13,6 +13,8 @@ const T = {
   pets: '[\u0413\u0440\u0443\u043c\u0438\u043d\u0433_\u043a\u043b\u0438\u0435\u043d\u0442\u044b]',
   schedule: '[\u0420\u0430\u0441\u043f\u0438\u0441\u0430\u043d\u0438\u0435_\u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u043e\u0432]',
   roles: '[\u0414\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438]',
+  groomerReviews: '[\u041e\u0442\u0437\u044b\u0432\u044b_\u0433\u0440\u0443\u043c\u0435\u0440\u043e\u0432]',
+  groomerCards: '[\u041a\u0430\u0440\u0442\u043e\u0447\u043a\u0438_\u0433\u0440\u0443\u043c\u0435\u0440\u043e\u0432]',
 };
 
 const C = {
@@ -31,6 +33,7 @@ const C = {
   note: '[\u041f\u0440\u0438\u043c\u0435\u0447\u0430\u043d\u0438\u0435]',
   servicePrice: '[\u0426\u0435\u043d\u0430_\u0437\u0430_\u0443\u0441\u043b\u0443\u0433\u0443]',
   petId: '[\u041a\u043e\u0434_\u0433\u0440\u0443\u043c\u0438\u043d\u0433_\u043a\u043b\u0438\u0435\u043d\u0442\u0430]',
+  petBreed: '[\u041f\u043e\u0440\u043e\u0434\u0430]',
   petSize: '[\u0420\u0430\u0437\u043c\u0435\u0440]',
   orderStart: '[\u0412\u0440\u0435\u043c\u044f_\u043d\u0430\u0447\u0430\u043b\u0430_\u0440\u0430\u0431\u043e\u0442\u044b]',
   orderEnd: '[\u0412\u0440\u0435\u043c\u044f_\u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f_\u0440\u0430\u0431\u043e\u0442\u044b]',
@@ -42,10 +45,19 @@ const C = {
   scheduleRoleId: '[ID_\u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438]',
 };
 
+const CARD_COLUMNS = {
+  photoUrl: '[\u0424\u043e\u0442\u043e_URL]',
+  description: '[\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435]',
+  specialization: '[\u0421\u043f\u0435\u0446\u0438\u0430\u043b\u0438\u0437\u0430\u0446\u0438\u044f]',
+  certificates: '[\u0421\u0435\u0440\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u044b]',
+  experienceSince: '[\u0421\u0442\u0430\u0436_\u0441_\u0434\u0430\u0442\u044b]',
+  experienceYears: '[\u0421\u0442\u0430\u0436_\u043b\u0435\u0442]',
+};
+
 const SIZE_COEFFICIENTS = {
-  small: 1,
-  medium: 1.3,
-  large: 1.6,
+  small: 0.9,
+  medium: 1,
+  large: 1.1,
 };
 
 const GROOMER_ROLE_IDS = [
@@ -60,7 +72,54 @@ const GROOMER_LEVEL_COEFFICIENTS = {
   '5EEFB7DC-57E8-404B-94D0-B641D7F6D696': 1.1,
 };
 
-const getRecencyCoefficient = (recency) => {
+const BREED_RECENCY_PROFILES = [
+  {
+    factor: 0,
+    patterns: [
+      /гладкошерст|гладкош|короткошерст|короткош|short.?hair/i,
+      /такса.*(глад|корот)|dachshund.*short/i,
+      /бигль|мопс|боксер|бульдог|джек.?рассел|доберман|далматин|басенджи/i,
+    ],
+  },
+  {
+    factor: 1.5,
+    patterns: [
+      /шпиц|померан|самоед|хаски|маламут|чау|пудель|бишон|болонк|шелти|пиреней|ньюфаундленд/i,
+      /перс|мейн.?кун|сибирск|невск/i,
+    ],
+  },
+  {
+    factor: 1.25,
+    patterns: [
+      /йорк|мальтез|ши.?тцу|пекинес|спаниел|кокер|колли|афган|терьер|корги|ретривер|сеттер/i,
+      /длинношерст|длиннош|long.?hair/i,
+    ],
+  },
+];
+
+const getBreedRecencyFactor = (breed) => {
+  const normalized = String(breed || '')
+    .trim()
+    .toLowerCase()
+    .replace(/ё/g, 'е');
+
+  if (!normalized) {
+    return 1;
+  }
+
+  const matched = BREED_RECENCY_PROFILES.find((profile) =>
+    profile.patterns.some((pattern) => pattern.test(normalized)),
+  );
+
+  return matched?.factor ?? 1;
+};
+
+const applyBreedRecencyFactor = (baseCoefficient, breed) => {
+  const surcharge = Math.max(0, baseCoefficient - 1);
+  return 1 + surcharge * getBreedRecencyFactor(breed);
+};
+
+const getBaseRecencyCoefficient = (recency) => {
   const value = String(recency || '').trim().toLowerCase();
   if (!value || value === 'recent') return 1;
   if (value === '1_3_months') return 1.05;
@@ -69,7 +128,11 @@ const getRecencyCoefficient = (recency) => {
   return 1;
 };
 
-const getRecencyDurationCoefficient = (recency) => {
+const getRecencyCoefficient = (recency, breed) => (
+  applyBreedRecencyFactor(getBaseRecencyCoefficient(recency), breed)
+);
+
+const getBaseRecencyDurationCoefficient = (recency) => {
   const value = String(recency || '').trim().toLowerCase();
   if (!value || value === 'recent') return 1;
   if (value === '1_3_months') return 1.1;
@@ -77,6 +140,10 @@ const getRecencyDurationCoefficient = (recency) => {
   if (value === 'never') return 1.3;
   return 1;
 };
+
+const getRecencyDurationCoefficient = (recency, breed) => (
+  applyBreedRecencyFactor(getBaseRecencyDurationCoefficient(recency), breed)
+);
 
 const isRecencySensitiveService = (serviceName) => {
   const name = String(serviceName || '').trim().toLowerCase();
@@ -98,7 +165,7 @@ const isRecencySensitiveService = (serviceName) => {
   return /груминг|стриж|вычес|линьк|тримминг|spa|спа|мыть|сушк/.test(name);
 };
 
-const getAdjustedServiceDuration = (row, recency) => {
+const getAdjustedServiceDuration = (row, recency, breed) => {
   const raw = row['Длительность_мин'];
   const baseDuration = Number(raw);
   const safeBaseDuration = Number.isFinite(baseDuration) && baseDuration > 0 ? baseDuration : 60;
@@ -108,7 +175,7 @@ const getAdjustedServiceDuration = (row, recency) => {
     return safeBaseDuration;
   }
 
-  const adjusted = safeBaseDuration * getRecencyDurationCoefficient(recency);
+  const adjusted = safeBaseDuration * getRecencyDurationCoefficient(recency, breed);
   return Math.ceil(adjusted / 5) * 5;
 };
 
@@ -142,6 +209,67 @@ const sendDbError = (res, err, context) =>
 
 const isSchemaError = (err) =>
   /Invalid column name|Invalid object name|could not be bound|Ambiguous column name/i.test(err?.message || '');
+
+const formatRating = (value) => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? Math.round(numeric * 10) / 10 : null;
+};
+
+const formatYearsLabel = (value) => {
+  const years = Math.round(Number(value) || 0);
+  const mod10 = years % 10;
+  const mod100 = years % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${years} год`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${years} года`;
+  return `${years} лет`;
+};
+
+const formatExperienceLabel = (firstServiceAt, completedOrders = 0) => {
+  const firstDate = firstServiceAt ? new Date(firstServiceAt) : null;
+  const completed = Number(completedOrders) || 0;
+  if (!firstDate || Number.isNaN(firstDate.getTime())) {
+    return completed > 0 ? `${completed} выполненных записей` : 'Стаж в салоне уточняется';
+  }
+
+  const months = Math.max(1, Math.floor((Date.now() - firstDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+  if (months < 12) {
+    return `${months} мес. в салоне · ${completed} выполненных записей`;
+  }
+
+  const years = Math.floor(months / 12);
+  const tailMonths = months % 12;
+  return `${formatYearsLabel(years)}${tailMonths ? ` ${tailMonths} мес.` : ''} в салоне · ${completed} выполненных записей`;
+};
+
+const formatManualExperienceLabel = (experienceYears, experienceSince, completedOrders = 0) => {
+  const completed = Number(completedOrders) || 0;
+  const sinceDate = experienceSince ? new Date(experienceSince) : null;
+
+  if (sinceDate && !Number.isNaN(sinceDate.getTime())) {
+    const months = Math.max(1, Math.floor((Date.now() - sinceDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+    if (months < 12) {
+      return `Стаж ${months} мес.${completed ? ` · ${completed} выполненных записей` : ''}`;
+    }
+
+    const years = Math.floor(months / 12);
+    const tailMonths = months % 12;
+    return `Стаж ${formatYearsLabel(years)}${tailMonths ? ` ${tailMonths} мес.` : ''}${completed ? ` · ${completed} выполненных записей` : ''}`;
+  }
+
+  const explicitYears = Number(experienceYears);
+  if (Number.isFinite(explicitYears) && explicitYears > 0) {
+    return `Стаж ${formatYearsLabel(explicitYears)}${completed ? ` · ${completed} выполненных записей` : ''}`;
+  }
+
+  return '';
+};
+
+const getReviewTableMissing = (err) => /Invalid object name/i.test(err?.message || '');
+
+const isCompletedServiceStatusSql = (alias = '') => {
+  const prefix = alias ? `${alias}.` : '';
+  return `(${prefix}${C.status} = N'Выполнено' OR ${prefix}${C.status} = N'Выполнена' OR ${prefix}${C.status} = N'Выполнен' OR ${prefix}${C.status} = 'completed')`;
+};
 
 const normalizeSize = (value) => {
   if (!value) return null;
@@ -252,7 +380,7 @@ router.get('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer'
     await poolConnect;
 
     const baseQuery = `
-      SELECT o.*, g.${C.serviceName} as serviceName, s.${C.employeeName} as employeeName, og.${C.note} as note,
+      SELECT o.*, g.${C.serviceName} as serviceName, s.${C.employeeName} as employeeName, og.${C.employeeId} as employeeId, og.${C.note} as note,
              p.[Кличка] as petName, p.[Вид] as petKind, p.[Порода] as petBreed, p.[Размер] as petSize,
              og.${C.status} as serviceStatus, og.${C.orderStart} as serviceStart, og.${C.orderEnd} as serviceEnd, og.${C.orderDuration} as serviceDuration
       FROM ${T.orders} o
@@ -265,7 +393,7 @@ router.get('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer'
     `;
 
     const queryWithPrice = `
-      SELECT o.*, g.${C.serviceName} as serviceName, s.${C.employeeName} as employeeName, og.${C.servicePrice} as servicePrice, og.${C.note} as note,
+      SELECT o.*, g.${C.serviceName} as serviceName, s.${C.employeeName} as employeeName, og.${C.employeeId} as employeeId, og.${C.servicePrice} as servicePrice, og.${C.note} as note,
              p.[Кличка] as petName, p.[Вид] as petKind, p.[Порода] as petBreed, p.[Размер] as petSize,
              og.${C.status} as serviceStatus, og.${C.orderStart} as serviceStart, og.${C.orderEnd} as serviceEnd, og.${C.orderDuration} as serviceDuration
       FROM ${T.orders} o
@@ -277,14 +405,36 @@ router.get('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer'
       ORDER BY o.${C.orderDate} DESC
     `;
 
+    const queryWithReviews = `
+      SELECT o.*, g.${C.serviceName} as serviceName, s.${C.employeeName} as employeeName, og.${C.employeeId} as employeeId, og.${C.servicePrice} as servicePrice, og.${C.note} as note,
+             p.[Кличка] as petName, p.[Вид] as petKind, p.[Порода] as petBreed, p.[Размер] as petSize,
+             og.${C.status} as serviceStatus, og.${C.orderStart} as serviceStart, og.${C.orderEnd} as serviceEnd, og.${C.orderDuration} as serviceDuration,
+             review.[Рейтинг] as reviewRating, review.[Текст] as reviewText, review.[Дата_отзыва] as reviewDate
+      FROM ${T.orders} o
+      LEFT JOIN ${T.orderServices} og ON o.${C.orderId} = og.${C.orderId}
+      LEFT JOIN ${T.services} g ON og.${C.serviceId} = g.${C.serviceId}
+      LEFT JOIN ${T.employees} s ON og.${C.employeeId} = s.${C.employeeId}
+      LEFT JOIN ${T.pets} p ON o.${C.orderPetId} = p.${C.petId}
+      LEFT JOIN ${T.groomerReviews} review ON review.[Код_заказа] = o.${C.orderId}
+      WHERE o.${C.ownerId} = @userId
+      ORDER BY o.${C.orderDate} DESC
+    `;
+
     let ordersResult;
     try {
-      ordersResult = await pool.request().input('userId', sql.UniqueIdentifier, req.user.userId).query(queryWithPrice);
+      ordersResult = await pool.request().input('userId', sql.UniqueIdentifier, req.user.userId).query(queryWithReviews);
     } catch (err) {
       if (!isSchemaError(err)) {
         throw err;
       }
-      ordersResult = await pool.request().input('userId', sql.UniqueIdentifier, req.user.userId).query(baseQuery);
+      try {
+        ordersResult = await pool.request().input('userId', sql.UniqueIdentifier, req.user.userId).query(queryWithPrice);
+      } catch (fallbackErr) {
+        if (!isSchemaError(fallbackErr)) {
+          throw fallbackErr;
+        }
+        ordersResult = await pool.request().input('userId', sql.UniqueIdentifier, req.user.userId).query(baseQuery);
+      }
     }
 
     res.json(ordersResult.recordset);
@@ -293,9 +443,141 @@ router.get('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer'
   }
 });
 
+router.get('/groomers/:employeeId/card', authenticateToken, checkRole(['client', 'admin', 'groomer']), async (req, res) => {
+  try {
+    await poolConnect;
+    const employeeId = req.params.employeeId;
+
+    let employeeResult;
+    try {
+      employeeResult = await pool.request()
+        .input('employeeId', sql.UniqueIdentifier, employeeId)
+        .query(`
+          SELECT TOP 1 emp.${C.employeeId} as employeeId,
+                 emp.${C.employeeName} as fullName,
+                 emp.${C.ownerPhone} as phone,
+                 role.[Наименование] as roleName,
+                 card.${CARD_COLUMNS.photoUrl} as photoUrl,
+                 card.${CARD_COLUMNS.description} as description,
+                 card.${CARD_COLUMNS.specialization} as specialization,
+                 card.${CARD_COLUMNS.certificates} as certificates,
+                 card.${CARD_COLUMNS.experienceSince} as experienceSince,
+                 card.${CARD_COLUMNS.experienceYears} as experienceYears
+          FROM ${T.employees} emp
+          LEFT JOIN ${T.groomerCards} card ON card.${C.employeeId} = emp.${C.employeeId}
+          LEFT JOIN ${T.schedule} sch ON sch.${C.employeeId} = emp.${C.employeeId}
+          LEFT JOIN ${T.roles} role ON role.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE emp.${C.employeeId} = @employeeId
+          ORDER BY sch.${C.scheduleDate} DESC
+        `);
+    } catch (err) {
+      if (!isSchemaError(err)) {
+        throw err;
+      }
+      employeeResult = await pool.request()
+        .input('employeeId', sql.UniqueIdentifier, employeeId)
+        .query(`
+          SELECT TOP 1 emp.${C.employeeId} as employeeId,
+                 emp.${C.employeeName} as fullName,
+                 emp.${C.ownerPhone} as phone,
+                 role.[Наименование] as roleName
+          FROM ${T.employees} emp
+          LEFT JOIN ${T.schedule} sch ON sch.${C.employeeId} = emp.${C.employeeId}
+          LEFT JOIN ${T.roles} role ON role.[ID_должности] = sch.${C.scheduleRoleId}
+          WHERE emp.${C.employeeId} = @employeeId
+          ORDER BY sch.${C.scheduleDate} DESC
+        `);
+    }
+
+    if (employeeResult.recordset.length === 0) {
+      return res.status(404).json({ error: 'Groomer not found' });
+    }
+
+    const experienceResult = await pool.request()
+      .input('employeeId', sql.UniqueIdentifier, employeeId)
+      .query(`
+        SELECT MIN(${C.orderStart}) as firstServiceAt,
+               COUNT(DISTINCT ${C.orderId}) as completedOrders
+        FROM ${T.orderServices}
+        WHERE ${C.employeeId} = @employeeId
+          AND ${isCompletedServiceStatusSql()}
+      `);
+
+    let reviews = [];
+    let rating = null;
+    let reviewCount = 0;
+
+    try {
+      const reviewsResult = await pool.request()
+        .input('employeeId', sql.UniqueIdentifier, employeeId)
+        .query(`
+          SELECT r.[Код_отзыва] as reviewId,
+                 r.[Код_заказа] as orderId,
+                 r.[Рейтинг] as rating,
+                 r.[Текст] as text,
+                 r.[Дата_отзыва] as createdAt,
+                 owner.${C.ownerName} as clientName
+          FROM ${T.groomerReviews} r
+          LEFT JOIN ${T.owners} owner ON owner.${C.ownerId} = r.[Код_владельца]
+          WHERE r.[Код_сотрудника] = @employeeId
+          ORDER BY r.[Дата_отзыва] DESC
+        `);
+
+      reviews = reviewsResult.recordset.map((row) => ({
+        id: row.reviewId,
+        orderId: row.orderId,
+        rating: Number(row.rating) || 0,
+        text: row.text || '',
+        createdAt: row.createdAt,
+        clientName: row.clientName || 'Клиент',
+      }));
+      reviewCount = reviews.length;
+      if (reviewCount > 0) {
+        rating = formatRating(reviews.reduce((sum, item) => sum + item.rating, 0) / reviewCount);
+      }
+    } catch (err) {
+      if (!getReviewTableMissing(err)) {
+        throw err;
+      }
+    }
+
+    const employee = employeeResult.recordset[0];
+    const experience = experienceResult.recordset[0] || {};
+    const initials = String(employee.fullName || 'Г')
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase();
+
+    res.json({
+      id: employee.employeeId,
+      fullName: toShortEmployeeName(employee.fullName) || employee.fullName || 'Грумер',
+      roleName: employee.roleName || 'Грумер',
+      phone: employee.phone || '',
+      photoUrl: employee.photoUrl || null,
+      description: employee.description || '',
+      specialization: employee.specialization || '',
+      certificates: employee.certificates || '',
+      initials: initials || 'Г',
+      rating,
+      reviewCount,
+      experienceLabel: formatManualExperienceLabel(
+        employee.experienceYears,
+        employee.experienceSince,
+        experience.completedOrders,
+      ) || formatExperienceLabel(experience.firstServiceAt, experience.completedOrders),
+      reviews,
+    });
+  } catch (err) {
+    sendDbError(res, err, 'clients.groomers.card');
+  }
+});
+
 router.post('/availability', authenticateToken, checkRole(['client', 'admin', 'groomer']), async (req, res) => {
   try {
-    const { date, serviceIds, groomingRecency } = req.body;
+    const { date, serviceIds, groomingRecency, petBreed } = req.body;
     const normalizedServiceIds = Array.isArray(serviceIds) ? serviceIds.filter(Boolean) : [];
     if (!date || normalizedServiceIds.length === 0) {
       return res.status(400).json({ error: 'date and serviceIds are required' });
@@ -326,7 +608,7 @@ router.post('/availability', authenticateToken, checkRole(['client', 'admin', 'g
     }
 
     const totalDurationMinutes = servicesResult.recordset.reduce(
-      (sum, row) => sum + getAdjustedServiceDuration(row, groomingRecency),
+      (sum, row) => sum + getAdjustedServiceDuration(row, groomingRecency, petBreed),
       0,
     );
     const stepMinutes = 30;
@@ -480,12 +762,13 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
     await transaction.begin();
 
     const verifyPetQuery = `
-      SELECT ${C.petSize} as petSize
+      SELECT ${C.petSize} as petSize, ${C.petBreed} as petBreed
       FROM ${T.pets}
       WHERE ${C.petId} = @petId
     `;
 
     let petSize = null;
+    let petBreed = req.body?.petBreed || '';
     try {
       const verifyPetResult = await new sql.Request(transaction)
         .input('petId', sql.UniqueIdentifier, petId)
@@ -497,6 +780,7 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
       }
 
       petSize = verifyPetResult.recordset[0]?.petSize || null;
+      petBreed = verifyPetResult.recordset[0]?.petBreed || petBreed;
     } catch (err) {
       if (!isSchemaError(err)) {
         throw err;
@@ -565,7 +849,7 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
     for (const row of servicesResult.recordset) {
       const rowId = row['\u041a\u043e\u0434_\u0443\u0441\u043b\u0443\u0433\u0438'];
       const rowPrice = getServiceBasePrice(row);
-      const rowDuration = getAdjustedServiceDuration(row, groomingRecency);
+      const rowDuration = getAdjustedServiceDuration(row, groomingRecency, petBreed);
       serviceBasePriceById.set(rowId, rowPrice);
       serviceDurationById.set(rowId, rowDuration);
       totalDurationMinutes += rowDuration;
@@ -578,7 +862,7 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
     }
 
     const fallbackBasePrice = Number.isFinite(Number(price)) ? Number(price) : 0;
-    const recencyCoefficient = getRecencyCoefficient(groomingRecency);
+    const recencyCoefficient = getRecencyCoefficient(groomingRecency, petBreed);
 
     const totalPrice = normalizedServiceIds.reduce((sum, id) => {
       const basePrice = serviceBasePriceById.get(id);
@@ -735,6 +1019,71 @@ router.post('/orders', authenticateToken, checkRole(['client', 'admin', 'groomer
       } catch (_rollbackError) {}
     }
     sendDbError(res, err, 'clients.orders.create');
+  }
+});
+
+router.post('/orders/:orderId/review', authenticateToken, checkRole(['client', 'admin', 'groomer']), async (req, res) => {
+  try {
+    await poolConnect;
+
+    const orderId = req.params.orderId;
+    const ownerId = req.user.userId;
+    const rating = Number(req.body?.rating);
+    const text = String(req.body?.text || '').trim();
+
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be an integer from 1 to 5' });
+    }
+
+    const orderResult = await pool.request()
+      .input('orderId', sql.UniqueIdentifier, orderId)
+      .input('ownerId', sql.UniqueIdentifier, ownerId)
+      .query(`
+        SELECT TOP 1 o.${C.orderId} as orderId,
+               og.${C.employeeId} as employeeId,
+               og.${C.status} as status
+        FROM ${T.orders} o
+        JOIN ${T.orderServices} og ON og.${C.orderId} = o.${C.orderId}
+        WHERE o.${C.orderId} = @orderId
+          AND o.${C.ownerId} = @ownerId
+          AND ${isCompletedServiceStatusSql('og')}
+        ORDER BY og.${C.orderStart} DESC
+      `);
+
+    if (orderResult.recordset.length === 0) {
+      return res.status(409).json({ error: 'Review is available only for completed client orders' });
+    }
+
+    const completedOrder = orderResult.recordset[0];
+    const existingResult = await pool.request()
+      .input('orderId', sql.UniqueIdentifier, orderId)
+      .query(`
+        SELECT 1
+        FROM ${T.groomerReviews}
+        WHERE [Код_заказа] = @orderId
+      `);
+
+    if (existingResult.recordset.length > 0) {
+      return res.status(409).json({ error: 'Review already exists for this order' });
+    }
+
+    const reviewId = uuidv4();
+    await pool.request()
+      .input('reviewId', sql.UniqueIdentifier, reviewId)
+      .input('orderId', sql.UniqueIdentifier, orderId)
+      .input('employeeId', sql.UniqueIdentifier, completedOrder.employeeId)
+      .input('ownerId', sql.UniqueIdentifier, ownerId)
+      .input('rating', sql.Int, rating)
+      .input('text', sql.NVarChar(sql.MAX), text || null)
+      .query(`
+        INSERT INTO ${T.groomerReviews}
+        ([Код_отзыва], [Код_заказа], [Код_сотрудника], [Код_владельца], [Рейтинг], [Текст], [Дата_отзыва])
+        VALUES (@reviewId, @orderId, @employeeId, @ownerId, @rating, @text, SYSUTCDATETIME())
+      `);
+
+    res.json({ success: true, reviewId, employeeId: completedOrder.employeeId });
+  } catch (err) {
+    sendDbError(res, err, 'clients.orders.review');
   }
 });
 

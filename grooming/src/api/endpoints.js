@@ -39,6 +39,12 @@ export const adminApi = {
     apiRequest(`/admin/schedule/${scheduleId}`, {
       method: 'DELETE',
     }),
+  getGroomerCards: () => apiRequest('/employees/groomer-cards'),
+  updateGroomerCard: (employeeId, payload) =>
+    apiRequest(`/employees/groomer-cards/${employeeId}`, {
+      method: 'PATCH',
+      body: payload,
+    }),
 };
 
 export const employeeApi = {
@@ -63,6 +69,12 @@ export const employeeApi = {
     apiRequest(`/employees/schedule/${scheduleId}`, {
       method: 'DELETE',
     }),
+  getGroomerCard: () => apiRequest('/employees/groomer-card'),
+  updateGroomerCard: (payload) =>
+    apiRequest('/employees/groomer-card', {
+      method: 'PATCH',
+      body: payload,
+    }),
 };
 
 export const clientApi = {
@@ -75,6 +87,12 @@ export const clientApi = {
     }),
   getAvailability: (payload) =>
     apiRequest('/clients/availability', {
+      method: 'POST',
+      body: payload,
+    }),
+  getGroomerCard: (employeeId) => apiRequest(`/clients/groomers/${employeeId}/card`),
+  createReview: (orderId, payload) =>
+    apiRequest(`/clients/orders/${orderId}/review`, {
       method: 'POST',
       body: payload,
     }),

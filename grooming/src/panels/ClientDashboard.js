@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import PropTypes from 'prop-types';
 import { clientApi, employeesApi, petsApi, servicesApi } from '../api/endpoints';
+import { LegalInfoButton } from '../components/LegalInfoButton';
 import './ClientDashboard.css';
 
 const SIZE_LABELS = {
@@ -30,9 +31,9 @@ const SIZE_LABELS = {
 };
 
 const SIZE_COEFFICIENTS = {
-  small: 1,
-  medium: 1.3,
-  large: 1.6,
+  small: 0.9,
+  medium: 1,
+  large: 1.1,
 };
 
 const GROOMER_LEVEL_LABELS = {
@@ -48,9 +49,9 @@ const GROOMER_LEVEL_COEFFICIENTS = {
 };
 
 const getSizeModifierLabel = (size) => {
-  if (size === 'medium') return 'надбавка 30%';
-  if (size === 'large') return 'надбавка 60%';
-  return 'без надбавки';
+  if (size === 'small') return 'скидка 10%';
+  if (size === 'large') return 'надбавка 10%';
+  return 'без изменений';
 };
 
 const getGroomerModifierLabel = (roleId) => {
@@ -66,19 +67,86 @@ const GROOMING_RECENCY_OPTIONS = [
   { value: 'never', label: 'Никогда', modifier: 'надбавка 15%' },
 ];
 
-const getRecencyCoefficient = (recency) => {
+const REVIEW_RATING_OPTIONS = [
+  { value: 5, label: '5 · Отлично' },
+  { value: 4, label: '4 · Хорошо' },
+  { value: 3, label: '3 · Нормально' },
+  { value: 2, label: '2 · Плохо' },
+  { value: 1, label: '1 · Очень плохо' },
+];
+
+const BREED_RECENCY_PROFILES = [
+  {
+    factor: 0,
+    label: 'короткая шерсть, надбавка за давность не применяется',
+    patterns: [
+      /гладкошерст|гладкош|короткошерст|короткош|short.?hair/i,
+      /такса.*(глад|корот)|dachshund.*short/i,
+      /бигль|мопс|боксер|бульдог|джек.?рассел|доберман|далматин|басенджи/i,
+    ],
+  },
+  {
+    factor: 1.5,
+    label: 'быстрый рост или плотный подшерсток, усиленная надбавка',
+    patterns: [
+      /шпиц|померан|самоед|хаски|маламут|чау|пудель|бишон|болонк|шелти|пиреней|ньюфаундленд/i,
+      /перс|мейн.?кун|сибирск|невск/i,
+    ],
+  },
+  {
+    factor: 1.25,
+    label: 'длинная или требовательная шерсть, повышенная надбавка',
+    patterns: [
+      /йорк|мальтез|ши.?тцу|пекинес|спаниел|кокер|колли|афган|терьер|корги|ретривер|сеттер/i,
+      /длинношерст|длиннош|long.?hair/i,
+    ],
+  },
+];
+
+const getBreedRecencyProfile = (breed) => {
+  const normalized = String(breed || '')
+    .trim()
+    .toLowerCase()
+    .replace(/ё/g, 'е');
+
+  if (!normalized) {
+    return { factor: 1, label: 'порода не указана, применяется стандартная надбавка' };
+  }
+
+  const matched = BREED_RECENCY_PROFILES.find((profile) =>
+    profile.patterns.some((pattern) => pattern.test(normalized)),
+  );
+
+  return matched || { factor: 1, label: 'стандартная надбавка по давности' };
+};
+
+const getBaseRecencyCoefficient = (recency) => {
   if (recency === 'never') return 1.15;
   if (recency === '3_plus_months') return 1.1;
   if (recency === '1_3_months') return 1.05;
   return 1;
 };
 
-const getRecencyDurationCoefficient = (recency) => {
+const applyBreedRecencyFactor = (baseCoefficient, breed) => {
+  const surcharge = Math.max(0, baseCoefficient - 1);
+  const profile = getBreedRecencyProfile(breed);
+  return 1 + surcharge * profile.factor;
+};
+
+const getRecencyCoefficient = (recency, breed) => (
+  applyBreedRecencyFactor(getBaseRecencyCoefficient(recency), breed)
+);
+
+const getBaseRecencyDurationCoefficient = (recency) => {
   if (recency === 'never') return 1.3;
   if (recency === '3_plus_months') return 1.2;
   if (recency === '1_3_months') return 1.1;
   return 1;
 };
+
+const getRecencyDurationCoefficient = (recency, breed) => (
+  applyBreedRecencyFactor(getBaseRecencyDurationCoefficient(recency), breed)
+);
 
 const isRecencySensitiveService = (serviceName) => {
   const name = String(serviceName || '').trim().toLowerCase();
@@ -100,18 +168,25 @@ const isRecencySensitiveService = (serviceName) => {
   return /груминг|стриж|вычес|линьк|тримминг|spa|спа|мыть|сушк/.test(name);
 };
 
-const getAdjustedServiceDuration = (service, recency) => {
+const getAdjustedServiceDuration = (service, recency, breed) => {
   const numeric = Number(service?.durationMinutes);
   const baseDuration = Number.isFinite(numeric) && numeric > 0 ? numeric : 60;
   if (!isRecencySensitiveService(service?.name)) {
     return baseDuration;
   }
-  return Math.ceil((baseDuration * getRecencyDurationCoefficient(recency)) / 5) * 5;
+  return Math.ceil((baseDuration * getRecencyDurationCoefficient(recency, breed)) / 5) * 5;
 };
 
-const getRecencyModifierLabel = (recency) => (
-  GROOMING_RECENCY_OPTIONS.find((option) => option.value === recency)?.modifier || 'без надбавки'
-);
+const formatPercent = (value) => {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
+const getRecencyModifierLabel = (recency, breed) => {
+  const coefficient = getRecencyCoefficient(recency, breed);
+  const percent = (coefficient - 1) * 100;
+  return percent > 0 ? `надбавка ${formatPercent(percent)}%` : 'без надбавки';
+};
 
 const SERVICE_CATEGORIES = [
   { id: 'all', label: 'Все', icon: '✦' },
@@ -316,7 +391,15 @@ export const ClientDashboard = ({ id }) => {
   const [availabilityDays, setAvailabilityDays] = useState([]);
   const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [availabilityMessage, setAvailabilityMessage] = useState('');
+  const [groomerCard, setGroomerCard] = useState(null);
+  const [groomerCardLoading, setGroomerCardLoading] = useState(false);
+  const [groomerCardError, setGroomerCardError] = useState('');
+  const [reviewEdits, setReviewEdits] = useState({});
+  const [reviewSaving, setReviewSaving] = useState({});
+  const [reviewRatingDropdownOpen, setReviewRatingDropdownOpen] = useState({});
   const [groomingRecencySelectValue, setGroomingRecencySelectValue] = useState('period:recent');
+  const [petDropdownOpen, setPetDropdownOpen] = useState(false);
+  const [recencyDropdownOpen, setRecencyDropdownOpen] = useState(false);
   const preferredSlotRef = useRef({ employeeId: '', time: '' });
 
   const [newPetName, setNewPetName] = useState('');
@@ -336,6 +419,9 @@ export const ClientDashboard = ({ id }) => {
   const [activeTab, setActiveTab] = useState('orders');
 
   const selectedPet = useMemo(() => pets.find((pet) => pet.id === selectedPetId) || null, [pets, selectedPetId]);
+  const selectedPetLabel = selectedPet
+    ? `${selectedPet.name || 'Питомец'}${selectedPet.breed ? ` (${selectedPet.breed})` : ''}${selectedPet.size ? ` · ${SIZE_LABELS[selectedPet.size] || selectedPet.size}` : ''}`
+    : 'Выберите питомца';
   const selectedPetAnimalType = useMemo(() => {
     const kind = String(selectedPet?.kind || '').toLowerCase();
     if (kind.includes('кош')) return 'cat';
@@ -374,12 +460,17 @@ export const ClientDashboard = ({ id }) => {
     });
   }, [filteredServices, serviceCategory, serviceSearch]);
   const sizeCoefficient = SIZE_COEFFICIENTS[selectedPet?.size || 'small'] || 1;
+  const selectedPetBreed = selectedPet?.breed || '';
+  const breedRecencyProfile = useMemo(
+    () => getBreedRecencyProfile(selectedPetBreed),
+    [selectedPetBreed],
+  );
   const selectedEmployee = useMemo(
     () => availableEmployees.find((employee) => employee.id === selectedEmployeeId) || null,
     [availableEmployees, selectedEmployeeId],
   );
   const groomerLevelCoefficient = GROOMER_LEVEL_COEFFICIENTS[selectedEmployee?.roleId] || 1;
-  const recencyCoefficient = getRecencyCoefficient(groomingRecency);
+  const recencyCoefficient = getRecencyCoefficient(groomingRecency, selectedPetBreed);
 
   const baseServicesTotal = useMemo(() => {
     return selectedServiceIds.reduce((sum, serviceId) => {
@@ -392,9 +483,9 @@ export const ClientDashboard = ({ id }) => {
   const totalServicesDuration = useMemo(() => {
     return selectedServiceIds.reduce((sum, serviceId) => {
       const service = services.find((item) => item.id === serviceId);
-      return sum + getAdjustedServiceDuration(service, groomingRecency);
+      return sum + getAdjustedServiceDuration(service, groomingRecency, selectedPetBreed);
     }, 0);
-  }, [services, selectedServiceIds, groomingRecency]);
+  }, [services, selectedServiceIds, groomingRecency, selectedPetBreed]);
 
   const finalServicesTotal = baseServicesTotal * sizeCoefficient * recencyCoefficient * groomerLevelCoefficient;
 
@@ -448,6 +539,23 @@ export const ClientDashboard = ({ id }) => {
   }, [orders, selectedPetId]);
 
   const latestCompletedVisit = completedPetVisitHistory[0] || null;
+  const recencyOptions = useMemo(() => (
+    GROOMING_RECENCY_OPTIONS.map((option) => {
+      const matchingVisit = completedPetVisitHistory.find((visit) => visit.recency === option.value);
+      const historyLabel = matchingVisit
+        ? `${matchingVisit.dateLabel} · ${matchingVisit.servicesLabel}, ${matchingVisit.elapsedLabel}`
+        : '';
+
+      return {
+        ...option,
+        historyLabel,
+        displayLabel: historyLabel ? `${option.label} (${historyLabel})` : option.label,
+      };
+    })
+  ), [completedPetVisitHistory]);
+  const selectedRecencyOption = recencyOptions.find((option) => `period:${option.value}` === groomingRecencySelectValue)
+    || recencyOptions.find((option) => option.value === groomingRecency)
+    || recencyOptions[0];
   const selectedAvailabilityDay = useMemo(
     () => availabilityDays.find((day) => day.date === selectedDate) || null,
     [availabilityDays, selectedDate],
@@ -586,6 +694,7 @@ export const ClientDashboard = ({ id }) => {
             date: dayDate,
             serviceIds: serviceIdsValue,
             groomingRecency,
+            petBreed: selectedPetBreed,
           });
           const employeesForDay = availability.employees || [];
           const totalSlots = employeesForDay.reduce((sum, employee) => sum + (employee.slots?.length || 0), 0);
@@ -652,11 +761,11 @@ export const ClientDashboard = ({ id }) => {
     } finally {
       setAvailabilityLoading(false);
     }
-  }, [groomingRecency, totalServicesDuration]);
+  }, [groomingRecency, selectedPetBreed, totalServicesDuration]);
 
   useEffect(() => {
     refreshAvailability(selectedDate, selectedServiceIds);
-  }, [selectedDate, selectedServiceIds, groomingRecency, refreshAvailability]);
+  }, [selectedDate, selectedServiceIds, groomingRecency, selectedPetBreed, refreshAvailability]);
 
   useEffect(() => {
     const filteredIds = new Set(filteredServices.map((service) => service.id));
@@ -690,20 +799,13 @@ export const ClientDashboard = ({ id }) => {
     }
 
     setGroomingRecency(latestCompletedVisit.recency);
-    setGroomingRecencySelectValue(`history:${latestCompletedVisit.id}`);
+    setGroomingRecencySelectValue(`period:${latestCompletedVisit.recency}`);
   }, [selectedPetId, latestCompletedVisit]);
 
   const handleRecencyChange = (value) => {
     setGroomingRecencySelectValue(value);
-
-    if (value.startsWith('history:')) {
-      const visitId = value.replace('history:', '');
-      const visit = completedPetVisitHistory.find((item) => item.id === visitId);
-      setGroomingRecency(visit?.recency || 'recent');
-      return;
-    }
-
     setGroomingRecency(value.replace('period:', '') || 'recent');
+    setRecencyDropdownOpen(false);
   };
 
   const handleDateChange = (value) => {
@@ -748,6 +850,7 @@ export const ClientDashboard = ({ id }) => {
         date: selectedDate,
         time: selectedTime,
         groomingRecency,
+        petBreed: selectedPetBreed,
         clientComment: clientComment.trim() || null,
       });
 
@@ -887,6 +990,72 @@ export const ClientDashboard = ({ id }) => {
     }
   };
 
+  const handleOpenGroomerCard = async (employeeId) => {
+    if (!employeeId || groomerCardLoading) return;
+
+    setGroomerCardLoading(true);
+    setGroomerCardError('');
+    try {
+      const card = await clientApi.getGroomerCard(employeeId);
+      setGroomerCard(card);
+    } catch (error) {
+      console.error('Error loading groomer card:', error);
+      setGroomerCardError('Не удалось загрузить карточку грумера');
+    } finally {
+      setGroomerCardLoading(false);
+    }
+  };
+
+  const handleReviewFieldChange = (orderId, field, value) => {
+    setReviewEdits((prev) => ({
+      ...prev,
+      [orderId]: {
+        rating: 5,
+        text: '',
+        ...(prev[orderId] || {}),
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSubmitReview = async (order) => {
+    const draft = reviewEdits[order.id] || { rating: 5, text: '' };
+    if (reviewSaving[order.id]) return;
+
+    setReviewSaving((prev) => ({ ...prev, [order.id]: true }));
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      await clientApi.createReview(order.id, {
+        rating: Number(draft.rating) || 5,
+        text: String(draft.text || '').trim(),
+      });
+
+      const ordersData = await clientApi.getOrders();
+      setOrders(ordersData);
+      setReviewEdits((prev) => {
+        const next = { ...prev };
+        delete next[order.id];
+        return next;
+      });
+      setReviewRatingDropdownOpen((prev) => {
+        const next = { ...prev };
+        delete next[order.id];
+        return next;
+      });
+      setSuccessMessage('Спасибо, отзыв сохранён');
+      if (order.employeeId) {
+        await handleOpenGroomerCard(order.employeeId);
+      }
+    } catch (error) {
+      console.error('Error creating review:', error);
+      setErrorMessage(error?.data?.error || 'Не удалось сохранить отзыв');
+    } finally {
+      setReviewSaving((prev) => ({ ...prev, [order.id]: false }));
+    }
+  };
+
   const groupedOrders = useMemo(() => {
     const map = new Map();
 
@@ -901,6 +1070,7 @@ export const ClientDashboard = ({ id }) => {
           date: order['Дата_заказа'],
           startTime: order.serviceStart,
           endTime: order.serviceEnd,
+          employeeId: order.employeeId,
           employeeName: order.employeeName,
           petName: order.petName,
           petKind: order.petKind,
@@ -908,6 +1078,9 @@ export const ClientDashboard = ({ id }) => {
           petSize: order.petSize,
           services: [],
           totalPrice: order['Стоимость_оказания_услуг'],
+          reviewRating: order.reviewRating,
+          reviewText: order.reviewText,
+          reviewDate: order.reviewDate,
           summedServicePrice: 0,
           duration: 0,
         });
@@ -925,6 +1098,16 @@ export const ClientDashboard = ({ id }) => {
 
       if (!entry.employeeName && order.employeeName) {
         entry.employeeName = order.employeeName;
+      }
+
+      if (!entry.employeeId && order.employeeId) {
+        entry.employeeId = order.employeeId;
+      }
+
+      if (!entry.reviewRating && order.reviewRating) {
+        entry.reviewRating = order.reviewRating;
+        entry.reviewText = order.reviewText;
+        entry.reviewDate = order.reviewDate;
       }
 
       if (!entry.status && order.serviceStatus) {
@@ -978,31 +1161,34 @@ export const ClientDashboard = ({ id }) => {
     <Panel id={id} className="client-dashboard">
       <PanelHeader
         after={(
-          <div className="cd-header-buttons">
-            <Button
-              mode="secondary"
-              size="s"
-              className="cd-header-role-button"
-              onClick={() => routeNavigator.push('/role-menu')}
-            >
-              <span className="cd-header-text-full">Выбор роли</span>
-              <span className="cd-header-text-mobile">Роль</span>
-            </Button>
-            <Button
-              mode="tertiary"
-              size="s"
-              className="cd-header-exit-button"
-              onClick={logout}
-            >
-              <span className="cd-header-text-full">Выйти</span>
-              <span className="cd-header-text-mobile">Выход</span>
-            </Button>
+          <div className="dashboard-header-actions">
+            <div className="cd-header-buttons">
+              <Button
+                mode="secondary"
+                size="s"
+                className="cd-header-role-button"
+                onClick={() => routeNavigator.push('/role-menu')}
+              >
+                <span className="cd-header-text-full">Выбор роли</span>
+                <span className="cd-header-text-mobile">Роль</span>
+              </Button>
+              <Button
+                mode="tertiary"
+                size="s"
+                className="cd-header-exit-button"
+                onClick={logout}
+              >
+                <span className="cd-header-text-full">Выйти</span>
+                <span className="cd-header-text-mobile">Выход</span>
+              </Button>
+            </div>
           </div>
         )}
       >
         <span className="cd-panel-title-full">Пёс Пижон · Личный кабинет</span>
         <span className="cd-panel-title-mobile">Пёс Пижон · Личный кабинет</span>
       </PanelHeader>
+      <LegalInfoButton />
 
       {loading ? (
         <div className="cd-loading">
@@ -1084,6 +1270,91 @@ export const ClientDashboard = ({ id }) => {
 
           {errorMessage ? <div className="cd-alert">{errorMessage}</div> : null}
           {successMessage ? <div className="cd-alert">{successMessage}</div> : null}
+          {(groomerCard || groomerCardLoading || groomerCardError) ? (
+            <div className="cd-groomer-popover" role="dialog" aria-label="Карточка грумера">
+              <div className="cd-groomer-popover-head">
+                <span>Карточка грумера</span>
+                <button
+                  type="button"
+                  className="cd-groomer-close"
+                  aria-label="Закрыть карточку грумера"
+                  onClick={() => {
+                    setGroomerCard(null);
+                    setGroomerCardError('');
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {groomerCardLoading ? <div className="cd-groomer-loading">Загружаем карточку</div> : null}
+              {groomerCardError ? <div className="cd-alert">{groomerCardError}</div> : null}
+
+              {groomerCard ? (
+                <>
+                  <div className="cd-groomer-card-head">
+                    <div className="cd-groomer-photo">
+                      {groomerCard.photoUrl ? (
+                        <img src={groomerCard.photoUrl} alt={groomerCard.fullName} />
+                      ) : (
+                        <span>{groomerCard.initials || 'Г'}</span>
+                      )}
+                    </div>
+                    <div className="cd-groomer-main">
+                      <div className="cd-groomer-name">{groomerCard.fullName}</div>
+                      <div className="cd-groomer-role">{groomerCard.roleName || 'Грумер'}</div>
+                      <div className="cd-groomer-experience">{groomerCard.experienceLabel}</div>
+                    </div>
+                  </div>
+
+                  <div className="cd-groomer-rating">
+                    <span>{groomerCard.rating ? `${groomerCard.rating} / 5` : 'Пока нет оценок'}</span>
+                    <small>{groomerCard.reviewCount || 0} отзывов</small>
+                  </div>
+
+                  {(groomerCard.specialization || groomerCard.description || groomerCard.certificates) ? (
+                    <div className="cd-groomer-details">
+                      {groomerCard.specialization ? (
+                        <div>
+                          <strong>Специализация</strong>
+                          <span>{groomerCard.specialization}</span>
+                        </div>
+                      ) : null}
+                      {groomerCard.description ? (
+                        <div>
+                          <strong>Описание</strong>
+                          <span>{groomerCard.description}</span>
+                        </div>
+                      ) : null}
+                      {groomerCard.certificates ? (
+                        <div>
+                          <strong>Сертификаты</strong>
+                          <span>{groomerCard.certificates}</span>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+
+                  <div className="cd-groomer-reviews">
+                    {(groomerCard.reviews || []).length > 0 ? (
+                      groomerCard.reviews.map((review) => (
+                        <div key={review.id} className="cd-groomer-review">
+                          <div className="cd-groomer-review-head">
+                            <strong>{review.clientName || 'Клиент'}</strong>
+                            <span>{'★'.repeat(review.rating)}{'☆'.repeat(Math.max(0, 5 - review.rating))}</span>
+                          </div>
+                          {review.text ? <p>{review.text}</p> : <p>Без комментария</p>}
+                        </div>
+                      ))
+                    ) : (
+                      <div className="cd-empty">Отзывов пока нет</div>
+                    )}
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+
           {profile && (
             <Group className="cd-group" header={<Header mode="secondary">Профиль 👤</Header>}>
               <div className="cd-profile-card">
@@ -1346,17 +1617,48 @@ export const ClientDashboard = ({ id }) => {
           <Group className="cd-group" header={<Header mode="secondary">Создать заказ ✂️</Header>}>
             <div className="cd-field">
               <div className="cd-field-label">Питомец</div>
-              <NativeSelect value={selectedPetId} onChange={(e) => setSelectedPetId(e.target.value)} disabled={pets.length === 0}>
-                {pets.length === 0 ? (
-                  <option value="">Нет питомцев</option>
-                ) : (
-                  pets.map((pet) => (
-                    <option key={pet.id} value={pet.id}>
-                      {pet.name}
-                    </option>
-                  ))
-                )}
-              </NativeSelect>
+              <div className={`cd-fixed-dropdown${petDropdownOpen ? ' cd-fixed-dropdown-open' : ''}`}>
+                <button
+                  type="button"
+                  className="cd-fixed-dropdown-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={petDropdownOpen}
+                  disabled={pets.length === 0}
+                  onClick={() => setPetDropdownOpen((prev) => !prev)}
+                >
+                  <span>{pets.length === 0 ? 'Нет питомцев' : selectedPetLabel}</span>
+                  <span className="cd-fixed-dropdown-arrow" aria-hidden="true" />
+                </button>
+
+                {petDropdownOpen && pets.length > 0 ? (
+                  <div className="cd-fixed-dropdown-menu" role="listbox">
+                    {pets.map((pet) => {
+                      const sizeLabel = pet.size ? SIZE_LABELS[pet.size] || pet.size : '';
+                      const description = [pet.breed, sizeLabel].filter(Boolean).join(' · ');
+                      const isSelected = selectedPetId === pet.id;
+
+                      return (
+                        <button
+                          key={pet.id}
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`cd-fixed-dropdown-option${isSelected ? ' cd-fixed-dropdown-option-selected' : ''}`}
+                          onClick={() => {
+                            setSelectedPetId(pet.id);
+                            setPetDropdownOpen(false);
+                          }}
+                        >
+                          <span className="cd-fixed-dropdown-option-title">{pet.name || 'Питомец'}</span>
+                          {description ? (
+                            <span className="cd-fixed-dropdown-option-description">{description}</span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
             </div>
 
             {selectedPet ? (
@@ -1367,32 +1669,51 @@ export const ClientDashboard = ({ id }) => {
 
             <div className="cd-field">
               <div className="cd-field-label">Когда были на груминге в последний раз</div>
-              <NativeSelect value={groomingRecencySelectValue} onChange={(e) => handleRecencyChange(e.target.value)}>
-                {GROOMING_RECENCY_OPTIONS.map((option) => (
-                  <option key={option.value} value={`period:${option.value}`}>
-                    {option.label}
-                    {latestCompletedVisit?.recency === option.value
-                      ? ` (последняя: ${latestCompletedVisit.dateLabel}, ${latestCompletedVisit.elapsedLabel})`
-                      : ''}
-                  </option>
-                ))}
-                {completedPetVisitHistory.length > 0 ? (
-                  <optgroup label="Выполненные записи этого питомца">
-                    {completedPetVisitHistory.map((visit) => (
-                      <option key={visit.id} value={`history:${visit.id}`}>
-                        {visit.dateLabel} · {visit.servicesLabel} ({visit.elapsedLabel})
-                      </option>
-                    ))}
-                  </optgroup>
+              <div className={`cd-recency-dropdown${recencyDropdownOpen ? ' cd-recency-dropdown-open' : ''}`}>
+                <button
+                  type="button"
+                  className="cd-recency-trigger"
+                  aria-haspopup="listbox"
+                  aria-expanded={recencyDropdownOpen}
+                  onClick={() => setRecencyDropdownOpen((prev) => !prev)}
+                >
+                  <span>{selectedRecencyOption?.displayLabel || 'Выберите интервал'}</span>
+                  <span className="cd-recency-arrow" aria-hidden="true" />
+                </button>
+
+                {recencyDropdownOpen ? (
+                  <div className="cd-recency-menu" role="listbox">
+                    {recencyOptions.map((option) => {
+                      const value = `period:${option.value}`;
+                      const isSelected = groomingRecencySelectValue === value;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`cd-recency-option${isSelected ? ' cd-recency-option-selected' : ''}`}
+                          onClick={() => handleRecencyChange(value)}
+                        >
+                          <span className="cd-recency-option-title">{option.label}</span>
+                          {option.historyLabel ? (
+                            <span className="cd-recency-option-history">({option.historyLabel})</span>
+                          ) : null}
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : null}
-              </NativeSelect>
+              </div>
             </div>
 
             <div className="cd-field cd-field-info">
-              Последний груминг: {getRecencyModifierLabel(groomingRecency)}
+              Последний груминг: {getRecencyModifierLabel(groomingRecency, selectedPetBreed)}
               {latestCompletedVisit
                 ? ` · найдено по истории: ${latestCompletedVisit.dateLabel}, ${latestCompletedVisit.elapsedLabel}`
                 : ' · выполненных записей для питомца пока нет'}
+              {selectedPetBreed ? ` · порода: ${selectedPetBreed} (${breedRecencyProfile.label})` : ''}
             </div>
 
             <div className="cd-field">
@@ -1445,7 +1766,7 @@ export const ClientDashboard = ({ id }) => {
                     const baseDuration = Number.isFinite(Number(service.durationMinutes))
                       ? Number(service.durationMinutes)
                       : 60;
-                    const adjustedDuration = getAdjustedServiceDuration(service, groomingRecency);
+                    const adjustedDuration = getAdjustedServiceDuration(service, groomingRecency, selectedPetBreed);
                     const durationLabel = adjustedDuration !== baseDuration
                       ? `${adjustedDuration} мин с учётом давности`
                       : `${baseDuration} мин`;
@@ -1566,7 +1887,17 @@ export const ClientDashboard = ({ id }) => {
                               .map((employee) => (
                                 <div key={`${day.date}-${employee.id}`} className="cd-availability-employee">
                                   <div className="cd-availability-employee-name">
-                                    {getEmployeeLabel(employee)}
+                                    <span className="cd-groomer-name-with-info">
+                                      <span className="cd-groomer-name-text">{getEmployeeLabel(employee)}</span>
+                                      <button
+                                        type="button"
+                                        className="cd-groomer-info-button"
+                                        aria-label={`Открыть карточку грумера ${getEmployeeLabel(employee)}`}
+                                        onClick={() => handleOpenGroomerCard(employee.id)}
+                                      >
+                                        i
+                                      </button>
+                                    </span>
                                     {employee.roleId ? (
                                       <span>{getGroomerModifierLabel(employee.roleId)}</span>
                                     ) : null}
@@ -1624,7 +1955,17 @@ export const ClientDashboard = ({ id }) => {
 
             {selectedEmployee ? (
               <div className="cd-field cd-field-info">
-                Выбранный специалист: {getEmployeeLabel(selectedEmployee)}
+                <span className="cd-groomer-name-with-info">
+                  <span className="cd-groomer-name-text">Выбранный специалист: {getEmployeeLabel(selectedEmployee)}</span>
+                  <button
+                    type="button"
+                    className="cd-groomer-info-button"
+                    aria-label={`Открыть карточку грумера ${getEmployeeLabel(selectedEmployee)}`}
+                    onClick={() => handleOpenGroomerCard(selectedEmployee.id)}
+                  >
+                    i
+                  </button>
+                </span>
                 {selectedEmployee.roleId ? ` · ${getGroomerModifierLabel(selectedEmployee.roleId)}` : ''}
               </div>
             ) : null}
@@ -1723,6 +2064,87 @@ export const ClientDashboard = ({ id }) => {
                       <SimpleCell>🕒 Последний визит: {order.details?.lastVisit || 'Не указан'}</SimpleCell>
                       {order.details?.clientComment ? <SimpleCell>💬 Комментарий клиента: {order.details.clientComment}</SimpleCell> : null}
                       {order.details?.masterComment ? <SimpleCell>📝 Комментарий мастера: {order.details.masterComment}</SimpleCell> : null}
+                      {isCompletedStatus(statusLabel) ? (
+                        order.reviewRating ? (
+                          <div className="cd-review-box">
+                            <div className="cd-review-title">Ваш отзыв</div>
+                            <div className="cd-review-stars">{'★'.repeat(Number(order.reviewRating) || 0)}{'☆'.repeat(Math.max(0, 5 - (Number(order.reviewRating) || 0)))}</div>
+                            {order.reviewText ? <div className="cd-review-text">{order.reviewText}</div> : null}
+                          </div>
+                        ) : (
+                          <div className="cd-review-box">
+                            <div className="cd-review-title">Оставить отзыв о грумере</div>
+                            <div className="cd-review-controls">
+                              {(() => {
+                                const currentRating = Number(reviewEdits[order.id]?.rating || 5);
+                                const selectedRatingOption = REVIEW_RATING_OPTIONS.find((option) => option.value === currentRating)
+                                  || REVIEW_RATING_OPTIONS[0];
+                                const isRatingDropdownOpen = Boolean(reviewRatingDropdownOpen[order.id]);
+
+                                return (
+                                  <div className={`cd-fixed-dropdown${isRatingDropdownOpen ? ' cd-fixed-dropdown-open' : ''}`}>
+                                    <button
+                                      type="button"
+                                      className="cd-fixed-dropdown-trigger"
+                                      aria-haspopup="listbox"
+                                      aria-expanded={isRatingDropdownOpen}
+                                      onClick={() => {
+                                        setReviewRatingDropdownOpen((prev) => ({
+                                          ...prev,
+                                          [order.id]: !prev[order.id],
+                                        }));
+                                      }}
+                                    >
+                                      <span>{selectedRatingOption.label}</span>
+                                      <span className="cd-fixed-dropdown-arrow" aria-hidden="true" />
+                                    </button>
+
+                                    {isRatingDropdownOpen ? (
+                                      <div className="cd-fixed-dropdown-menu" role="listbox">
+                                        {REVIEW_RATING_OPTIONS.map((option) => {
+                                          const isSelected = option.value === currentRating;
+
+                                          return (
+                                            <button
+                                              key={option.value}
+                                              type="button"
+                                              role="option"
+                                              aria-selected={isSelected}
+                                              className={`cd-fixed-dropdown-option${isSelected ? ' cd-fixed-dropdown-option-selected' : ''}`}
+                                              onClick={() => {
+                                                handleReviewFieldChange(order.id, 'rating', option.value);
+                                                setReviewRatingDropdownOpen((prev) => ({
+                                                  ...prev,
+                                                  [order.id]: false,
+                                                }));
+                                              }}
+                                            >
+                                              <span className="cd-fixed-dropdown-option-title">{option.label}</span>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
+                              <Textarea
+                                value={reviewEdits[order.id]?.text || ''}
+                                onChange={(event) => handleReviewFieldChange(order.id, 'text', event.target.value)}
+                                placeholder="Что понравилось в работе грумера?"
+                              />
+                              <Button
+                                size="m"
+                                mode="primary"
+                                onClick={() => handleSubmitReview(order)}
+                                disabled={reviewSaving[order.id]}
+                              >
+                                {reviewSaving[order.id] ? 'Сохраняем...' : 'Отправить отзыв'}
+                              </Button>
+                            </div>
+                          </div>
+                        )
+                      ) : null}
                       {!isCompletedStatus(statusLabel) && !isCancelledStatus(statusLabel) ? (
                         <div className="cd-card-actions">
                           <Button
@@ -1744,6 +2166,7 @@ export const ClientDashboard = ({ id }) => {
             )}
           </Group>
           ) : null}
+
         </div>
       )}
     </Panel>

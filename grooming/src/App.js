@@ -1,9 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
 import bridge from '@vkontakte/vk-bridge';
-import { View, SplitLayout, SplitCol, Button, Group, Header, Panel, PanelHeader, FormItem, Input } from '@vkontakte/vkui';
+import { View, SplitLayout, SplitCol, Button, Group, Header, Panel, PanelHeader, FormItem, Input, Checkbox } from '@vkontakte/vkui';
 import { useActiveVkuiLocation, useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import { useAuth } from './contexts/AuthContext';
 import { authApi } from './api/endpoints';
+import { LegalInformation } from './components/LegalInformation';
+import { PERSONAL_DATA_CONSENT_VERSION } from './legalDocuments';
 import './App.css';
 
 import { Home, AdminDashboard, EmployeeDashboard, ClientDashboard } from './panels';
@@ -85,6 +87,8 @@ export const App = () => {
   const [authError, setAuthError] = useState('');
   const [authDiscovery, setAuthDiscovery] = useState(null);
   const [authChecking, setAuthChecking] = useState(false);
+  const [personalDataConsent, setPersonalDataConsent] = useState(false);
+  const [showLegalInfo, setShowLegalInfo] = useState(false);
   const [manualLogout, setManualLogout] = useState(() => sessionStorage.getItem('grooming:manualLogout') === '1');
 
   const resetAuthScreen = React.useCallback(() => {
@@ -95,6 +99,8 @@ export const App = () => {
     setAuthError('');
     setAuthDiscovery(null);
     setAuthChecking(false);
+    setPersonalDataConsent(false);
+    setShowLegalInfo(false);
   }, []);
 
   useEffect(() => {
@@ -200,6 +206,7 @@ export const App = () => {
 
         setAuthDiscovery(discovery);
         setNeedsRegistration(discovery?.status === 'needs_registration');
+        setPersonalDataConsent(false);
         if (discovery?.status === 'name_mismatch') {
           setAuthError(discovery.error || 'VK ID найден, но имя и фамилия не совпадают');
           setAuthDiscovery(null);
@@ -254,6 +261,7 @@ export const App = () => {
 
       setAuthDiscovery(discovery);
       setNeedsRegistration(discovery?.status === 'needs_registration');
+      setPersonalDataConsent(false);
       if (discovery?.status === 'name_mismatch') {
         setAuthError(discovery.error || 'VK ID найден, но имя и фамилия не совпадают');
         setAuthDiscovery(null);
@@ -291,10 +299,20 @@ export const App = () => {
     try {
       setAuthError('');
       const shouldSendPhone = needsRegistration || authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient;
+      const shouldRequireConsent = authDiscovery?.status === 'needs_registration'
+        || (authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false);
+
+      if (shouldRequireConsent && !personalDataConsent) {
+        setAuthError('Для первичной регистрации нужно согласие на обработку персональных данных');
+        return;
+      }
+
       const loginResult = await login({
         vkId: Number(devAuthForm.vkId),
         fullName: devAuthForm.fullName,
         phone: shouldSendPhone ? devAuthForm.phone : undefined,
+        personalDataConsent: shouldRequireConsent ? true : undefined,
+        personalDataConsentVersion: shouldRequireConsent ? PERSONAL_DATA_CONSENT_VERSION : undefined,
       });
 
       if (loginResult.needsRegistration) {
@@ -313,6 +331,29 @@ export const App = () => {
       setAuthError('Не удалось выполнить вход');
     }
   };
+
+  const renderPersonalDataConsent = () => (
+    <div className="auth-legal-box">
+      <Checkbox
+        checked={personalDataConsent}
+        onChange={(event) => setPersonalDataConsent(event.target.checked)}
+      >
+        Я согласен на обработку персональных данных
+      </Checkbox>
+      <div className="auth-legal-hint">
+        Согласие включает ФИО, телефон, VK ID, сведения о питомцах и историю записей.
+      </div>
+      <Button
+        mode="tertiary"
+        size="m"
+        className="auth-legal-toggle"
+        onClick={() => setShowLegalInfo((prev) => !prev)}
+      >
+        {showLegalInfo ? 'Скрыть правовую информацию' : 'Показать правовую информацию'}
+      </Button>
+      {showLegalInfo ? <LegalInformation compact /> : null}
+    </div>
+  );
 
   const handleRoleSelect = async (role, panel) => {
     setAuthError('');
@@ -365,12 +406,15 @@ export const App = () => {
                     />
                   </FormItem>
                 ) : null}
+                {authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false
+                  ? renderPersonalDataConsent()
+                  : null}
               <FormItem>
                 <Button
                   stretched
                   size="l"
                   onClick={handleContinueLogin}
-                  disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
+                  disabled={authDiscovery?.phoneMissingForClient && (!devAuthForm.phone || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
                 >
                   Открыть доступные разделы
                 </Button>
@@ -422,8 +466,9 @@ export const App = () => {
                   placeholder="Заполните номер телефона"
                 />
               </FormItem>
+              {renderPersonalDataConsent()}
               <FormItem>
-                <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
+                <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone || !personalDataConsent}>
                   Привязать и продолжить
                 </Button>
               </FormItem>
@@ -483,13 +528,16 @@ export const App = () => {
                 />
               </FormItem>
             ) : null}
+            {authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false
+              ? renderPersonalDataConsent()
+              : null}
             {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
               <Button
                 stretched
                 size="l"
                 onClick={handleContinueLogin}
-                disabled={authDiscovery?.phoneMissingForClient && !devAuthForm.phone}
+                disabled={authDiscovery?.phoneMissingForClient && (!devAuthForm.phone || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
               >
                 Открыть доступные разделы
               </Button>
@@ -532,9 +580,10 @@ export const App = () => {
                 placeholder="Заполните номер телефона"
               />
             </FormItem>
+            {renderPersonalDataConsent()}
             {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
-              <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone}>
+              <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone || !personalDataConsent}>
                 Привязать и продолжить
               </Button>
             </FormItem>

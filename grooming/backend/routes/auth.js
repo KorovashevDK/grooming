@@ -27,6 +27,9 @@ const C_VK_ID = '[VK_ID]';
 const C_EMPLOYEE_FULL_NAME = '[ФИО]';
 const C_OWNER_FULL_NAME = '[Имя_Фамилия]';
 const C_PHONE = '[Номер_телефона]';
+const C_PERSONAL_DATA_CONSENT_AT = '[Согласие_ПДн_дата]';
+const C_PERSONAL_DATA_CONSENT_VERSION = '[Согласие_ПДн_версия]';
+const PERSONAL_DATA_CONSENT_VERSION = 'pdn-2026-06-07';
 
 const ROLE_IDS = {
   cashier: 'CAEBA1F4-A104-4C06-A398-20BECA42B0B0',
@@ -167,11 +170,39 @@ const updateOwnerPhoneIfMissing = async (ownerId, phone) => {
     `);
 };
 
-const ensureClientOwner = async ({ vkId, fullName, phone }) => {
+const updateOwnerConsent = async ({ ownerId, consentVersion }) => {
+  if (!ownerId) {
+    return;
+  }
+
+  try {
+    await pool.request()
+      .input('ownerId', sql.UniqueIdentifier, ownerId)
+      .input('consentVersion', sql.NVarChar(50), consentVersion || PERSONAL_DATA_CONSENT_VERSION)
+      .query(`
+        UPDATE ${T_OWNERS}
+        SET ${C_PERSONAL_DATA_CONSENT_AT} = COALESCE(${C_PERSONAL_DATA_CONSENT_AT}, SYSUTCDATETIME()),
+            ${C_PERSONAL_DATA_CONSENT_VERSION} = COALESCE(${C_PERSONAL_DATA_CONSENT_VERSION}, @consentVersion)
+        WHERE ${C_OWNER_ID} = @ownerId
+      `);
+  } catch (err) {
+    if (!/Invalid column name/i.test(err?.message || '')) {
+      throw err;
+    }
+  }
+};
+
+const ensureClientOwner = async ({ vkId, fullName, phone, personalDataConsent, personalDataConsentVersion }) => {
   const existingOwner = await getOwnerByVkId(vkId);
 
   if (existingOwner) {
     await updateOwnerPhoneIfMissing(existingOwner.ownerId, phone);
+    if (personalDataConsent) {
+      await updateOwnerConsent({
+        ownerId: existingOwner.ownerId,
+        consentVersion: personalDataConsentVersion,
+      });
+    }
     return {
       ownerId: existingOwner.ownerId,
       fullName: existingOwner.fullName || fullName || '',
@@ -192,6 +223,13 @@ const ensureClientOwner = async ({ vkId, fullName, phone }) => {
       (${C_OWNER_ID}, ${C_OWNER_FULL_NAME}, ${C_PHONE}, ${C_VK_ID})
       VALUES (@id, @name, @phone, @vkId)
     `);
+
+  if (personalDataConsent) {
+    await updateOwnerConsent({
+      ownerId,
+      consentVersion: personalDataConsentVersion,
+    });
+  }
 
   return {
     ownerId,
@@ -342,6 +380,7 @@ router.post('/discover', async (req, res) => {
         defaultRole: getDefaultRole(availableRoles),
         fullName: matchedEmployee.fullName || fullName || '',
         phoneMissingForClient: !owner || !owner.phone || String(owner.phone).trim() === '',
+        clientProfileExists: !!owner,
       });
     }
 
@@ -483,7 +522,7 @@ router.post('/switch-role', authenticateToken, async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { vkId, fullName, phone, email } = req.body;
+    const { vkId, fullName, phone, email, personalDataConsent, personalDataConsentVersion } = req.body;
 
     // Validate required fields
     if (!vkId) {
@@ -514,6 +553,12 @@ router.post('/', async (req, res) => {
 
     const roleIds = matchedEmployeeByName ? await getEmployeeRoleIdsBySchedule(matchedEmployeeByName.employeeId) : [];
     const resolved = resolveRolesByIds(roleIds);
+    if (matchedEmployeeByName && phone && !owner && !personalDataConsent) {
+      return res.status(400).json({
+        error: 'Consent to personal data processing is required for client profile registration',
+      });
+    }
+
     if (resolved.has('admin')) {
       const employee = await getEmployeeByVkIdAndRole(vkId, 'admin');
       if (employee && isSameFullName(employee.fullName, fullName)) {
@@ -522,6 +567,8 @@ router.post('/', async (req, res) => {
             vkId,
             fullName: employee.fullName || fullName || '',
             phone,
+            personalDataConsent,
+            personalDataConsentVersion,
           });
         }
         const token = jwt.sign(
@@ -540,6 +587,8 @@ router.post('/', async (req, res) => {
             vkId,
             fullName: employee.fullName || fullName || '',
             phone,
+            personalDataConsent,
+            personalDataConsentVersion,
           });
         }
         const token = jwt.sign(
@@ -573,6 +622,12 @@ router.post('/', async (req, res) => {
       });
     }
 
+    if (!personalDataConsent) {
+      return res.status(400).json({
+        error: 'Consent to personal data processing is required for registration',
+      });
+    }
+
     // 4) Пытаемся привязать офлайн-клиента по ФИО + телефону
     const matchedOfflineOwner = await findOfflineOwnerMatch(formatOwnerName(fullName), phone);
     if (matchedOfflineOwner) {
@@ -590,6 +645,11 @@ router.post('/', async (req, res) => {
               END
           WHERE ${C_OWNER_ID} = @ownerId
         `);
+
+      await updateOwnerConsent({
+        ownerId: matchedOfflineOwner.ownerId,
+        consentVersion: personalDataConsentVersion,
+      });
 
       const token = jwt.sign(
         { userId: matchedOfflineOwner.ownerId, vkId, role: 'client' },
@@ -620,6 +680,11 @@ router.post('/', async (req, res) => {
         (${C_OWNER_ID}, ${C_OWNER_FULL_NAME}, ${C_PHONE}, ${C_VK_ID})
         VALUES (@id, @name, @phone, @vkId)
       `);
+
+    await updateOwnerConsent({
+      ownerId: newId,
+      consentVersion: personalDataConsentVersion,
+    });
 
     // Generate token for new user
     const token = jwt.sign(

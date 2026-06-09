@@ -8,15 +8,16 @@ import {
   Badge,
   FormItem,
   Input,
-  NativeSelect,
   Tabs,
   TabsItem,
+  Textarea,
 } from '@vkontakte/vkui';
 import { useRouteNavigator } from '@vkontakte/vk-mini-apps-router';
 import { useAuth } from '../contexts/AuthContext';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { adminApi } from '../api/endpoints';
+import { LegalInfoButton } from '../components/LegalInfoButton';
 import './AdminDashboard.css';
 
 const ROLE_RATE_BY_ID = {
@@ -54,6 +55,139 @@ const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ₽`;
 
 const formatPercent = (value) => `${Math.round(Number(value || 0))}%`;
 
+const MAX_GROOMER_PHOTO_SIZE = 1.5 * 1024 * 1024;
+
+const formatYearsLabel = (value) => {
+  const years = Math.round(Number(value) || 0);
+  const mod10 = years % 10;
+  const mod100 = years % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${years} год`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${years} года`;
+  return `${years} лет`;
+};
+
+const normalizeDateInputValue = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatExperienceLabel = (experienceSince) => {
+  const sinceDate = experienceSince ? new Date(`${experienceSince}T00:00:00`) : null;
+  if (!sinceDate || Number.isNaN(sinceDate.getTime())) {
+    return 'Стаж пока не указан';
+  }
+
+  const months = Math.max(1, Math.floor((Date.now() - sinceDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+  if (months < 12) {
+    return `Стаж ${months} мес.`;
+  }
+
+  const years = Math.floor(months / 12);
+  const tailMonths = months % 12;
+  return `Стаж ${formatYearsLabel(years)}${tailMonths ? ` ${tailMonths} мес.` : ''}`;
+};
+
+const readImageFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+  if (!file) {
+    reject(new Error('Файл не выбран'));
+    return;
+  }
+  if (!file.type?.startsWith('image/')) {
+    reject(new Error('Можно выбрать только изображение'));
+    return;
+  }
+  if (file.size > MAX_GROOMER_PHOTO_SIZE) {
+    reject(new Error('Фото должно быть меньше 1.5 МБ'));
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error('Не удалось прочитать файл'));
+  reader.readAsDataURL(file);
+});
+
+const EMPTY_GROOMER_CARD_FORM = {
+  photoUrl: '',
+  description: '',
+  specialization: '',
+  certificates: '',
+  experienceSince: '',
+  experienceYears: '',
+};
+
+const mapGroomerCardToForm = (card = {}) => ({
+  photoUrl: card.photoUrl || '',
+  description: card.description || '',
+  specialization: card.specialization || '',
+  certificates: card.certificates || '',
+  experienceSince: normalizeDateInputValue(card.experienceSince),
+  experienceYears: '',
+});
+
+const AdminSelect = ({ value, options, onChange, placeholder = 'Выберите значение', disabled = false }) => {
+  const [open, setOpen] = useState(false);
+  const selectedOption = options.find((option) => option.value === value);
+
+  return (
+    <div className={`adm-select${open ? ' adm-select-open' : ''}`}>
+      <button
+        type="button"
+        className="adm-select-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        disabled={disabled}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <span>{selectedOption?.label || placeholder}</span>
+        <span className="adm-select-arrow" aria-hidden="true" />
+      </button>
+
+      {open ? (
+        <div className="adm-select-menu" role="listbox">
+          {options.map((option) => {
+            const isSelected = option.value === value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                className={`adm-select-option${isSelected ? ' adm-select-option-selected' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+AdminSelect.propTypes = {
+  value: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+  })).isRequired,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  disabled: PropTypes.bool,
+};
+
 const getRate = (part, total) => {
   const safeTotal = Number(total || 0);
   if (!safeTotal) {
@@ -86,8 +220,23 @@ const getHourlyRate = (roleId) => HOURLY_RATE_BY_ID[roleId] || 0;
 const normalizeText = (value) => String(value || '').trim().toLowerCase();
 
 const getDateKey = (value) => {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+    return value.slice(0, 10);
+  }
   const date = toDate(value);
-  return date ? date.toISOString().slice(0, 10) : '';
+  if (!date) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatDateLabel = (value) => {
+  const key = getDateKey(value);
+  if (!key) return 'Дата не указана';
+  const date = new Date(`${key}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? 'Дата не указана' : date.toLocaleDateString('ru-RU');
 };
 
 const formatAgeLabel = (value) => {
@@ -224,6 +373,11 @@ export const AdminDashboard = ({ id }) => {
   const [visiblePastShifts, setVisiblePastShifts] = useState(4);
   const [visibleLatestOrders, setVisibleLatestOrders] = useState(8);
   const [latestCompactMode, setLatestCompactMode] = useState(false);
+  const [groomerCards, setGroomerCards] = useState([]);
+  const [selectedGroomerCardId, setSelectedGroomerCardId] = useState('');
+  const [groomerCardForm, setGroomerCardForm] = useState(EMPTY_GROOMER_CARD_FORM);
+  const [savingGroomerCard, setSavingGroomerCard] = useState(false);
+  const [groomerCardMessage, setGroomerCardMessage] = useState('');
   const [latestOrderFilters, setLatestOrderFilters] = useState({
     employeeId: 'all',
     status: 'all',
@@ -241,8 +395,17 @@ export const AdminDashboard = ({ id }) => {
   });
 
   const loadDashboard = async () => {
-    const data = await adminApi.getDashboard();
+    const [data, cards] = await Promise.all([
+      adminApi.getDashboard(),
+      adminApi.getGroomerCards(),
+    ]);
     setDashboard(data);
+    const nextCards = Array.isArray(cards) ? cards : [];
+    setGroomerCards(nextCards);
+    setSelectedGroomerCardId((prev) => prev || nextCards[0]?.employeeId || '');
+    if (!selectedGroomerCardId && nextCards[0]) {
+      setGroomerCardForm(mapGroomerCardToForm(nextCards[0]));
+    }
     setScheduleForm((prev) => ({
       employeeId: prev.employeeId || data.employees?.[0]?.employeeId || '',
       roleId: prev.roleId || data.roles?.[0]?.roleId || '',
@@ -314,7 +477,7 @@ export const AdminDashboard = ({ id }) => {
     const filtered = groupedOrders.filter((order) => {
       const statusLabel = getStatusMeta(order.statuses[0] || order.serviceStatus).label;
       const orderDate = toDate(order.startTime) || toDate(order.orderDate);
-      const orderDateKey = orderDate ? orderDate.toISOString().slice(0, 10) : '';
+      const orderDateKey = orderDate ? getDateKey(order.startTime || order.orderDate) : '';
 
       if (employeeFilter !== 'all' && order.employeeId !== employeeFilter) {
         return false;
@@ -357,7 +520,7 @@ export const AdminDashboard = ({ id }) => {
 
     for (const entry of dashboard?.schedule || []) {
       const employeeId = entry.employeeId;
-      const dateKey = entry.scheduleDate ? String(entry.scheduleDate).split('T')[0] : '';
+      const dateKey = getDateKey(entry.scheduleDate);
       if (!employeeId || !dateKey || !entry.roleName) {
         continue;
       }
@@ -387,7 +550,7 @@ export const AdminDashboard = ({ id }) => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    const toKey = (date) => date.toISOString().slice(0, 10);
+    const toKey = getDateKey;
 
     if (preset === 'today') {
       setLatestOrderFilters((prev) => ({ ...prev, date: toKey(today), sort: 'date_asc' }));
@@ -412,7 +575,7 @@ export const AdminDashboard = ({ id }) => {
 
   const scheduleSummary = useMemo(() => {
     const allShifts = (dashboard?.schedule || []).map((entry) => {
-      const scheduleDate = entry.scheduleDate ? String(entry.scheduleDate).split('T')[0] : null;
+      const scheduleDate = getDateKey(entry.scheduleDate);
       const startMinutes = toTimeMinutes(entry.scheduleStart);
       const endMinutes = toTimeMinutes(entry.scheduleEnd);
       const isGroomerShift = getRoleRate(entry.roleId) > 0;
@@ -422,7 +585,7 @@ export const AdminDashboard = ({ id }) => {
           const orderStart = toDate(order.startTime);
           const orderEnd = toDate(order.endTime);
           if (!orderStart || !orderEnd || !scheduleDate) return false;
-          const orderDate = orderStart.toISOString().slice(0, 10);
+          const orderDate = getDateKey(order.startTime);
           const orderStartMinutes = orderStart.getHours() * 60 + orderStart.getMinutes();
           const orderEndMinutes = orderEnd.getHours() * 60 + orderEnd.getMinutes();
           return orderDate === scheduleDate && startMinutes !== null && endMinutes !== null && orderStartMinutes >= startMinutes && orderEndMinutes <= endMinutes;
@@ -450,7 +613,7 @@ export const AdminDashboard = ({ id }) => {
 
       return {
         ...entry,
-        dateLabel: entry.scheduleDate ? new Date(entry.scheduleDate).toLocaleDateString('ru-RU') : 'Дата не указана',
+        dateLabel: formatDateLabel(entry.scheduleDate),
         timeLabel: `${entry.scheduleStart || '--:--'}–${entry.scheduleEnd || '--:--'}`,
         actualTimeLabel: formatDurationLabel(actualDurationMinutes),
         bookings,
@@ -467,7 +630,7 @@ export const AdminDashboard = ({ id }) => {
     });
 
     const filtered = allShifts.filter((entry) => {
-      const entryDateKey = entry.scheduleDate ? String(entry.scheduleDate).split('T')[0] : '';
+      const entryDateKey = getDateKey(entry.scheduleDate);
 
       if (scheduleFilterEmployeeId !== 'all' && entry.employeeId !== scheduleFilterEmployeeId) {
         return false;
@@ -498,6 +661,16 @@ export const AdminDashboard = ({ id }) => {
   const employeeOptions = dashboard?.employees || [];
   const monthlyStats = dashboard?.monthlyStats || [];
   const summary = dashboard?.summary || {};
+  const selectedGroomerCard = useMemo(
+    () => groomerCards.find((card) => card.employeeId === selectedGroomerCardId) || groomerCards[0] || null,
+    [groomerCards, selectedGroomerCardId],
+  );
+
+  useEffect(() => {
+    if (selectedGroomerCard) {
+      setGroomerCardForm(mapGroomerCardToForm(selectedGroomerCard));
+    }
+  }, [selectedGroomerCard]);
 
   const resetScheduleForm = () => {
     setEditingScheduleId('');
@@ -537,12 +710,58 @@ export const AdminDashboard = ({ id }) => {
     }
   };
 
+  const handleGroomerCardFieldChange = (field, value) => {
+    setGroomerCardMessage('');
+    setGroomerCardForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleGroomerPhotoFileChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+
+    try {
+      setErrorMessage('');
+      const dataUrl = await readImageFileAsDataUrl(file);
+      handleGroomerCardFieldChange('photoUrl', dataUrl);
+    } catch (error) {
+      setErrorMessage(error.message || 'Не удалось загрузить фото');
+    }
+  };
+
+  const handleSaveGroomerCard = async () => {
+    const employeeId = selectedGroomerCard?.employeeId || selectedGroomerCardId;
+    if (!employeeId) {
+      return;
+    }
+
+    setSavingGroomerCard(true);
+    try {
+      setErrorMessage('');
+      setGroomerCardMessage('');
+      const savedCard = await adminApi.updateGroomerCard(employeeId, {
+        ...groomerCardForm,
+        experienceYears: '',
+      });
+      setGroomerCards((prev) => prev.map((card) => (
+        card.employeeId === employeeId ? { ...card, ...savedCard } : card
+      )));
+      setGroomerCardForm(mapGroomerCardToForm(savedCard));
+      setGroomerCardMessage('Карточка грумера сохранена');
+    } catch (error) {
+      console.error('Error saving admin groomer card:', error);
+      setErrorMessage(error?.data?.details || 'Не удалось сохранить карточку грумера');
+    } finally {
+      setSavingGroomerCard(false);
+    }
+  };
+
   const handleEditSchedule = (entry) => {
     setEditingScheduleId(entry.scheduleId);
     setScheduleForm({
       employeeId: entry.employeeId || '',
       roleId: entry.roleId || '',
-      date: entry.scheduleDate ? entry.scheduleDate.split('T')[0] : '',
+      date: getDateKey(entry.scheduleDate),
       startTime: entry.scheduleStart || '',
       endTime: entry.scheduleEnd || '',
     });
@@ -571,18 +790,21 @@ export const AdminDashboard = ({ id }) => {
     <Panel id={id} className="employee-dashboard admin-dashboard">
       <PanelHeader
         after={(
-          <div className="ed-header-actions">
+          <div className="dashboard-header-actions">
+            <div className="ed-header-actions">
             <Button mode="secondary" size="s" onClick={() => routeNavigator.push('/role-menu')}>
               Выбор роли
             </Button>
             <Button mode="tertiary" size="s" onClick={logout}>
               Выйти
             </Button>
+            </div>
           </div>
         )}
       >
         Пёс Пижон · Панель управления
       </PanelHeader>
+      <LegalInfoButton />
 
       {loading ? (
         <div className="ed-loading">
@@ -668,6 +890,15 @@ export const AdminDashboard = ({ id }) => {
               Расписание
             </TabsItem>
             <TabsItem
+              className={`ed-tab-item${activeTab === 'groomers' ? ' ed-tab-item-active' : ''}`}
+              id="admin-tab-groomers"
+              aria-controls="admin-tabpanel-groomers"
+              selected={activeTab === 'groomers'}
+              onClick={() => setActiveTab('groomers')}
+            >
+              Карточки
+            </TabsItem>
+            <TabsItem
               className={`ed-tab-item${activeTab === 'stats' ? ' ed-tab-item-active' : ''}`}
               id="admin-tab-stats"
               aria-controls="admin-tabpanel-stats"
@@ -684,26 +915,29 @@ export const AdminDashboard = ({ id }) => {
                 <Group className="adm-overview-group" header={<Header mode="secondary">Фильтры заказов</Header>}>
                   <div className="adm-form-grid">
                     <FormItem top="Сотрудник">
-                      <NativeSelect
+                      <AdminSelect
                         value={latestOrderFilters.employeeId}
-                        onChange={(e) => setLatestOrderFilters((prev) => ({ ...prev, employeeId: e.target.value }))}
-                      >
-                        <option value="all">Все сотрудники</option>
-                        {employeeOptions.map((employee) => (
-                          <option key={employee.employeeId} value={employee.employeeId}>{employee.fullName}</option>
-                        ))}
-                      </NativeSelect>
+                        onChange={(value) => setLatestOrderFilters((prev) => ({ ...prev, employeeId: value }))}
+                        options={[
+                          { value: 'all', label: 'Все сотрудники' },
+                          ...employeeOptions.map((employee) => ({
+                            value: employee.employeeId,
+                            label: employee.fullName || 'Сотрудник',
+                          })),
+                        ]}
+                      />
                     </FormItem>
                     <FormItem top="Статус">
-                      <NativeSelect
+                      <AdminSelect
                         value={latestOrderFilters.status}
-                        onChange={(e) => setLatestOrderFilters((prev) => ({ ...prev, status: e.target.value }))}
-                      >
-                        <option value="all">Все статусы</option>
-                        <option value="Назначена">Назначена</option>
-                        <option value="Выполнен">Выполнен</option>
-                        <option value="Отменён">Отменён</option>
-                      </NativeSelect>
+                        onChange={(value) => setLatestOrderFilters((prev) => ({ ...prev, status: value }))}
+                        options={[
+                          { value: 'all', label: 'Все статусы' },
+                          { value: 'Назначена', label: 'Назначена' },
+                          { value: 'Выполнен', label: 'Выполнен' },
+                          { value: 'Отменён', label: 'Отменён' },
+                        ]}
+                      />
                     </FormItem>
                     <FormItem top="Дата записи">
                       <Input
@@ -727,15 +961,16 @@ export const AdminDashboard = ({ id }) => {
                       />
                     </FormItem>
                     <FormItem top="Сортировка">
-                      <NativeSelect
+                      <AdminSelect
                         value={latestOrderFilters.sort}
-                        onChange={(e) => setLatestOrderFilters((prev) => ({ ...prev, sort: e.target.value }))}
-                      >
-                        <option value="date_asc">По записи: от ближайшей</option>
-                        <option value="date_desc">По записи: от дальней</option>
-                        <option value="created_desc">По оформлению: сначала новые</option>
-                        <option value="price_desc">По стоимости: по убыванию</option>
-                      </NativeSelect>
+                        onChange={(value) => setLatestOrderFilters((prev) => ({ ...prev, sort: value }))}
+                        options={[
+                          { value: 'date_asc', label: 'По записи: от ближайшей' },
+                          { value: 'date_desc', label: 'По записи: от дальней' },
+                          { value: 'created_desc', label: 'По оформлению: сначала новые' },
+                          { value: 'price_desc', label: 'По стоимости: по убыванию' },
+                        ]}
+                      />
                     </FormItem>
                   </div>
                   <div className="ed-form-actions">
@@ -817,29 +1052,29 @@ export const AdminDashboard = ({ id }) => {
           {activeTab === 'schedule' ? (
             <div id="admin-tabpanel-schedule" role="tabpanel" aria-labelledby="admin-tab-schedule" className="adm-panel-gap">
               <div className="adm-grid">
-                <Group ref={scheduleFormRef} className="adm-schedule-panel" header={<Header mode="secondary">Управление сменами</Header>}>
+                <Group className="adm-schedule-panel" header={<Header mode="secondary">Управление сменами</Header>}>
                   <div ref={scheduleFormRef} className="ed-schedule-form">
                     <div className="ed-form-title">{editingScheduleId ? 'Редактирование смены' : 'Добавление смены'}</div>
                     <div className="adm-form-grid">
                       <FormItem top="Сотрудник">
-                        <NativeSelect
+                        <AdminSelect
                           value={scheduleForm.employeeId}
-                          onChange={(e) => setScheduleForm((prev) => ({ ...prev, employeeId: e.target.value }))}
-                        >
-                          {employeeOptions.map((employee) => (
-                            <option key={employee.employeeId} value={employee.employeeId}>{employee.fullName}</option>
-                          ))}
-                        </NativeSelect>
+                          onChange={(value) => setScheduleForm((prev) => ({ ...prev, employeeId: value }))}
+                          options={employeeOptions.map((employee) => ({
+                            value: employee.employeeId,
+                            label: employee.fullName || 'Сотрудник',
+                          }))}
+                        />
                       </FormItem>
                       <FormItem top="Должность">
-                        <NativeSelect
+                        <AdminSelect
                           value={scheduleForm.roleId}
-                          onChange={(e) => setScheduleForm((prev) => ({ ...prev, roleId: e.target.value }))}
-                        >
-                          {roleOptions.map((role) => (
-                            <option key={role.roleId} value={role.roleId}>{role.roleName}</option>
-                          ))}
-                        </NativeSelect>
+                          onChange={(value) => setScheduleForm((prev) => ({ ...prev, roleId: value }))}
+                          options={roleOptions.map((role) => ({
+                            value: role.roleId,
+                            label: role.roleName || 'Должность',
+                          }))}
+                        />
                       </FormItem>
                       <FormItem top="Дата">
                         <Input type="date" value={scheduleForm.date} onChange={(e) => setScheduleForm((prev) => ({ ...prev, date: e.target.value }))} />
@@ -866,30 +1101,44 @@ export const AdminDashboard = ({ id }) => {
                   <div className="ed-form-title">Фильтр расписания</div>
                   <div className="adm-form-grid">
                     <FormItem top="Сотрудник">
-                      <NativeSelect value={scheduleFilterEmployeeId} onChange={(e) => setScheduleFilterEmployeeId(e.target.value)}>
-                        <option value="all">Все сотрудники</option>
-                        {employeeOptions.map((employee) => (
-                          <option key={employee.employeeId} value={employee.employeeId}>{employee.fullName}</option>
-                        ))}
-                      </NativeSelect>
+                      <AdminSelect
+                        value={scheduleFilterEmployeeId}
+                        onChange={setScheduleFilterEmployeeId}
+                        options={[
+                          { value: 'all', label: 'Все сотрудники' },
+                          ...employeeOptions.map((employee) => ({
+                            value: employee.employeeId,
+                            label: employee.fullName || 'Сотрудник',
+                          })),
+                        ]}
+                      />
                     </FormItem>
                     <FormItem top="Должность">
-                      <NativeSelect value={scheduleFilterRoleId} onChange={(e) => setScheduleFilterRoleId(e.target.value)}>
-                        <option value="all">Все должности</option>
-                        {roleOptions.map((role) => (
-                          <option key={role.roleId} value={role.roleId}>{role.roleName}</option>
-                        ))}
-                      </NativeSelect>
+                      <AdminSelect
+                        value={scheduleFilterRoleId}
+                        onChange={setScheduleFilterRoleId}
+                        options={[
+                          { value: 'all', label: 'Все должности' },
+                          ...roleOptions.map((role) => ({
+                            value: role.roleId,
+                            label: role.roleName || 'Должность',
+                          })),
+                        ]}
+                      />
                     </FormItem>
                     <FormItem top="Дата">
                       <Input type="date" value={scheduleFilterDate} onChange={(e) => setScheduleFilterDate(e.target.value)} />
                     </FormItem>
                     <FormItem top="Период">
-                      <NativeSelect value={scheduleFilterPeriod} onChange={(e) => setScheduleFilterPeriod(e.target.value)}>
-                        <option value="all">Все смены</option>
-                        <option value="upcoming">Ближайшие</option>
-                        <option value="past">Архив</option>
-                      </NativeSelect>
+                      <AdminSelect
+                        value={scheduleFilterPeriod}
+                        onChange={setScheduleFilterPeriod}
+                        options={[
+                          { value: 'all', label: 'Все смены' },
+                          { value: 'upcoming', label: 'Ближайшие' },
+                          { value: 'past', label: 'Архив' },
+                        ]}
+                      />
                     </FormItem>
                   </div>
                   <div className="ed-form-actions">
@@ -1019,6 +1268,107 @@ export const AdminDashboard = ({ id }) => {
                     </Button>
                   </div>
                 ) : null}
+              </Group>
+            </div>
+          ) : null}
+
+          {activeTab === 'groomers' ? (
+            <div id="admin-tabpanel-groomers" role="tabpanel" aria-labelledby="admin-tab-groomers" className="adm-panel-gap">
+              <Group className="adm-overview-group" header={<Header mode="secondary">Карточки грумеров</Header>}>
+                <div className="adm-groomer-card-editor">
+                  <FormItem top="Грумер">
+                    <AdminSelect
+                      value={selectedGroomerCard?.employeeId || ''}
+                      onChange={setSelectedGroomerCardId}
+                      options={groomerCards.map((card) => ({
+                        value: card.employeeId,
+                        label: card.fullName || 'Сотрудник',
+                      }))}
+                      placeholder="Выберите грумера"
+                    />
+                  </FormItem>
+
+                  {selectedGroomerCard ? (
+                    <div className="ed-groomer-card-layout">
+                      <div className="ed-groomer-card-preview">
+                        <div className="ed-groomer-card-photo">
+                          {groomerCardForm.photoUrl ? (
+                            <img src={groomerCardForm.photoUrl} alt="Фото грумера" />
+                          ) : (
+                            <span>{String(selectedGroomerCard.fullName || 'Г').trim().charAt(0).toUpperCase() || 'Г'}</span>
+                          )}
+                        </div>
+                        <div className="ed-groomer-card-name">{selectedGroomerCard.fullName || 'Грумер'}</div>
+                        <div className="ed-groomer-card-muted">{selectedGroomerCard.roleName || 'Грумер'}</div>
+                        <div className="ed-groomer-card-muted">
+                          {groomerCardForm.specialization || 'Специализация пока не указана'}
+                        </div>
+                        <div className="ed-groomer-card-muted">{formatExperienceLabel(groomerCardForm.experienceSince)}</div>
+                      </div>
+
+                      <div className="ed-groomer-card-fields">
+                        <FormItem top="Фото">
+                          <div className="ed-file-actions">
+                            <label className="ed-file-button">
+                              <span>Выбрать фото</span>
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/webp"
+                                onChange={handleGroomerPhotoFileChange}
+                              />
+                            </label>
+                            {groomerCardForm.photoUrl ? (
+                              <Button
+                                size="s"
+                                mode="secondary"
+                                className="adm-remove-photo-button"
+                                onClick={() => handleGroomerCardFieldChange('photoUrl', '')}
+                              >
+                                Убрать фото
+                              </Button>
+                            ) : null}
+                          </div>
+                        </FormItem>
+                        <FormItem top="Специализация">
+                          <Input
+                            value={groomerCardForm.specialization}
+                            onChange={(e) => handleGroomerCardFieldChange('specialization', e.target.value)}
+                            placeholder="Например: шпицы, пудели, кошки, тримминг"
+                          />
+                        </FormItem>
+                        <FormItem top="Работает с">
+                          <Input
+                            type="date"
+                            value={groomerCardForm.experienceSince}
+                            onChange={(e) => handleGroomerCardFieldChange('experienceSince', e.target.value)}
+                          />
+                        </FormItem>
+                        <FormItem top="Описание">
+                          <Textarea
+                            value={groomerCardForm.description}
+                            onChange={(e) => handleGroomerCardFieldChange('description', e.target.value)}
+                            placeholder="Коротко о подходе к работе, опыте и любимых направлениях"
+                          />
+                        </FormItem>
+                        <FormItem top="Сертификаты">
+                          <Textarea
+                            value={groomerCardForm.certificates}
+                            onChange={(e) => handleGroomerCardFieldChange('certificates', e.target.value)}
+                            placeholder="Курсы, дипломы, повышение квалификации"
+                          />
+                        </FormItem>
+                        {groomerCardMessage ? <div className="ed-success-note">{groomerCardMessage}</div> : null}
+                        <div className="ed-form-actions">
+                          <Button className="adm-primary-brown-text" size="m" onClick={handleSaveGroomerCard} loading={savingGroomerCard}>
+                            Сохранить карточку
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="ed-empty">Сотрудники не найдены.</div>
+                  )}
+                </div>
               </Group>
             </div>
           ) : null}
