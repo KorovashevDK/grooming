@@ -398,16 +398,66 @@ router.patch('/schedule/:scheduleId', authenticateToken, checkRole(['admin']), a
 });
 
 router.delete('/schedule/:scheduleId', authenticateToken, checkRole(['admin']), async (req, res) => {
+  const transaction = new sql.Transaction(pool);
+
   try {
     await poolConnect;
     const { scheduleId } = req.params;
 
-    await pool.request()
-      .input('scheduleId', sql.UniqueIdentifier, scheduleId)
-      .query(`DELETE FROM ${T.schedule} WHERE ${C.scheduleId} = @scheduleId`);
+    await transaction.begin();
 
-    res.json({ success: true });
+    const scheduleResult = await new sql.Request(transaction)
+      .input('scheduleId', sql.UniqueIdentifier, scheduleId)
+      .query(`
+        SELECT ${C.employeeId} as employeeId,
+               CAST(${C.scheduleDate} AS date) as scheduleDate,
+               ${C.scheduleStart} as scheduleStart,
+               ${C.scheduleEnd} as scheduleEnd
+        FROM ${T.schedule}
+        WHERE ${C.scheduleId} = @scheduleId
+      `);
+
+    const schedule = scheduleResult.recordset[0];
+    if (!schedule) {
+      await transaction.rollback();
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    const cancelResult = await new sql.Request(transaction)
+      .input('employeeId', sql.UniqueIdentifier, schedule.employeeId)
+      .input('scheduleDate', sql.Date, schedule.scheduleDate)
+      .input('scheduleStart', sql.Time, schedule.scheduleStart)
+      .input('scheduleEnd', sql.Time, schedule.scheduleEnd)
+      .query(`
+        UPDATE ${T.orderServices}
+        SET ${C.status} = N'Отменена'
+        WHERE ${C.employeeId} = @employeeId
+          AND CONVERT(date, ${C.startWork}) = @scheduleDate
+          AND CAST(${C.startWork} AS time) < @scheduleEnd
+          AND CAST(${C.endWork} AS time) > @scheduleStart
+          AND (${C.status} IS NULL OR ${C.status} NOT IN (N'Отменена', N'Отменён', N'Отменен', N'Выполнено'))
+      `);
+
+    const deleteResult = await new sql.Request(transaction)
+      .input('scheduleId', sql.UniqueIdentifier, scheduleId)
+      .query(`
+        DELETE FROM ${T.schedule}
+        WHERE ${C.scheduleId} = @scheduleId
+      `);
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      cancelledServices: cancelResult.rowsAffected?.[0] || 0,
+      deletedSchedules: deleteResult.rowsAffected?.[0] || 0,
+    });
   } catch (err) {
+    if (transaction._aborted !== true) {
+      try {
+        await transaction.rollback();
+      } catch (_rollbackError) {}
+    }
     sendDbError(res, err, 'admin.schedule.delete');
   }
 });

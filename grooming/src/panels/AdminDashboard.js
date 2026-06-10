@@ -771,6 +771,13 @@ export const AdminDashboard = ({ id }) => {
   };
 
   const handleDeleteSchedule = async (scheduleId) => {
+    const confirmed = window.confirm(
+      'Удалить смену? Все записи в рамках этой смены будут автоматически отменены.',
+    );
+    if (!confirmed) {
+      return;
+    }
+
     try {
       setErrorMessage('');
       await adminApi.deleteSchedule(scheduleId);

@@ -722,6 +722,13 @@ export const EmployeeDashboard = ({ id }) => {
   };
 
   const handleDeleteSchedule = async (scheduleId) => {
+    const confirmed = window.confirm(
+      'Удалить смену? Все записи в рамках этой смены будут автоматически отменены.',
+    );
+    if (!confirmed) {
+      return;
+    }
+
     try {
       setErrorMessage('');
       await employeeApi.deleteSchedule(scheduleId);
