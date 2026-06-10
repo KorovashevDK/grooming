@@ -204,8 +204,22 @@ const buildClientOrderNote = ({ groomingRecency, clientComment }) => {
 
 const LOCAL_TIME_OFFSET_MINUTES = 180;
 
-const sendDbError = (res, err, context) =>
-  res.status(500).json({ error: 'Database query failed', context, details: err.message });
+const sendDbError = (res, err, context) => {
+  console.error('Database query failed:', {
+    context,
+    message: err?.message,
+    number: err?.number,
+    code: err?.code,
+    state: err?.state,
+    class: err?.class,
+    lineNumber: err?.lineNumber,
+    serverName: err?.serverName,
+    procName: err?.procName,
+    stack: err?.stack,
+  });
+
+  return res.status(500).json({ error: 'Database query failed', context, details: err.message });
+};
 
 const isSchemaError = (err) =>
   /Invalid column name|Invalid object name|could not be bound|Ambiguous column name/i.test(err?.message || '');
