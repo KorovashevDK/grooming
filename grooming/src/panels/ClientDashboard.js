@@ -1696,7 +1696,10 @@ export const ClientDashboard = ({ id }) => {
                             onChange={(e) => handlePetFieldChange(pet.id, 'age', sanitizeNumber(e.target.value))}
                           />
                         </FormItem>
-                        <FormItem top="Пол">
+                        <FormItem
+                          top="Пол"
+                          className={openDropdown === `edit-gender-${pet.id}` ? 'cd-pet-dropdown-field-open' : 'cd-pet-dropdown-field'}
+                        >
                           <FixedDropdown
                             value={edit.gender ?? ''}
                             options={GENDER_OPTIONS}
@@ -1795,7 +1798,10 @@ export const ClientDashboard = ({ id }) => {
                   placeholder="Возраст в годах"
                 />
               </FormItem>
-              <FormItem top="Пол">
+              <FormItem
+                top="Пол"
+                className={openDropdown === 'new-gender' ? 'cd-pet-dropdown-field-open' : 'cd-pet-dropdown-field'}
+              >
                 <FixedDropdown
                   value={newPetGender}
                   options={GENDER_OPTIONS}

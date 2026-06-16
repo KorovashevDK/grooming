@@ -895,3 +895,58 @@
     display: none !important;
   }
 }
+
+/* Mobile auth buttons must keep the desktop salon palette, not VK/iOS blue. */
+.auth-panel button,
+.auth-panel .vkuiButton,
+.auth-panel .vkuiButton__host,
+.auth-panel .vkuiButton__in,
+.auth-panel .vkuiButton__content,
+.auth-panel .vkuiButton__content *,
+.auth-panel [class*="Button"],
+.auth-panel [class*="Button"] *,
+.auth-panel [role="button"],
+.auth-panel [role="button"] * {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  text-decoration: none !important;
+  letter-spacing: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.auth-panel .vkuiButton--mode-primary .vkuiButton__host,
+.auth-panel .vkuiButton--mode-primary .vkuiButton__in,
+.auth-panel .vkuiButton--mode-commerce .vkuiButton__host,
+.auth-panel .vkuiButton--mode-commerce .vkuiButton__in,
+.auth-panel .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary):not(.vkuiButton--mode-destructive) .vkuiButton__host,
+.auth-panel .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary):not(.vkuiButton--mode-destructive) .vkuiButton__in {
+  background:
+    radial-gradient(180px 90px at 100% 0%, rgba(255, 255, 255, 0.55), transparent 62%),
+    linear-gradient(135deg, #fffaf3 0%, #ffe3bd 56%, #f2b66f 100%) !important;
+  background-color: #ffe3bd !important;
+  color: var(--auth-brown) !important;
+  -webkit-text-fill-color: var(--auth-brown) !important;
+  border-color: transparent !important;
+}
+
+.auth-panel .vkuiButton--mode-primary .vkuiButton__content,
+.auth-panel .vkuiButton--mode-primary .vkuiButton__content *,
+.auth-panel .vkuiButton--mode-commerce .vkuiButton__content,
+.auth-panel .vkuiButton--mode-commerce .vkuiButton__content *,
+.auth-panel .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary):not(.vkuiButton--mode-destructive) .vkuiButton__content,
+.auth-panel .vkuiButton:not(.vkuiButton--mode-secondary):not(.vkuiButton--mode-tertiary):not(.vkuiButton--mode-destructive) .vkuiButton__content * {
+  color: var(--auth-brown) !important;
+  -webkit-text-fill-color: var(--auth-brown) !important;
+}
+
+.auth-panel .vkuiButton--mode-secondary .vkuiButton__host,
+.auth-panel .vkuiButton--mode-secondary .vkuiButton__in,
+.auth-panel .vkuiButton--mode-tertiary .vkuiButton__host,
+.auth-panel .vkuiButton--mode-tertiary .vkuiButton__in,
+.auth-panel .vkuiButton--mode-secondary .vkuiButton__content,
+.auth-panel .vkuiButton--mode-secondary .vkuiButton__content *,
+.auth-panel .vkuiButton--mode-tertiary .vkuiButton__content,
+.auth-panel .vkuiButton--mode-tertiary .vkuiButton__content * {
+  color: var(--auth-brown) !important;
+  -webkit-text-fill-color: var(--auth-brown) !important;
+}

@@ -6238,3 +6238,76 @@
     max-width: calc(100vw - 36px) !important;
   }
 }
+
+/* Pet forms: open dropdowns must float above the following fields, especially gender above size. */
+.client-dashboard .cd-group:has(.cd-add-pet-button),
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiGroup__inner,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="Group__inner"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pets-list,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card.vkuiCard,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-pet-card[class*="Card"],
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-card-body,
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-subsection-add {
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiFormItem,
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="FormItem"] {
+  position: relative !important;
+  z-index: 1 !important;
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .vkuiFormItem:has(.cd-fixed-dropdown-open),
+.client-dashboard .cd-group:has(.cd-add-pet-button) [class*="FormItem"]:has(.cd-fixed-dropdown-open),
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-fixed-dropdown-open {
+  position: relative !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-group:has(.cd-add-pet-button) .cd-fixed-dropdown-open .cd-fixed-dropdown-menu {
+  z-index: 1001 !important;
+}
+
+/* Fallback for mobile WebViews without reliable :has() support. */
+.client-dashboard .cd-pet-dropdown-field,
+.client-dashboard .cd-pet-dropdown-field-open,
+.client-dashboard .cd-pet-dropdown-field .vkuiFormItem__content,
+.client-dashboard .cd-pet-dropdown-field-open .vkuiFormItem__content,
+.client-dashboard .cd-pet-dropdown-field [class*="FormItem__content"],
+.client-dashboard .cd-pet-dropdown-field-open [class*="FormItem__content"] {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+.client-dashboard .cd-pet-dropdown-field-open,
+.client-dashboard .cd-pet-dropdown-field-open .vkuiFormItem__content,
+.client-dashboard .cd-pet-dropdown-field-open [class*="FormItem__content"],
+.client-dashboard .cd-pet-dropdown-field-open .cd-fixed-dropdown,
+.client-dashboard .cd-pet-dropdown-field-open .cd-fixed-dropdown-open {
+  z-index: 2147483000 !important;
+}
+
+.client-dashboard .cd-pet-dropdown-field-open .cd-fixed-dropdown-menu {
+  position: absolute !important;
+  z-index: 2147483001 !important;
+  isolation: isolate !important;
+  transform: translateZ(0) !important;
+}
+
+.client-dashboard .cd-pet-dropdown-field-open + .vkuiFormItem,
+.client-dashboard .cd-pet-dropdown-field-open + [class*="FormItem"] {
+  position: relative !important;
+  z-index: 0 !important;
+}
+
+.client-dashboard .cd-pets-list,
+.client-dashboard .cd-pet-card,
+.client-dashboard .cd-pet-card.vkuiCard,
+.client-dashboard .cd-pet-card[class*="Card"],
+.client-dashboard .cd-card-body,
+.client-dashboard .cd-subsection-add {
+  overflow: visible !important;
+}
