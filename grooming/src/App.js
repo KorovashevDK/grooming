@@ -42,6 +42,64 @@ const EMPTY_AUTH_FORM = {
   phone: '',
 };
 
+const VK_ID_LENGTH = 9;
+const PHONE_LENGTH = 11;
+const VK_ID_TEMPLATE = '123456789';
+const FULL_NAME_TEMPLATE = 'Иван Иванов';
+const FULL_NAME_PATTERN = '[A-Za-zА-Яа-яЁё-]+\\s+[A-Za-zА-Яа-яЁё-]+';
+
+const normalizeVkIdInput = (value) => String(value || '').replace(/\D/g, '').slice(0, VK_ID_LENGTH);
+const isValidVkId = (value) => /^\d{9}$/.test(String(value || ''));
+
+const capitalizeWord = (word) => {
+  const lower = String(word || '').toLocaleLowerCase('ru-RU');
+  return lower ? `${lower.slice(0, 1).toLocaleUpperCase('ru-RU')}${lower.slice(1)}` : '';
+};
+
+const normalizeFullNameInput = (value) => String(value || '')
+  .replace(/[^A-Za-zА-Яа-яЁё\s-]/g, '')
+  .replace(/\s+/g, ' ')
+  .trimStart()
+  .split(' ')
+  .slice(0, 2)
+  .map((part) => part
+    .split('-')
+    .map(capitalizeWord)
+    .join('-'))
+  .join(' ');
+
+const normalizeFullNameForSubmit = (value) => normalizeFullNameInput(value).trim();
+const isValidFullName = (value) => normalizeFullNameForSubmit(value).split(' ').filter(Boolean).length === 2;
+
+const getPhoneDigits = (value) => {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('8')) return `7${digits.slice(1, PHONE_LENGTH)}`;
+  if (digits.startsWith('7')) return digits.slice(0, PHONE_LENGTH);
+  return `7${digits}`.slice(0, PHONE_LENGTH);
+};
+
+const formatPhoneInput = (value) => {
+  const digits = getPhoneDigits(value);
+  if (!digits) return '';
+
+  const operator = digits.slice(1, 4);
+  const middle = digits.slice(4, 7);
+  const firstPair = digits.slice(7, 9);
+  const secondPair = digits.slice(9, 11);
+
+  let formatted = '+7';
+  if (operator) formatted += ` (${operator}`;
+  if (operator.length === 3) formatted += ')';
+  if (middle) formatted += ` ${middle}`;
+  if (firstPair) formatted += `-${firstPair}`;
+  if (secondPair) formatted += `-${secondPair}`;
+  return formatted;
+};
+
+const normalizePhoneInput = formatPhoneInput;
+const isValidPhone = (value) => /^7\d{10}$/.test(getPhoneDigits(value));
+
 const AuthScreen = ({ eyebrow, title, subtitle, children }) => (
   <div className="auth-page">
     <section className="auth-hero">
@@ -108,6 +166,51 @@ export const App = () => {
       routeNavigator.push('/login');
     }
   }, [authUser, activePanel, routeNavigator]);
+
+  React.useLayoutEffect(() => {
+    if (activePanel !== DEFAULT_VIEW_PANELS.LOGIN && activePanel !== DEFAULT_VIEW_PANELS.ROLE_MENU) {
+      return;
+    }
+
+    const resetAuthScroll = () => {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      [document.scrollingElement, document.documentElement, document.body]
+        .filter(Boolean)
+        .forEach((node) => {
+          node.scrollTop = 0;
+        });
+
+      document
+        .querySelectorAll('.vkuiRoot, .vkuiSplitLayout, .vkuiSplitCol, .vkuiSplitCol__inner, .vkuiView, .vkuiView__panel, .vkuiView__panel-in, .vkuiPanel, .vkuiPanel__in, [class*="Root"], [class*="SplitCol"], [class*="View"], [class*="Panel"]')
+        .forEach((node) => {
+          node.scrollTop = 0;
+          if (typeof node.scrollTo === 'function') {
+            node.scrollTo({ top: 0, behavior: 'auto' });
+          }
+        });
+    };
+
+    const previousScrollRestoration = window.history.scrollRestoration;
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+
+    resetAuthScroll();
+    const frameId = window.requestAnimationFrame(resetAuthScroll);
+    const timeoutIds = [0, 80, 240].map((delay) => window.setTimeout(resetAuthScroll, delay));
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+      timeoutIds.forEach((timeoutId) => window.clearTimeout(timeoutId));
+      if ('scrollRestoration' in window.history) {
+        try {
+          window.history.scrollRestoration = previousScrollRestoration;
+        } catch (_error) {
+          window.history.scrollRestoration = 'auto';
+        }
+      }
+    };
+  }, [activePanel]);
 
   useEffect(() => {
     const handleLogout = () => {
@@ -251,12 +354,50 @@ export const App = () => {
     setManualLogout(false);
   };
 
+  const updateDevAuthField = (field, value) => {
+    const normalizers = {
+      vkId: normalizeVkIdInput,
+      fullName: normalizeFullNameInput,
+      phone: normalizePhoneInput,
+    };
+    const nextValue = normalizers[field] ? normalizers[field](value) : value;
+    setDevAuthForm((prev) => ({ ...prev, [field]: nextValue }));
+  };
+
+  const validateManualAuthForm = () => {
+    if (!isValidVkId(devAuthForm.vkId)) {
+      setAuthError('VK ID должен состоять ровно из 9 цифр');
+      return false;
+    }
+
+    if (!isValidFullName(devAuthForm.fullName)) {
+      setAuthError('Введите имя и фамилию двумя отдельными словами');
+      return false;
+    }
+
+    return true;
+  };
+
+  const validatePhoneIfRequired = () => {
+    if (!isValidPhone(devAuthForm.phone)) {
+      setAuthError('Телефон должен состоять ровно из 11 цифр, например 79991234567');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleDevLogin = async () => {
     try {
       setAuthError('');
+      if (!validateManualAuthForm()) {
+        return;
+      }
+
+      const fullName = normalizeFullNameForSubmit(devAuthForm.fullName);
       const discovery = await authApi.discover({
         vkId: Number(devAuthForm.vkId),
-        fullName: devAuthForm.fullName,
+        fullName,
       });
 
       setAuthDiscovery(discovery);
@@ -280,7 +421,7 @@ export const App = () => {
 
       const loginResult = await login({
         vkId: Number(devAuthForm.vkId),
-        fullName: discovery?.fullName || devAuthForm.fullName,
+        fullName: discovery?.fullName || fullName,
       });
 
       if (!loginResult.success) {
@@ -302,6 +443,10 @@ export const App = () => {
       const shouldRequireConsent = authDiscovery?.status === 'needs_registration'
         || (authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false);
 
+      if (shouldSendPhone && !validatePhoneIfRequired()) {
+        return;
+      }
+
       if (shouldRequireConsent && !personalDataConsent) {
         setAuthError('Для первичной регистрации нужно согласие на обработку персональных данных');
         return;
@@ -309,8 +454,8 @@ export const App = () => {
 
       const loginResult = await login({
         vkId: Number(devAuthForm.vkId),
-        fullName: devAuthForm.fullName,
-        phone: shouldSendPhone ? devAuthForm.phone : undefined,
+        fullName: normalizeFullNameForSubmit(devAuthForm.fullName),
+        phone: shouldSendPhone ? getPhoneDigits(devAuthForm.phone) : undefined,
         personalDataConsent: shouldRequireConsent ? true : undefined,
         personalDataConsentVersion: shouldRequireConsent ? PERSONAL_DATA_CONSENT_VERSION : undefined,
       });
@@ -353,6 +498,18 @@ export const App = () => {
       </Button>
       {showLegalInfo ? <LegalInformation compact /> : null}
     </div>
+  );
+
+  const renderPhoneInput = () => (
+    <Input
+      value={devAuthForm.phone}
+      type="tel"
+      inputMode="numeric"
+      pattern="\\+7 \\(\\d{3}\\) \\d{3}-\\d{2}-\\d{2}"
+      maxLength={18}
+      onChange={(e) => updateDevAuthField('phone', e.target.value)}
+      placeholder="+7 (999) 123-45-67"
+    />
   );
 
   const handleRoleSelect = async (role, panel) => {
@@ -399,11 +556,7 @@ export const App = () => {
                 </AuthNotice>
                 {authDiscovery?.phoneMissingForClient ? (
                   <FormItem top="Телефон для клиентского раздела">
-                    <Input
-                      value={devAuthForm.phone}
-                      onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                      placeholder="Заполните номер телефона"
-                    />
+                    {renderPhoneInput()}
                   </FormItem>
                 ) : null}
                 {authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false
@@ -414,7 +567,7 @@ export const App = () => {
                   stretched
                   size="l"
                   onClick={handleContinueLogin}
-                  disabled={authDiscovery?.phoneMissingForClient && (!devAuthForm.phone || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
+                  disabled={authDiscovery?.phoneMissingForClient && (!isValidPhone(devAuthForm.phone) || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
                 >
                   Открыть доступные разделы
                 </Button>
@@ -429,11 +582,7 @@ export const App = () => {
                 </AuthNotice>
               {authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient ? (
                 <FormItem top="Телефон">
-                  <Input
-                    value={devAuthForm.phone}
-                    onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                    placeholder="Заполните номер телефона"
-                  />
+                  {renderPhoneInput()}
                 </FormItem>
               ) : null}
               <FormItem>
@@ -441,7 +590,7 @@ export const App = () => {
                   stretched
                   size="l"
                   onClick={handleContinueLogin}
-                  disabled={(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) && !devAuthForm.phone}
+                  disabled={(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient) && !isValidPhone(devAuthForm.phone)}
                 >
                   {(authDiscovery?.phoneMissing || authDiscovery?.phoneMissingForClient)
                     ? 'Сохранить телефон и продолжить'
@@ -460,15 +609,11 @@ export const App = () => {
                 <Input value={devAuthForm.fullName} readOnly />
               </FormItem>
               <FormItem top="Телефон">
-                <Input
-                  value={devAuthForm.phone}
-                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Заполните номер телефона"
-                />
+                {renderPhoneInput()}
               </FormItem>
               {renderPersonalDataConsent()}
               <FormItem>
-                <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone || !personalDataConsent}>
+                <Button stretched size="l" onClick={handleContinueLogin} disabled={!isValidPhone(devAuthForm.phone) || !personalDataConsent}>
                   Привязать и продолжить
                 </Button>
               </FormItem>
@@ -495,19 +640,26 @@ export const App = () => {
             <FormItem top="Тестовый VK ID">
               <Input
                 value={devAuthForm.vkId}
-                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, vkId: e.target.value.replace(/\D/g, '') }))}
+                type="text"
+                inputMode="numeric"
+                pattern={`\\d{${VK_ID_LENGTH}}`}
+                maxLength={VK_ID_LENGTH}
+                placeholder={VK_ID_TEMPLATE}
+                onChange={(e) => updateDevAuthField('vkId', e.target.value)}
               />
             </FormItem>
             <FormItem top="Имя и фамилия">
               <Input
                 value={devAuthForm.fullName}
                 readOnly={authDiscovery?.status === 'employee_found'}
-                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, fullName: e.target.value }))}
+                pattern={FULL_NAME_PATTERN}
+                placeholder={FULL_NAME_TEMPLATE}
+                onChange={(e) => updateDevAuthField('fullName', e.target.value)}
               />
             </FormItem>
             {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
-              <Button stretched size="l" onClick={handleDevLogin} disabled={!devAuthForm.vkId || !devAuthForm.fullName}>
+              <Button stretched size="l" onClick={handleDevLogin} disabled={!isValidVkId(devAuthForm.vkId) || !isValidFullName(devAuthForm.fullName)}>
                 Продолжить
               </Button>
             </FormItem>
@@ -521,11 +673,7 @@ export const App = () => {
             </AuthNotice>
             {authDiscovery?.phoneMissingForClient ? (
               <FormItem top="Телефон для клиентского профиля">
-                <Input
-                  value={devAuthForm.phone}
-                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Заполните номер телефона"
-                />
+                {renderPhoneInput()}
               </FormItem>
             ) : null}
             {authDiscovery?.phoneMissingForClient && authDiscovery?.clientProfileExists === false
@@ -537,7 +685,7 @@ export const App = () => {
                 stretched
                 size="l"
                 onClick={handleContinueLogin}
-                disabled={authDiscovery?.phoneMissingForClient && (!devAuthForm.phone || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
+                disabled={authDiscovery?.phoneMissingForClient && (!isValidPhone(devAuthForm.phone) || (authDiscovery?.clientProfileExists === false && !personalDataConsent))}
               >
                 Открыть доступные разделы
               </Button>
@@ -552,16 +700,12 @@ export const App = () => {
             </AuthNotice>
             {authDiscovery?.phoneMissing ? (
               <FormItem top="Телефон">
-                <Input
-                  value={devAuthForm.phone}
-                  onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Заполните номер телефона"
-                />
+                {renderPhoneInput()}
               </FormItem>
             ) : null}
             {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
-              <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !devAuthForm.phone}>
+              <Button stretched size="l" onClick={handleContinueLogin} disabled={authDiscovery?.phoneMissing && !isValidPhone(devAuthForm.phone)}>
                 {authDiscovery?.phoneMissing ? 'Сохранить телефон и продолжить' : 'Открыть клиентский раздел'}
               </Button>
             </FormItem>
@@ -574,16 +718,12 @@ export const App = () => {
               Завершите регистрацию клиента: нужен только номер телефона.
             </AuthNotice>
             <FormItem top="Телефон">
-              <Input
-                value={devAuthForm.phone}
-                onChange={(e) => setDevAuthForm((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder="Заполните номер телефона"
-              />
+              {renderPhoneInput()}
             </FormItem>
             {renderPersonalDataConsent()}
             {authError ? <AuthNotice title="Не получилось войти" tone="error">{authError}</AuthNotice> : null}
             <FormItem>
-              <Button stretched size="l" onClick={handleContinueLogin} disabled={!devAuthForm.phone || !personalDataConsent}>
+              <Button stretched size="l" onClick={handleContinueLogin} disabled={!isValidPhone(devAuthForm.phone) || !personalDataConsent}>
                 Привязать и продолжить
               </Button>
             </FormItem>

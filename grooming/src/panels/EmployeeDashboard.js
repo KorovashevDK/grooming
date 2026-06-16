@@ -1367,6 +1367,7 @@ export const EmployeeDashboard = ({ id }) => {
                           <Button
                             size="s"
                             mode="secondary"
+                            className="adm-remove-photo-button"
                             onClick={() => handleGroomerCardFieldChange('photoUrl', '')}
                           >
                             Убрать фото

@@ -10,7 +10,6 @@
   Button,
   Badge,
   FormItem,
-  NativeSelect,
   Input,
   Textarea,
   Tabs,
@@ -217,6 +216,194 @@ const GENDER_OPTIONS = [
   { value: 'female', label: 'Самка' },
 ];
 
+const SIZE_OPTIONS = [
+  { value: 'small', label: 'Маленький' },
+  { value: 'medium', label: 'Средний' },
+  { value: 'large', label: 'Большой' },
+];
+
+const KIND_SELECT_OPTIONS = KIND_OPTIONS.map((option) => ({ value: option, label: option }));
+
+const FixedDropdown = ({
+  value,
+  options,
+  placeholder,
+  openKey,
+  openDropdown,
+  setOpenDropdown,
+  onChange,
+  disabled = false,
+}) => {
+  const selectedOption = options.find((option) => option.value === value);
+  const isOpen = openDropdown === openKey;
+  const label = selectedOption?.label || placeholder;
+
+  return (
+    <div className={`cd-fixed-dropdown${isOpen ? ' cd-fixed-dropdown-open' : ''}${disabled ? ' cd-fixed-dropdown-disabled' : ''}`}>
+      <button
+        type="button"
+        className="cd-fixed-dropdown-trigger"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        disabled={disabled}
+        onClick={() => setOpenDropdown(isOpen ? '' : openKey)}
+      >
+        <span>{label}</span>
+        <span className="cd-fixed-dropdown-arrow" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="cd-fixed-dropdown-menu" role="listbox">
+          {options.map((option) => {
+            const isSelected = option.value === value;
+
+            return (
+              <button
+                key={`${openKey}-${option.value || 'empty'}`}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                className={`cd-fixed-dropdown-option${isSelected ? ' cd-fixed-dropdown-option-selected' : ''}`}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpenDropdown('');
+                }}
+              >
+                <span className="cd-fixed-dropdown-option-title">{option.label}</span>
+                {option.description ? (
+                  <span className="cd-fixed-dropdown-option-description">{option.description}</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+FixedDropdown.propTypes = {
+  value: PropTypes.string,
+  options: PropTypes.arrayOf(PropTypes.shape({
+    value: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    description: PropTypes.string,
+  })).isRequired,
+  placeholder: PropTypes.string.isRequired,
+  openKey: PropTypes.string.isRequired,
+  openDropdown: PropTypes.string.isRequired,
+  setOpenDropdown: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};
+
+FixedDropdown.defaultProps = {
+  value: '',
+  disabled: false,
+};
+
+const DateDropdown = ({
+  value,
+  monthValue,
+  minDate,
+  openDropdown,
+  setOpenDropdown,
+  setMonthValue,
+  onChange,
+}) => {
+  const openKey = 'order-date';
+  const isOpen = openDropdown === openKey;
+  const monthDate = toValidDate(`${monthValue || minDate}T00:00:00`) || new Date();
+  monthDate.setDate(1);
+
+  const monthLabel = monthDate.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+  const firstWeekday = (monthDate.getDay() + 6) % 7;
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+  const days = Array.from({ length: firstWeekday + daysInMonth }, (_, index) => {
+    if (index < firstWeekday) return null;
+    const day = index - firstWeekday + 1;
+    const date = new Date(monthDate.getFullYear(), monthDate.getMonth(), day);
+    return formatDateInput(date);
+  });
+
+  const minDateObject = toValidDate(`${minDate}T00:00:00`);
+  const selectedLabel = value ? formatFullDisplayDate(`${value}T00:00:00`) : 'Выберите дату';
+
+  const shiftMonth = (offset) => {
+    const next = new Date(monthDate);
+    next.setMonth(next.getMonth() + offset);
+    setMonthValue(formatDateInput(next));
+  };
+
+  return (
+    <div className={`cd-date-dropdown${isOpen ? ' cd-date-dropdown-open' : ''}`}>
+      <button
+        type="button"
+        className="cd-fixed-dropdown-trigger cd-date-trigger"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        onClick={() => setOpenDropdown(isOpen ? '' : openKey)}
+      >
+        <span>{selectedLabel}</span>
+        <span className="cd-fixed-dropdown-arrow" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="cd-date-menu" role="dialog" aria-label="Выбор даты заказа">
+          <div className="cd-date-menu-head">
+            <button type="button" onClick={() => shiftMonth(-1)} aria-label="Предыдущий месяц">‹</button>
+            <span>{monthLabel}</span>
+            <button type="button" onClick={() => shiftMonth(1)} aria-label="Следующий месяц">›</button>
+          </div>
+          <div className="cd-date-weekdays">
+            {['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map((day) => <span key={day}>{day}</span>)}
+          </div>
+          <div className="cd-date-grid">
+            {days.map((dateValue, index) => {
+              if (!dateValue) {
+                return <span key={`empty-${index}`} className="cd-date-day-empty" />;
+              }
+
+              const dateObject = toValidDate(`${dateValue}T00:00:00`);
+              const disabled = minDateObject && dateObject < minDateObject;
+              const isSelected = dateValue === value;
+
+              return (
+                <button
+                  key={dateValue}
+                  type="button"
+                  className={`cd-date-day${isSelected ? ' cd-date-day-selected' : ''}`}
+                  disabled={disabled}
+                  onClick={() => {
+                    onChange(dateValue);
+                    setOpenDropdown('');
+                  }}
+                >
+                  {dateObject.getDate()}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+DateDropdown.propTypes = {
+  value: PropTypes.string,
+  monthValue: PropTypes.string.isRequired,
+  minDate: PropTypes.string.isRequired,
+  openDropdown: PropTypes.string.isRequired,
+  setOpenDropdown: PropTypes.func.isRequired,
+  setMonthValue: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+};
+
+DateDropdown.defaultProps = {
+  value: '',
+};
+
 const sanitizeNumber = (value) => value.replace(/\D/g, '');
 
 const getServiceAnimalType = (service) => {
@@ -400,7 +587,10 @@ export const ClientDashboard = ({ id }) => {
   const [groomingRecencySelectValue, setGroomingRecencySelectValue] = useState('period:recent');
   const [petDropdownOpen, setPetDropdownOpen] = useState(false);
   const [recencyDropdownOpen, setRecencyDropdownOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState('');
+  const [dateCalendarMonth, setDateCalendarMonth] = useState(() => formatDateInput(new Date()));
   const preferredSlotRef = useRef({ employeeId: '', time: '' });
+  const alertRef = useRef(null);
 
   const [newPetName, setNewPetName] = useState('');
   const [newPetKind, setNewPetKind] = useState('Собака');
@@ -417,6 +607,27 @@ export const ClientDashboard = ({ id }) => {
   const [showAddPet, setShowAddPet] = useState(false);
   const [editingPetId, setEditingPetId] = useState('');
   const [activeTab, setActiveTab] = useState('orders');
+
+  useEffect(() => {
+    if (!errorMessage && !successMessage) {
+      return;
+    }
+
+    const scrollToAlert = () => {
+      const alertNode = alertRef.current;
+      alertNode?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      const scrollHost = alertNode?.closest('.vkuiPanel__in, .vkuiView__panel-in, .vkuiSplitCol__inner');
+      if (scrollHost && typeof scrollHost.scrollTo === 'function') {
+        scrollHost.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const frameId = window.requestAnimationFrame(scrollToAlert);
+    return () => window.cancelAnimationFrame(frameId);
+  }, [errorMessage, successMessage]);
 
   const selectedPet = useMemo(() => pets.find((pet) => pet.id === selectedPetId) || null, [pets, selectedPetId]);
   const selectedPetLabel = selectedPet
@@ -493,6 +704,7 @@ export const ClientDashboard = ({ id }) => {
     () => Boolean(selectedPetId && selectedServiceIds.length > 0 && selectedEmployeeId && selectedDate && selectedTime),
     [selectedPetId, selectedServiceIds, selectedEmployeeId, selectedDate, selectedTime],
   );
+  const todayDateInput = useMemo(() => formatDateInput(new Date()), []);
 
   const completedPetVisitHistory = useMemo(() => {
     if (!selectedPetId || orders.length === 0) {
@@ -811,6 +1023,9 @@ export const ClientDashboard = ({ id }) => {
   const handleDateChange = (value) => {
     preferredSlotRef.current = { employeeId: '', time: '' };
     setSelectedDate(value);
+    if (value) {
+      setDateCalendarMonth(value);
+    }
   };
 
   const handleAvailabilitySlotSelect = (day, employee, slot) => {
@@ -1196,6 +1411,13 @@ export const ClientDashboard = ({ id }) => {
         </div>
       ) : (
         <div className="cd-page">
+          {errorMessage || successMessage ? (
+            <div ref={alertRef} className="cd-alert-stack">
+              {errorMessage ? <div className="cd-alert cd-alert-error">{errorMessage}</div> : null}
+              {successMessage ? <div className="cd-alert cd-alert-success">{successMessage}</div> : null}
+            </div>
+          ) : null}
+
           <div
             className="cd-client-actions-shell"
             style={{
@@ -1268,8 +1490,6 @@ export const ClientDashboard = ({ id }) => {
             </div>
           </section>
 
-          {errorMessage ? <div className="cd-alert">{errorMessage}</div> : null}
-          {successMessage ? <div className="cd-alert">{successMessage}</div> : null}
           {(groomerCard || groomerCardLoading || groomerCardError) ? (
             <div className="cd-groomer-popover" role="dialog" aria-label="Карточка грумера">
               <div className="cd-groomer-popover-head">
@@ -1419,16 +1639,15 @@ export const ClientDashboard = ({ id }) => {
             }
           >
             {pets.length > 0 ? (
-              pets.map((pet) => {
-                const edit = petEdits[pet.id] || {};
-                const sizeLabel = SIZE_LABELS[pet.size] ? ` · ${SIZE_LABELS[pet.size]}` : '';
-                const isEditing = editingPetId === pet.id;
+              <div className="cd-pets-list">
+                {pets.map((pet) => {
+                  const edit = petEdits[pet.id] || {};
+                  const sizeLabel = SIZE_LABELS[pet.size] ? ` · ${SIZE_LABELS[pet.size]}` : '';
+                  const isEditing = editingPetId === pet.id;
 
-                return (
-                  <CardGrid key={pet.id} size="l">
-                    <Card mode="shadow" className="cd-card cd-pet-card">
+                  return (
+                    <Card key={pet.id} mode="shadow" className="cd-card cd-pet-card">
                       <SimpleCell
-                        before={<Avatar size={48} initials={pet.name?.charAt(0) || 'П'} />}
                         description={`${pet.breed || 'Порода не указана'}${pet.age ? ` · ${pet.age} лет` : ''}${sizeLabel}`}
                         className="cd-simplecell cd-pet-head"
                         after={
@@ -1454,9 +1673,14 @@ export const ClientDashboard = ({ id }) => {
                           />
                         </FormItem>
                         <FormItem top="Вид">
-                          <Input
-                            value={edit.kind ?? ''}
-                            onChange={(e) => handlePetFieldChange(pet.id, 'kind', e.target.value)}
+                          <FixedDropdown
+                            value={edit.kind || 'Собака'}
+                            options={KIND_SELECT_OPTIONS}
+                            placeholder="Выберите вид"
+                            openKey={`edit-kind-${pet.id}`}
+                            openDropdown={openDropdown}
+                            setOpenDropdown={setOpenDropdown}
+                            onChange={(value) => handlePetFieldChange(pet.id, 'kind', value)}
                           />
                         </FormItem>
                         <FormItem top="Порода">
@@ -1473,26 +1697,26 @@ export const ClientDashboard = ({ id }) => {
                           />
                         </FormItem>
                         <FormItem top="Пол">
-                          <NativeSelect
+                          <FixedDropdown
                             value={edit.gender ?? ''}
-                            onChange={(e) => handlePetFieldChange(pet.id, 'gender', e.target.value)}
-                          >
-                            {GENDER_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>
-                                {option.label}
-                              </option>
-                            ))}
-                          </NativeSelect>
+                            options={GENDER_OPTIONS}
+                            placeholder="Выберите пол"
+                            openKey={`edit-gender-${pet.id}`}
+                            openDropdown={openDropdown}
+                            setOpenDropdown={setOpenDropdown}
+                            onChange={(value) => handlePetFieldChange(pet.id, 'gender', value)}
+                          />
                         </FormItem>
                         <FormItem top="Размер">
-                          <NativeSelect
+                          <FixedDropdown
                             value={edit.size || 'small'}
-                            onChange={(e) => handlePetFieldChange(pet.id, 'size', e.target.value)}
-                          >
-                            <option value="small">Маленький</option>
-                            <option value="medium">Средний</option>
-                            <option value="large">Большой</option>
-                          </NativeSelect>
+                            options={SIZE_OPTIONS}
+                            placeholder="Выберите размер"
+                            openKey={`edit-size-${pet.id}`}
+                            openDropdown={openDropdown}
+                            setOpenDropdown={setOpenDropdown}
+                            onChange={(value) => handlePetFieldChange(pet.id, 'size', value)}
+                          />
                           <div className="cd-size-help">
                             {String(edit.kind || pet.kind || '').toLowerCase().includes('кош')
                               ? PET_SIZE_HELP.cat
@@ -1528,9 +1752,9 @@ export const ClientDashboard = ({ id }) => {
                       </div>
                       ) : null}
                     </Card>
-                  </CardGrid>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
               <div className="cd-empty">У вас пока нет питомцев</div>
             )}
@@ -1546,13 +1770,15 @@ export const ClientDashboard = ({ id }) => {
                 />
               </FormItem>
               <FormItem top="Вид">
-                <NativeSelect value={newPetKind} onChange={(e) => setNewPetKind(e.target.value)}>
-                  {KIND_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </NativeSelect>
+                <FixedDropdown
+                  value={newPetKind}
+                  options={KIND_SELECT_OPTIONS}
+                  placeholder="Выберите вид"
+                  openKey="new-kind"
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  onChange={setNewPetKind}
+                />
               </FormItem>
               <FormItem top="Порода">
                 <Input
@@ -1570,20 +1796,26 @@ export const ClientDashboard = ({ id }) => {
                 />
               </FormItem>
               <FormItem top="Пол">
-                <NativeSelect value={newPetGender} onChange={(e) => setNewPetGender(e.target.value)}>
-                  {GENDER_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </NativeSelect>
+                <FixedDropdown
+                  value={newPetGender}
+                  options={GENDER_OPTIONS}
+                  placeholder="Выберите пол"
+                  openKey="new-gender"
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  onChange={setNewPetGender}
+                />
               </FormItem>
               <FormItem top="Размер">
-                <NativeSelect value={newPetSize} onChange={(e) => setNewPetSize(e.target.value)}>
-                  <option value="small">Маленький</option>
-                  <option value="medium">Средний</option>
-                  <option value="large">Большой</option>
-                </NativeSelect>
+                <FixedDropdown
+                  value={newPetSize}
+                  options={SIZE_OPTIONS}
+                  placeholder="Выберите размер"
+                  openKey="new-size"
+                  openDropdown={openDropdown}
+                  setOpenDropdown={setOpenDropdown}
+                  onChange={setNewPetSize}
+                />
                 <div className="cd-size-help">
                   {String(newPetKind || '').toLowerCase().includes('кош')
                     ? PET_SIZE_HELP.cat
@@ -1813,12 +2045,14 @@ export const ClientDashboard = ({ id }) => {
 
             <div className="cd-field">
               <div className="cd-field-label">Дата заказа</div>
-              <input
-                type="date"
+              <DateDropdown
                 value={selectedDate}
-                onChange={(e) => handleDateChange(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="cd-date-input"
+                monthValue={dateCalendarMonth}
+                minDate={todayDateInput}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                setMonthValue={setDateCalendarMonth}
+                onChange={handleDateChange}
               />
             </div>
 
@@ -1934,23 +2168,20 @@ export const ClientDashboard = ({ id }) => {
 
             <div className="cd-field">
               <div className="cd-field-label">Грумер</div>
-              <NativeSelect
+              <FixedDropdown
                 value={selectedEmployeeId}
-                onChange={(e) => handleEmployeeChange(e.target.value)}
+                options={availableEmployees.map((employee) => ({
+                  value: employee.id,
+                  label: getEmployeeLabel(employee),
+                  description: employee.roleId ? getGroomerModifierLabel(employee.roleId) : '',
+                }))}
+                placeholder={availabilityLoading ? 'Загрузка...' : availableEmployees.length === 0 ? 'Нет доступных' : 'Выберите грумера'}
+                openKey="order-employee"
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                onChange={handleEmployeeChange}
                 disabled={availabilityLoading || availableEmployees.length === 0}
-              >
-                {availabilityLoading ? (
-                  <option value="">Загрузка...</option>
-                ) : availableEmployees.length === 0 ? (
-                  <option value="">Нет доступных</option>
-                ) : (
-                  availableEmployees.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
-                      {getEmployeeLabel(employee)}
-                    </option>
-                  ))
-                )}
-              </NativeSelect>
+              />
             </div>
 
             {selectedEmployee ? (
@@ -1972,23 +2203,16 @@ export const ClientDashboard = ({ id }) => {
 
             <div className="cd-field">
               <div className="cd-field-label">Время</div>
-              <NativeSelect
+              <FixedDropdown
                 value={selectedTime}
-                onChange={(e) => handleTimeChange(e.target.value)}
+                options={slotsForSelectedEmployee.map((slot) => ({ value: slot, label: slot }))}
+                placeholder={availabilityLoading ? 'Загрузка...' : slotsForSelectedEmployee.length === 0 ? 'Нет слотов' : 'Выберите время'}
+                openKey="order-time"
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                onChange={handleTimeChange}
                 disabled={availabilityLoading || slotsForSelectedEmployee.length === 0}
-              >
-                {availabilityLoading ? (
-                  <option value="">Загрузка...</option>
-                ) : slotsForSelectedEmployee.length === 0 ? (
-                  <option value="">Нет слотов</option>
-                ) : (
-                  slotsForSelectedEmployee.map((slot) => (
-                    <option key={slot} value={slot}>
-                      {slot}
-                    </option>
-                  ))
-                )}
-              </NativeSelect>
+              />
             </div>
 
             <div className="cd-field">

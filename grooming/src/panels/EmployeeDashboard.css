@@ -242,6 +242,18 @@
   pointer-events: none;
 }
 
+.employee-dashboard .adm-remove-photo-button,
+.employee-dashboard .adm-remove-photo-button .vkuiButton__in,
+.employee-dashboard .adm-remove-photo-button .vkuiButton__content {
+  background: #fff4e2 !important;
+  background-color: #fff4e2 !important;
+  border-color: rgba(96, 57, 45, 0.28) !important;
+  color: #60392d !important;
+  -webkit-text-fill-color: #60392d !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+}
+
 .ed-select {
   position: relative;
   width: 100%;
